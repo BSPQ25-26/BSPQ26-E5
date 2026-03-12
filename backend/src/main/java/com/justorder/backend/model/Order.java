@@ -1,8 +1,11 @@
 package com.justorder.backend.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import com.justorder.backend.dto.OrderDTO;
 
@@ -47,6 +50,11 @@ public class Order {
     private double totalPrice;
     private String secretCode;
 
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime deliveredAt;
+
     // Constructors
     public Order() {
     }
@@ -68,6 +76,8 @@ public class Order {
     public Rider getRider() { return rider; }
     public double getTotalPrice() { return totalPrice; }
     public String getSecretCode() { return secretCode; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getDeliveredAt() { return deliveredAt; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -77,6 +87,8 @@ public class Order {
     public void setRider(Rider rider) { this.rider = rider; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
     public void setSecretCode(String secretCode) { this.secretCode = secretCode; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
 
     // toDTO
     public OrderDTO toDTO() {
@@ -84,6 +96,8 @@ public class Order {
             this.id, this.customer.getId(), this.status.getStatus(), this.rider.getId(), this.totalPrice, this.secretCode
         );
         dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        dto.setCreatedAt(this.createdAt);
+        dto.setDeliveredAt(this.deliveredAt);
         return dto;
     }
 }

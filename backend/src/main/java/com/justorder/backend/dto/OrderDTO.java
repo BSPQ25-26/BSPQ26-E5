@@ -1,5 +1,6 @@
 package com.justorder.backend.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderDTO {
@@ -11,6 +12,8 @@ public class OrderDTO {
     private Long riderId;
     private double totalPrice;
     private String secretCode;
+    private LocalDateTime createdAt;
+    private LocalDateTime deliveredAt;
 
     public OrderDTO() {
     }
@@ -32,6 +35,8 @@ public class OrderDTO {
     public Long getRiderId() { return riderId; }
     public double getTotalPrice() { return totalPrice; }
     public String getSecretCode() { return secretCode; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getDeliveredAt() { return deliveredAt; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -41,4 +46,6 @@ public class OrderDTO {
     public void setRiderId(Long riderId) { this.riderId = riderId; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
     public void setSecretCode(String secretCode) { this.secretCode = secretCode; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
 }

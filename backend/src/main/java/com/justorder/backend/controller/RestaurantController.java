@@ -11,34 +11,36 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.justorder.backend.dto.CustomerDTO;
-import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.DishDTO;
+import com.justorder.backend.dto.RestaurantDTO;
 
 @RestController
-@RequestMapping("/api/customers")
-public class CustomerController {
+@RequestMapping("/api/restaurants")
+public class RestaurantController {
     
     @PostMapping("/create")
-    public HttpStatus createOrUpdateCustomer(@RequestBody CustomerDTO request) {
+    public HttpStatus createOrUpdateRestaurant(@RequestBody RestaurantDTO request) {
         // TODO: implement
         return HttpStatus.NOT_IMPLEMENTED;
     }
 
-    @PostMapping("/order")
-    public HttpStatus createOrUpdateOrder(@RequestBody OrderDTO request) {
+    @PostMapping("/menu")
+    public HttpStatus createOrUpdateMenu(@RequestBody List<DishDTO> request) {
         // TODO: implement
         return HttpStatus.NOT_IMPLEMENTED;
     }
+
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantDTO> getRestaurant(@PathVariable String restaurantId) {
+        // TODO: implement
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @GetMapping("/{restaurantId}/menu")
+    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable String restaurantId) {
+        // TODO: implement
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
     
-    @GetMapping("/{customerId}")
-    public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long customerId) {
-        // TODO: implement
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
-
-    @GetMapping("/{customerId}/orders")
-    public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
-        // TODO: implement
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
 }
