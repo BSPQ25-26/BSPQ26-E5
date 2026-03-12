@@ -11,21 +11,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.service.MenuService;
 
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
+
+    @Autowired
+    private MenuService menuService;
     
     @PostMapping("/create")
     public HttpStatus createOrUpdateRestaurant(@RequestBody RestaurantDTO request) {
-        // TODO: implement
-        return HttpStatus.NOT_IMPLEMENTED;
-    }
-
-    @PostMapping("/menu")
-    public HttpStatus createOrUpdateMenu(@RequestBody List<DishDTO> request) {
         // TODO: implement
         return HttpStatus.NOT_IMPLEMENTED;
     }
@@ -37,9 +37,8 @@ public class RestaurantController {
     }
 
     @GetMapping("/{restaurantId}/menu")
-    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable String restaurantId) {
-        // TODO: implement
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(menuService.getMenu(restaurantId));
     }
 
     
