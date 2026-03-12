@@ -1,24 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard'; // Importamos la nueva pantalla
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        {/* La pantalla de Login */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        
+        {/* La pantalla segura del Dashboard (RBAC) */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        
+        {/* Si alguien entra a la raíz "/", lo mandamos al login */}
+        <Route path="/" element={<Navigate to="/admin/login" />} />
+      </Routes>
+    </Router>
   );
 }
 

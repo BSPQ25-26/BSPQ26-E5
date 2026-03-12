@@ -21,3 +21,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# environment local variables
+.env
+
+# Archivos de configuracion local
+application-dev.properties
