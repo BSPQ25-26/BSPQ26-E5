@@ -27,4 +27,4 @@ replay_pid*
 .env
 
 # Archivos de configuracion local
-#application-dev.properties
+application-dev.properties
