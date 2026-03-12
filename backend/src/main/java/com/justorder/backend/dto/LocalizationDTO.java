@@ -1,21 +1,8 @@
-package com.justorder.backend.model;
+package com.justorder.backend.dto;
 
-import com.justorder.backend.dto.LocalizationDTO;
+public class LocalizationDTO {
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "localizations")
-public class Localization {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String city;
     private String province;
     private String country;
@@ -24,11 +11,11 @@ public class Localization {
     private double longitude;
     private double latitude;
 
-    // Constructors
-    public Localization() {
+    public LocalizationDTO() {
     }
 
-    public Localization(String city, String province, String country, String postalCode, String number, double longitude, double latitude) {
+    public LocalizationDTO(Long id, String city, String province, String country, String postalCode, String number, double longitude, double latitude) {
+        this.id = id;
         this.city = city;
         this.province = province;
         this.country = country;
@@ -57,9 +44,4 @@ public class Localization {
     public void setNumber(String number) { this.number = number; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
     public void setLatitude(double latitude) { this.latitude = latitude; }
-
-    // toDTO
-    public LocalizationDTO toDTO() {
-        return new LocalizationDTO(this.id, this.city, this.province, this.country, this.postalCode, this.number, this.longitude, this.latitude);
-    }
 }

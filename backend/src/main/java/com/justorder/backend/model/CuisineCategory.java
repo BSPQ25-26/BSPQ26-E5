@@ -1,5 +1,7 @@
 package com.justorder.backend.model;
 
+import com.justorder.backend.dto.CuisineCategoryDTO;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -42,4 +44,9 @@ public class CuisineCategory {
     public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setDescription(String description) { this.description = description; }
+
+    // toDTO
+    public CuisineCategoryDTO toDTO() {
+        return new CuisineCategoryDTO(this.name, this.description);
+    }
 }

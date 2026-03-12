@@ -2,6 +2,9 @@ package com.justorder.backend.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.justorder.backend.dto.DishDTO;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -62,4 +65,11 @@ public class Dish {
     public void setPrice(double price) { this.price = price; }
     public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
     public void setAlergens(List<Alergen> alergens) { this.alergens = alergens; }
+
+    // toDTO
+    public DishDTO toDTO() {
+        DishDTO dto = new DishDTO(this.id, this.name, this.description, this.price, this.restaurant.getId(), this.restaurant.getName());
+        dto.setAlergenNames(this.alergens.stream().map(Alergen::getName).collect(Collectors.toList()));
+        return dto;
+    }
 }

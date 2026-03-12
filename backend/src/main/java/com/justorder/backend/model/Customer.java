@@ -2,6 +2,9 @@ package com.justorder.backend.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.justorder.backend.dto.CustomerDTO;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -51,7 +54,7 @@ public class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Order> orders = new ArrayList<>();
 
-    // Constructors
+    // Constructors 
     public Customer() {
     }
 
@@ -99,4 +102,15 @@ public class Customer {
     public void setAlergens(List<Alergen> alergens) { this.alergens = alergens; }
     public void setPreferences(List<CuisineCategory> preferences) { this.preferences = preferences; }
     public void setOrders(List<Order> orders) { this.orders = orders; }
+
+    // toDTO
+    public CustomerDTO toDTO() {
+        CustomerDTO dto = new CustomerDTO(
+            this.id, this.name, this.email, this.phone, this.password, this.age, this.dni
+        );
+        dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
+        dto.setAlergenNames(this.alergens.stream().map(Alergen::getName).collect(Collectors.toList()));
+        dto.setPreferenceNames(this.preferences.stream().map(CuisineCategory::getName).collect(Collectors.toList()));
+        return dto;
+    }
 }

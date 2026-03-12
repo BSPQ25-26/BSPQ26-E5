@@ -3,6 +3,8 @@ package com.justorder.backend.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.justorder.backend.dto.RiderDTO;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -30,7 +32,7 @@ public class Rider {
     private List<Order> orders = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "starter_point_id")
+    @JoinColumn(name = "starter_point_id", nullable=false)
     private Localization starterPoint;
 
     // Constructors
@@ -60,4 +62,13 @@ public class Rider {
     public void setPassword(String password) { this.password = password; }
     public void setOrders(List<Order> orders) { this.orders = orders; }
     public void setStarterPoint(Localization starterPoint) { this.starterPoint = starterPoint; }
+
+    // toDTO
+    public RiderDTO toDTO() {
+        RiderDTO dto = new RiderDTO(
+            this.id, this.name, this.phoneNumber, this.email, this.password
+        );
+        dto.setOrderIds(this.orders.stream().map(Order::getId).toList());
+        return dto;
+    }
 }

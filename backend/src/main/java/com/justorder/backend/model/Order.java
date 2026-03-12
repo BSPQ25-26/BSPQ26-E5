@@ -2,6 +2,9 @@ package com.justorder.backend.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.justorder.backend.dto.OrderDTO;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,11 +37,11 @@ public class Order {
     private List<Dish> dishes = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "status_id")
+    @JoinColumn(name = "status_id", nullable=false)
     private OrderStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "rider_id")
+    @JoinColumn(name = "rider_id", nullable = false)
     private Rider rider;
 
     private double totalPrice;
@@ -74,4 +77,13 @@ public class Order {
     public void setRider(Rider rider) { this.rider = rider; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
     public void setSecretCode(String secretCode) { this.secretCode = secretCode; }
+
+    // toDTO
+    public OrderDTO toDTO() {
+        OrderDTO dto = new OrderDTO(
+            this.id, this.customer.getId(), this.status.getStatus(), this.rider.getId(), this.totalPrice, this.secretCode
+        );
+        dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        return dto;
+    }
 }
