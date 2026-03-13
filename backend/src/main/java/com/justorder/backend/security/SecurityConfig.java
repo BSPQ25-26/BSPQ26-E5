@@ -1,5 +1,7 @@
 package com.justorder.backend.security;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +33,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Rutas públicas (Login)
                 .requestMatchers("/api/auth/**").permitAll() 
+                .requestMatchers("/api/hello").permitAll()
+                .requestMatchers("/api/restaurants/**").permitAll()
+                .requestMatchers("/api/customer/**").permitAll()
+                .requestMatchers("/api/riders/**").permitAll()
                 // Rutas protegidas (Solo usuarios con el rol ROLE_ADMIN)
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Cualquier otra ruta requerirá autenticación genérica
