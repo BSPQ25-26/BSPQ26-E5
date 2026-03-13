@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -37,6 +38,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/restaurants/**").permitAll()
                 .requestMatchers("/api/customer/**").permitAll()
                 .requestMatchers("/api/riders/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/alergens").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
                 // Rutas protegidas (Solo usuarios con el rol ROLE_ADMIN)
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Cualquier otra ruta requerirá autenticación genérica

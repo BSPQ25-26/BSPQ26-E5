@@ -27,7 +27,9 @@ public class DishControllerTest {
     @Test
     public void testDishLifecycle() throws Exception {
         DishDTO newDish = new DishDTO(null, "Test Dish", "Test Description", 10.5, 1L, null);
-        newDish.setAlergenNames(new ArrayList<>());
+        ArrayList<String> alergenNames = new ArrayList<>();
+        alergenNames.add("Gluten");
+        newDish.setAlergenNames(alergenNames);
 
         MvcResult result = mockMvc.perform(post("/api/dishes/1")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -40,6 +42,14 @@ public class DishControllerTest {
         Long dishId = createdDish.getId();
 
         createdDish.setPrice(12.5);
+        alergenNames = new ArrayList<>();
+        if(createdDish.getAlergenNames() != null) {
+                for (String alergenName : createdDish.getAlergenNames()) {
+                        alergenNames.add(alergenName);
+                }
+        }
+        alergenNames.add("Lactosa");
+        createdDish.setAlergenNames(alergenNames);
         createdDish.setDescription("Updated Description");
         mockMvc.perform(put("/api/dishes/" + dishId)
                 .contentType(MediaType.APPLICATION_JSON)
