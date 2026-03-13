@@ -24,18 +24,31 @@ public class CustomerController {
     public CustomerController(RegisterService registerService) {
         this.registerService = registerService;
     }
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello from JustOrder!";
+    }
     
     @PostMapping("/create")
-    public HttpStatus createOrUpdateCustomer(@RequestBody CustomerDTO request) {
+    public ResponseEntity<HttpStatus> createOrUpdateCustomer(@RequestBody CustomerDTO request) {
         // TODO: implement
-        this.registerService.registerCustomer(request);
-        return HttpStatus.NOT_IMPLEMENTED;
+        try {
+            System.out.println("Received request to create/update customer: " + request.getName());
+            this.registerService.registerCustomer(request);
+            System.out.println("Customer created/updated successfully: " + request.getName());
+            return ResponseEntity.ok(HttpStatus.OK);
+        } catch (Exception e) {
+            // Log the exception (not shown here for brevity)
+            System.out.println("Error occurred while creating/updating customer: " + request + ". Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping("/order")
-    public HttpStatus createOrUpdateOrder(@RequestBody OrderDTO request) {
+    public ResponseEntity<HttpStatus> createOrUpdateOrder(@RequestBody OrderDTO request) {
         // TODO: implement
-        return HttpStatus.NOT_IMPLEMENTED;
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
     
     @GetMapping("/{customerId}")

@@ -65,7 +65,8 @@ public class Customer {
         Integer age, 
         String dni, 
         List<Localization> localizations,
-        List<CuisineCategory> preferences
+        List<CuisineCategory> preferences,
+        List<Alergen> alergens
     ) {
         this.name = name;
         this.email = email;
@@ -75,6 +76,7 @@ public class Customer {
         this.dni = dni;
         this.localizations = localizations;
         this.preferences = preferences;
+        this.alergens = alergens;
     }
 
     // Getters

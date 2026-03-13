@@ -18,11 +18,13 @@ import com.justorder.backend.model.Localization;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.model.Rider;
 import com.justorder.backend.repository.AdminRepository;
+import com.justorder.backend.repository.AlergenRepository;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.repository.LocalizationRepository;
 import com.justorder.backend.repository.CuisineCategoryRepository;
+import com.justorder.backend.model.Alergen;
 import com.justorder.backend.model.CuisineCategory;
 
 @Service
@@ -34,6 +36,8 @@ public class RegisterService {
 	private final AdminRepository adminRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final CuisineCategoryRepository cuisineCategoryRepository;
+	private final AlergenRepository alergenRepository;
+	private final LocalizationRepository localizationRepository;
 
 	public RegisterService(
 		CustomerRepository customerRepository,
@@ -41,7 +45,9 @@ public class RegisterService {
 		RestaurantRepository restaurantRepository,
 		AdminRepository adminRepository,
 		PasswordEncoder passwordEncoder,
-		CuisineCategoryRepository cuisineCategoryRepository
+		CuisineCategoryRepository cuisineCategoryRepository,
+		AlergenRepository alergenRepository,
+		LocalizationRepository localizationRepository
 	) {
 		this.customerRepository = customerRepository;
 		this.riderRepository = riderRepository;
@@ -49,7 +55,10 @@ public class RegisterService {
 		this.adminRepository = adminRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.cuisineCategoryRepository = cuisineCategoryRepository;
+		this.alergenRepository = alergenRepository;
+		this.localizationRepository = localizationRepository;
 	}
+	
 	@Transactional
 	public Customer registerCustomer(CustomerDTO request) {
 		validateDniNotInUse(request.getDni(), "customer");
@@ -65,7 +74,8 @@ public class RegisterService {
 			request.getAge(),
 			request.getDni(),
 			this.toLocalizationEntities(request.getLocalizations()),
-			this.toCuisineCategoryEntities(request.getPreferenceNames())
+			this.toCuisineCategoryEntities(request.getPreferenceNames()),
+			this.toAlergenEntities(request.getAlergenNames())
 		);
 		Customer savedCustomer = customerRepository.save(customer);
 		return savedCustomer;
@@ -157,6 +167,7 @@ public class RegisterService {
 	private String normalizeEmail(String email) { return email.trim().toLowerCase(); }
 
 	private List<Localization> toLocalizationEntities(List<LocalizationDTO> localizations) {
+		System.out.println(""+ "ajkshvfgd"+ localizations.size());
 		if (localizations == null || localizations.isEmpty()) { 
             throw new IllegalArgumentException("At least one localization is required");
         }
@@ -164,11 +175,14 @@ public class RegisterService {
 	}
 
     private List<CuisineCategory> toCuisineCategoryEntities(List<String> cuisineCategories) {
-        if (cuisineCategories == null || cuisineCategories.isEmpty()) {
-            throw new IllegalArgumentException("At least one cuisine category is required");
-        }
 		return cuisineCategories.stream()
 			.map(name -> cuisineCategoryRepository.findByName(name).get())
+			.toList();
+	}
+
+	private List<Alergen> toAlergenEntities(List<String> alergenNames) {
+		return alergenNames.stream()
+			.map(name -> alergenRepository.findByName(name).get())
 			.toList();
 	}
 }
