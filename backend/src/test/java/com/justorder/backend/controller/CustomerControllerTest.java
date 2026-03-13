@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -210,6 +211,12 @@ class CustomerControllerTest {
         mockMvc.perform(post("/api/customers/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteAllCustomer() throws Exception {
+        mockMvc.perform(delete("/api/customers"))
             .andExpect(status().isOk());
     }
 }

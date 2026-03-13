@@ -34,6 +34,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+
         // Initialización de los datos de prueba
         if (adminRepository.count() == 0) {
             Admin superAdmin = new Admin();

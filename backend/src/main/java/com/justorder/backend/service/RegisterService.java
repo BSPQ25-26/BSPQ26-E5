@@ -88,6 +88,9 @@ public class RegisterService {
 		validateEmailNotInUse(request.getEmail(), "rider");
 		validateEmailTypo(request.getEmail());
 		validatePasswordTypo(request.getPassword());
+		if (request.getStarterPoint() == null) {
+			throw new IllegalArgumentException("Starter point is required");
+		}
 
 		Rider rider = new Rider(
 			request.getName(),
@@ -108,6 +111,13 @@ public class RegisterService {
 		validateEmailNotInUse(request.getEmail(), "restaurant");
 		validateEmailTypo(request.getEmail());
 		validatePasswordTypo(request.getPassword());
+		verifyWorkingHours(request.getMondayWorkingHours());
+		verifyWorkingHours(request.getTuesdayWorkingHours());
+		verifyWorkingHours(request.getWednesdayWorkingHours());
+		verifyWorkingHours(request.getThursdayWorkingHours());
+		verifyWorkingHours(request.getFridayWorkingHours());
+		verifyWorkingHours(request.getSaturdayWorkingHours());
+		verifyWorkingHours(request.getSundayWorkingHours());
 
 		Restaurant restaurant = new Restaurant(
 			request.getName(),
@@ -167,7 +177,6 @@ public class RegisterService {
 	private String normalizeEmail(String email) { return email.trim().toLowerCase(); }
 
 	private List<Localization> toLocalizationEntities(List<LocalizationDTO> localizations) {
-		System.out.println(""+ "ajkshvfgd"+ localizations.size());
 		if (localizations == null || localizations.isEmpty()) { 
             throw new IllegalArgumentException("At least one localization is required");
         }
@@ -184,5 +193,21 @@ public class RegisterService {
 		return alergenNames.stream()
 			.map(name -> alergenRepository.findByName(name).get())
 			.toList();
+	}
+
+	private void verifyWorkingHours(String workingHours) {
+		if (workingHours == null || workingHours.isBlank()) {
+			throw new IllegalArgumentException("Working hours is required");
+		}
+		// Verify format "HH:mm-HH:mm"
+		String[] parts = workingHours.split("-");
+		if (parts.length != 2) {
+			throw new IllegalArgumentException("Working hours must be in format HH:mm-HH:mm");
+		}
+		for (String part : parts) {
+			if (!part.matches("\\d{2}:\\d{2}")) {
+				throw new IllegalArgumentException("Working hours must be in format HH:mm-HH:mm");
+			}
+		}
 	}
 }

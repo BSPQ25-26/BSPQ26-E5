@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.service.RegisterService;
 
 @RestController
@@ -20,9 +22,11 @@ import com.justorder.backend.service.RegisterService;
 public class CustomerController {
 
     private final RegisterService registerService;
+    private final CustomerRepository customerRepository;
 
-    public CustomerController(RegisterService registerService) {
+    public CustomerController(RegisterService registerService, CustomerRepository customerRepository) {
         this.registerService = registerService;
+        this.customerRepository = customerRepository;
     }
 
     @GetMapping("/hello")
@@ -34,13 +38,9 @@ public class CustomerController {
     public ResponseEntity<HttpStatus> createOrUpdateCustomer(@RequestBody CustomerDTO request) {
         // TODO: implement
         try {
-            System.out.println("Received request to create/update customer: " + request.getName());
             this.registerService.registerCustomer(request);
-            System.out.println("Customer created/updated successfully: " + request.getName());
-            return ResponseEntity.ok(HttpStatus.OK);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            // Log the exception (not shown here for brevity)
-            System.out.println("Error occurred while creating/updating customer: " + request + ". Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -61,5 +61,11 @@ public class CustomerController {
     public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
         // TODO: implement
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @DeleteMapping()
+    public ResponseEntity<HttpStatus> deleteAllCustomers() {
+        customerRepository.deleteAll();
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 }
