@@ -13,14 +13,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.service.RegisterService;
 
 @RestController
 @RequestMapping("/api/customers")
 public class CustomerController {
+
+    private final RegisterService registerService;
+
+    public CustomerController(RegisterService registerService) {
+        this.registerService = registerService;
+    }
     
     @PostMapping("/create")
     public HttpStatus createOrUpdateCustomer(@RequestBody CustomerDTO request) {
         // TODO: implement
+        this.registerService.registerCustomer(request);
         return HttpStatus.NOT_IMPLEMENTED;
     }
 

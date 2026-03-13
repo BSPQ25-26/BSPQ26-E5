@@ -13,14 +13,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.dto.RestaurantDTO;
-
+import com.justorder.backend.service.RegisterService;
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
     
+    private final RegisterService registerService;
+
+    public RestaurantController(RegisterService registerService) {
+        this.registerService = registerService;
+    }
+
     @PostMapping("/create")
     public HttpStatus createOrUpdateRestaurant(@RequestBody RestaurantDTO request) {
         // TODO: implement
+        this.registerService.registerRestaurant(request);
         return HttpStatus.NOT_IMPLEMENTED;
     }
 
