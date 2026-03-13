@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import com.justorder.backend.security.JwtAuthenticationFilter;
 import com.justorder.backend.security.JwtUtil;
 
 @SpringBootTest
