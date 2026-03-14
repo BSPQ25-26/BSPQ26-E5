@@ -17,6 +17,12 @@ const AdminDashboard = () => {
     const [editingRiderId, setEditingRiderId] = useState(null);
     const [riderFormData, setRiderFormData] = useState({ name: '', email: '', phoneNumber: '', password: '' });
 
+    // ESTADOS PARA CLIENTES (NUEVO)
+    const [customers, setCustomers] = useState([]);
+    const [showCustForm, setShowCustForm] = useState(false);
+    const [editingCustId, setEditingCustId] = useState(null);
+    const [custFormData, setCustFormData] = useState({ name: '', email: '', phone: '', password: '', age: '', dni: '' });
+
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken');
 
@@ -35,11 +41,18 @@ const AdminDashboard = () => {
         } catch (error) { console.error("Error cargando riders"); }
     };
 
+    const fetchCustomers = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/customers/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (response.ok) setCustomers(await response.json());
+        } catch (error) { console.error("Error cargando clientes"); }
+    };
+
     useEffect(() => {
         if (!token) { navigate('/admin/login'); return; }
         if (activeTab === 'restaurants') fetchRestaurants();
         if (activeTab === 'riders') fetchRiders();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        if (activeTab === 'customers') fetchCustomers();
     }, [navigate, token, activeTab]);
 
     // --- FUNCIONES DE RESTAURANTES ---
@@ -85,6 +98,28 @@ const AdminDashboard = () => {
         try {
             const res = await fetch(`http://localhost:8080/api/riders/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchRiders();
+        } catch (error) { alert("Fallo al eliminar"); }
+    };
+
+    const handleCustSubmit = async (e) => {
+        e.preventDefault();
+        const url = editingCustId ? `http://localhost:8080/api/customers/update/${editingCustId}` : 'http://localhost:8080/api/customers/create';
+        const method = editingCustId ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(custFormData) });
+            if (res.ok) {
+                setShowCustForm(false); setEditingCustId(null);
+                setCustFormData({ name: '', email: '', phone: '', password: '', age: '', dni: '' });
+                fetchCustomers();
+            } else alert("Error guardando cliente");
+        } catch (error) { alert("Fallo de conexión"); }
+    };
+
+    const deleteCustomer = async (id) => {
+        if (!window.confirm("¿Seguro que quieres eliminar este cliente?")) return;
+        try {
+            const res = await fetch(`http://localhost:8080/api/customers/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) fetchCustomers();
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
@@ -212,6 +247,65 @@ const AdminDashboard = () => {
                                     <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
                                         <button onClick={() => { setEditingRiderId(rider.id); setRiderFormData({ name: rider.name, email: rider.email, phoneNumber: rider.phoneNumber, password: '' }); setShowRiderForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
                                         <button onClick={() => deleteRider(rider.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Despedir</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* SECCIÓN CLIENTES */}
+            {activeTab === 'customers' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>Gestión de Clientes</h2>
+                        <button onClick={() => { setEditingCustId(null); setCustFormData({ name: '', email: '', phone: '', password: '', age: '', dni: '' }); setShowCustForm(!showCustForm); }} style={{ padding: '10px', background: showCustForm && !editingCustId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            {showCustForm && !editingCustId ? 'Cancelar' : '+ Añadir Cliente'}
+                        </button>
+                    </div>
+
+                    {showCustForm && (
+                        <form onSubmit={handleCustSubmit} style={{ background: '#f8f9fa', padding: '20px', marginTop: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="text" placeholder="Nombre Completo" required value={custFormData.name} onChange={(e) => setCustFormData({...custFormData, name: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <input type="email" placeholder="Email" required value={custFormData.email} onChange={(e) => setCustFormData({...custFormData, email: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="text" placeholder="Teléfono" required value={custFormData.phone} onChange={(e) => setCustFormData({...custFormData, phone: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <input type="password" placeholder={editingCustId ? "Nueva Contraseña (Opcional)" : "Contraseña"} required={!editingCustId} value={custFormData.password} onChange={(e) => setCustFormData({...custFormData, password: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="number" placeholder="Edad" required value={custFormData.age} onChange={(e) => setCustFormData({...custFormData, age: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <input type="text" placeholder="DNI" required value={custFormData.dni} onChange={(e) => setCustFormData({...custFormData, dni: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar Cliente</button>
+                                {editingCustId && <button type="button" onClick={() => setShowCustForm(false)} style={{ padding: '10px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>}
+                            </div>
+                        </form>
+                    )}
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#343a40', color: 'white', textAlign: 'left' }}>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>ID</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Nombre</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Email</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>DNI</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {customers.map((cust, index) => (
+                                <tr key={cust.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{cust.id}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{cust.name}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{cust.email}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{cust.dni}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                                        <button onClick={() => { setEditingCustId(cust.id); setCustFormData({ name: cust.name, email: cust.email, phone: cust.phone, password: '', age: cust.age, dni: cust.dni }); setShowCustForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                        <button onClick={() => deleteCustomer(cust.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
                                     </td>
                                 </tr>
                             ))}
