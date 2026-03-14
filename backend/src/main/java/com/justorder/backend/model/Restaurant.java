@@ -17,32 +17,10 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
-/**
- * JPA entity representing a restaurant registered on the Just Order platform.
- *
- * <p>Maps directly to the {@code restaurants} table in PostgreSQL. Each
- * restaurant can have multiple dishes, multiple localizations (addresses /
- * delivery zones), and belong to multiple cuisine categories.</p>
- *
- * <p>Restaurants are one of the three main user types alongside Customers
- * and Riders. They are registered via IAM-2 and manage their menu via CA1.</p>
- *
- * <p><b>Design note:</b> The {@code password} field is currently stored as
- * plaintext for sprint simplicity. Before any production deployment it must
- * be hashed (e.g. BCrypt).</p>
- *
- * @see com.justorder.backend.dto.RestaurantDTO
- * @see com.justorder.backend.service.RestaurantService
- * @see com.justorder.backend.repository.RestaurantRepository
- */
 @Entity
 @Table(name = "restaurants")
 public class Restaurant {
 
-    /**
-     * Auto-generated primary key.
-     * Never set manually — managed by PostgreSQL via IDENTITY (auto-increment).
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -58,7 +36,7 @@ public class Restaurant {
 
     /**
      * Email address used for login and notifications.
-     * Must be unique across all restaurants — enforced by
+     * Must be unique across all restaurants
      * {@link com.justorder.backend.repository.RestaurantRepository#existsByEmail(String)}.
      */
     private String email;
