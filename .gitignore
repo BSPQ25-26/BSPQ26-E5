@@ -28,3 +28,4 @@ replay_pid*
 
 # Archivos de configuracion local
 application-dev.properties
+frontend/node_modules/
