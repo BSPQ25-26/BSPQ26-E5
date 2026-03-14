@@ -32,11 +32,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas (Login)
-                .requestMatchers("/api/auth/**").permitAll() 
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/hello").permitAll()
                 .requestMatchers("/api/restaurants/**").permitAll()
-                .requestMatchers("/api/customer/**").permitAll()
+                .requestMatchers("/api/customers/**").permitAll()
                 .requestMatchers("/api/riders/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/alergens").permitAll() 
                 .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
@@ -45,7 +45,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
                 // Rutas protegidas (Solo usuarios con el rol ROLE_ADMIN)
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Cualquier otra ruta requerirá autenticación genérica
                 .anyRequest().authenticated()
             )
             // Añadimos nuestro portero justo antes del filtro normal de Spring
