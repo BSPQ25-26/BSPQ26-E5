@@ -2,62 +2,90 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
-    const [message, setMessage] = useState('');
+    const [restaurants, setRestaurants] = useState([]);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        // 1. Al cargar la página, buscamos la "llave" (Token) que guardamos en el Login
         const token = localStorage.getItem('adminToken');
-
-        // Si no hay token, lo echamos de vuelta al Login (¡Seguridad al poder!)
         if (!token) {
             navigate('/admin/login');
             return;
         }
 
-        // 2. Si hay token, llamamos a la ruta protegida de tu backend de Java
-        const fetchDashboardData = async () => {
+        // Llamamos a la nueva ruta que acabas de crear en Java
+        const fetchRestaurants = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/admin/dashboard', {
+                const response = await fetch('http://localhost:8080/api/restaurants/all', {
                     headers: {
-                        'Authorization': `Bearer ${token}` // Enseñamos el token al "portero" de Spring Boot
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
                 if (response.ok) {
-                    const data = await response.text();
-                    setMessage(data); // El mensaje de éxito que pusimos en el AdminController de Java
+                    const data = await response.json();
+                    setRestaurants(data); // Guardamos los datos
                 } else {
-                    // Si el token es inválido o caducado
-                    localStorage.removeItem('adminToken');
-                    navigate('/admin/login');
+                    setError('Acceso denegado o error en el servidor');
                 }
             } catch (error) {
-                console.error("Error conectando con el servidor", error);
+                setError("Error conectando con el servidor");
             }
         };
 
-        fetchDashboardData();
+        fetchRestaurants();
     }, [navigate]);
 
     const handleLogout = () => {
-        localStorage.removeItem('adminToken'); // Tiramos la llave a la basura
-        navigate('/admin/login'); // Volvemos al login
+        localStorage.removeItem('adminToken');
+        navigate('/admin/login');
     };
 
     return (
         <div style={{ padding: '40px', fontFamily: 'Arial' }}>
-            <h1>Panel de Control del Administrador 🚀</h1>
-            <div style={{ padding: '20px', background: '#d4edda', color: '#155724', borderRadius: '5px', marginTop: '20px' }}>
-                <strong>Mensaje del Servidor Seguro: </strong> {message ? message : 'Cargando...'}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1>Panel de Control del Administrador 🚀</h1>
+                <button 
+                    onClick={handleLogout} 
+                    style={{ padding: '10px 20px', background: 'red', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                    Cerrar Sesión
+                </button>
             </div>
             
-            <button 
-                onClick={handleLogout} 
-                style={{ marginTop: '30px', padding: '10px 20px', background: 'red', color: 'white', border: 'none', cursor: 'pointer' }}
-            >
-                Cerrar Sesión
-            </button>
+            <h2 style={{ marginTop: '30px' }}>Gestión de Restaurantes</h2>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                <thead>
+                    <tr style={{ backgroundColor: '#343a40', color: 'white', textAlign: 'left' }}>
+                        <th style={{ padding: '12px', border: '1px solid #ddd' }}>ID</th>
+                        <th style={{ padding: '12px', border: '1px solid #ddd' }}>Nombre del Local</th>
+                        <th style={{ padding: '12px', border: '1px solid #ddd' }}>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {restaurants.length === 0 ? (
+                        <tr>
+                            <td colSpan="3" style={{ padding: '20px', textAlign: 'center', border: '1px solid #ddd' }}>
+                                No hay restaurantes registrados actualmente.
+                            </td>
+                        </tr>
+                    ) : (
+                        restaurants.map((rest, index) => (
+                            <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                                <td style={{ padding: '12px', border: '1px solid #ddd' }}>{rest.id || index + 1}</td>
+                                <td style={{ padding: '12px', border: '1px solid #ddd' }}>{rest.name || 'Sin nombre'}</td>
+                                <td style={{ padding: '12px', border: '1px solid #ddd' }}>
+                                    <button style={{ padding: '5px 10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+                                        Ver detalles
+                                    </button>
+                                </td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
         </div>
     );
 };
