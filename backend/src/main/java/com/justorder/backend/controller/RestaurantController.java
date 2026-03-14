@@ -32,7 +32,7 @@ public class RestaurantController {
 
     /**
      * Handles restaurant registration logic (IAM-2).
-     * Shared with other controllers — not specific to restaurants only.
+     * Shared with other controllers, not specific to restaurants only.
      */
     private final RegisterService registerService;
 
