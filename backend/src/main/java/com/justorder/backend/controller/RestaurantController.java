@@ -12,13 +12,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.service.MenuService;
+
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.service.RegisterService;
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
+
+    @Autowired
+    private MenuService menuService;
     
     private final RegisterService registerService;
     private final RestaurantRepository restaurantRepository;
@@ -56,10 +63,10 @@ public class RestaurantController {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
+    // GET /api/restaurants/{restaurantId}/menu returns the menu of the restaurant with the given id
     @GetMapping("/{restaurantId}/menu")
-    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable String restaurantId) {
-        // TODO: implement
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(menuService.getMenu(restaurantId));
     }
 
     @DeleteMapping()

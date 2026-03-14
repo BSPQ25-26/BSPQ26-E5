@@ -2,28 +2,40 @@ package com.justorder.backend.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.http.MediaType;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.justorder.backend.security.JwtUtil;
+
+import org.springframework.http.MediaType;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import com.justorder.backend.security.JwtUtil;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class RestaurantControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
+@Transactional
+public class RestaurantControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil;
+    @Autowired
+    private MockMvc mockMvc;
 
+    @Test
+    public void testGetMenu() throws Exception {
+        mockMvc.perform(get("/api/restaurants/1/menu"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$[?(@.name=='Four Cheese Pizza' && @.description=='Stone-baked pizza with four cheeses' && @.price==23.0 && @.restaurantId==1 && @.alergenNames==[\"Gluten\",\"Lactose\"])]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Grilled Salmon' && @.description=='Grilled salmon fillet with herbs' && @.price==25.0 && @.restaurantId==1 && @.alergenNames==[])]", hasSize(1)));
+    }
     @Test
     void testRegisterRestaurant() throws Exception {
         String requestBody = """
@@ -147,5 +159,4 @@ class RestaurantControllerTest {
         mockMvc.perform(delete("/api/restaurants"))
                .andExpect(status().isOk());
     }
-    
 }
