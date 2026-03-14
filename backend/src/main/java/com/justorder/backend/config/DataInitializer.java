@@ -1,5 +1,13 @@
 package com.justorder.backend.config;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
 import com.justorder.backend.model.Admin;
 import com.justorder.backend.model.Alergen;
 import com.justorder.backend.model.CuisineCategory;
@@ -9,23 +17,27 @@ import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.AdminRepository;
 import com.justorder.backend.repository.AlergenRepository;
 import com.justorder.backend.repository.CuisineCategoryRepository;
+import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.DishRepository;
+import com.justorder.backend.repository.LocalizationRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RestaurantRepository;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import com.justorder.backend.repository.RiderRepository;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private AdminRepository adminRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private RiderRepository riderRepository;
+     
+    @Autowired
+    private LocalizationRepository localizationRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
