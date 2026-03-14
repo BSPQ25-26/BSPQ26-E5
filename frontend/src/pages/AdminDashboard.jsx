@@ -147,6 +147,12 @@ const AdminDashboard = () => {
                 >
                     🛵 Repartidores
                 </button>
+                <button 
+                    onClick={() => setActiveTab('customers')}
+                    style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'customers' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'customers' ? 'bold' : 'normal', color: activeTab === 'customers' ? '#007bff' : '#555' }}
+                >
+                    👥 Clientes
+                </button>
             </div>
 
             {/* SECCIÓN RESTAURANTES */}
