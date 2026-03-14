@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.service.MenuService;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RestaurantService;
@@ -27,6 +30,13 @@ import com.justorder.backend.service.RestaurantService;
  * logic to the service layer, and wrapping results in the appropriate
  * {@link ResponseEntity} with the correct HTTP status code.</p>
  *
+ * <p><b>What changed in this sprint (CA2):</b>
+ * <ul>
+ *   <li>Added {@link RestaurantService} as a dependency.</li>
+ *   <li>Added the {@code GET /api/restaurants/search} endpoint for filtering.</li>
+ * </ul>
+ * </p>
+ *
  * @see com.justorder.backend.service.RestaurantService
  * @see com.justorder.backend.service.RegisterService
  */
@@ -34,9 +44,13 @@ import com.justorder.backend.service.RestaurantService;
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
 
+    /** Handles menu retrieval logic (CA1). */
+    @Autowired
+    private MenuService menuService;
+
     /**
-     * Handles restaurant registration logic.
-     * Shared with other controllers (not specific to restaurants only).
+     * Handles restaurant registration logic (IAM-2).
+     * Shared with other controllers — not specific to restaurants only.
      */
     private final RegisterService registerService;
 
@@ -50,18 +64,13 @@ public class RestaurantController {
     private final RestaurantRepository restaurantRepository;
 
     /**
-     * Handles restaurant search and filtering business logic.
+     * Handles restaurant search and filtering business logic (CA2).
      * Added in this sprint alongside the {@code /search} endpoint.
      */
     private final RestaurantService restaurantService;
 
     /**
      * Constructor injection of all dependencies.
-     *
-     * <p>Spring resolves and injects all three beans automatically at startup.
-     * Constructor injection is preferred over {@code @Autowired} field injection
-     * because dependencies are explicit, final, and the class can be instantiated
-     * in unit tests without a Spring context.</p>
      *
      * @param registerService      Service handling registration for all user types.
      * @param restaurantRepository JPA repository for direct DB access (see tech debt note).
@@ -88,10 +97,6 @@ public class RestaurantController {
     /**
      * Registers a new restaurant account (IAM-2).
      *
-     * <p>Accepts a {@link RestaurantDTO} as the request body containing all
-     * required registration fields (name, email, password, working hours, etc.)
-     * and delegates to {@link RegisterService#registerRestaurant(RestaurantDTO)}.</p>
-     *
      * @param request The restaurant registration data from the request body.
      * @return {@code 200 OK} on success, {@code 500 Internal Server Error} on failure.
      */
@@ -106,7 +111,7 @@ public class RestaurantController {
     }
 
     /**
-     * Creates or updates the menu for a restaurant.
+     * Creates or updates the menu for a restaurant (CA1).
      *
      * @param request List of dishes to set as the restaurant's menu.
      * @return {@code 501 Not Implemented} — pending CA1 implementation.
@@ -130,23 +135,21 @@ public class RestaurantController {
     }
 
     /**
-     * Retrieves the full menu (list of dishes) for a given restaurant.
+     * Retrieves the full menu (list of dishes) for a given restaurant (CA1).
      *
      * @param restaurantId The ID of the restaurant whose menu to retrieve.
-     * @return {@code 501 Not Implemented} (pending implementation).
+     * @return {@code 200 OK} with the list of dishes for this restaurant.
      */
     @GetMapping("/{restaurantId}/menu")
-    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable String restaurantId) {
-        // TODO: implement (CA1 — Restaurant Menu Management)
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(menuService.getMenu(restaurantId));
     }
 
     /**
      * Deletes all restaurants from the database.
      *
-     * <p><b>Warning:</b> This is a development/testing utility endpoint and
-     * must be removed or secured before any production deployment. It currently
-     * has no authentication guard.</p>
+     * <p><b>Warning:</b> Development/testing utility — must be removed or
+     * secured before any production deployment.</p>
      *
      * @return {@code 200 OK} after all restaurants are deleted.
      */
@@ -157,11 +160,10 @@ public class RestaurantController {
     }
 
     /**
-     * Searches and filters restaurants by cuisine, rating, and price range.
+     * Searches and filters restaurants by cuisine, rating, and price range (CA2).
      *
      * <p>All query parameters are optional. Omitting a parameter means no filter
-     * is applied for that field. Omitting all parameters returns every restaurant
-     * (equivalent to "browse all").</p>
+     * is applied for that field. Omitting all parameters returns every restaurant.</p>
      *
      * <p><b>Example requests:</b>
      * <pre>
@@ -172,19 +174,11 @@ public class RestaurantController {
      *   GET /api/restaurants/search?cuisine=japanese&amp;minRating=4&amp;maxPrice=30
      * </pre>
      *
-     * <p>Filtering is case-insensitive for {@code cuisine}
-     * (e.g. "Italian" and "italian" return the same results).</p>
-     *
-     * @param cuisine   Cuisine category name to filter by (e.g. "italian", "Japanese").
-     *                  Case-insensitive. {@code null} = no cuisine filter.
-     * @param minRating Minimum average customer rating, inclusive, between 0.0 and 5.0.
-     *                  {@code null} = no rating filter.
-     * @param minPrice  Minimum dish price in euros, inclusive.
-     *                  {@code null} = no lower price bound.
-     * @param maxPrice  Maximum dish price in euros, inclusive.
-     *                  {@code null} = no upper price bound.
-     * @return {@code 200 OK} with a list of matching {@link RestaurantDTO}s.
-     *         Returns an empty list (not 404) when no restaurants match.
+     * @param cuisine   Cuisine category name (case-insensitive). {@code null} = no filter.
+     * @param minRating Minimum average rating 0.0–5.0. {@code null} = no filter.
+     * @param minPrice  Minimum dish price in euros. {@code null} = no filter.
+     * @param maxPrice  Maximum dish price in euros. {@code null} = no filter.
+     * @return {@code 200 OK} with matching {@link RestaurantDTO}s, empty list if none match.
      */
     @GetMapping("/search")
     public ResponseEntity<List<RestaurantDTO>> searchRestaurants(

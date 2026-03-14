@@ -9,15 +9,17 @@ import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.AdminRepository;
 import com.justorder.backend.repository.AlergenRepository;
 import com.justorder.backend.repository.CuisineCategoryRepository;
+import com.justorder.backend.repository.DishRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RestaurantRepository;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -35,10 +37,13 @@ public class DataInitializer implements CommandLineRunner {
     private AlergenRepository alergenRepository;
 
     @Autowired
-    private OrderStatusRepository orderStatusRepository;
+    private RestaurantRepository restaurantRepository;
 
     @Autowired
-    private RestaurantRepository restaurantRepository;
+    private DishRepository dishRepository;
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -64,12 +69,12 @@ public class DataInitializer implements CommandLineRunner {
 
         // Allergens
         if (alergenRepository.count() == 0) {
-            alergenRepository.save(new Alergen("Gluten"));
-            alergenRepository.save(new Alergen("Lactose"));
-            alergenRepository.save(new Alergen("Peanuts"));
-            alergenRepository.save(new Alergen("Shellfish"));
-            alergenRepository.save(new Alergen("Soy"));
-            alergenRepository.save(new Alergen("Eggs"));
+            alergenRepository.save(new Alergen("Gluten", "Cereals containing gluten"));
+            alergenRepository.save(new Alergen("Lactose", "Milk and dairy products"));
+            alergenRepository.save(new Alergen("Peanuts", "Peanuts and peanut-based products"));
+            alergenRepository.save(new Alergen("Shellfish", "Crustaceans and shellfish products"));
+            alergenRepository.save(new Alergen("Soy", "Soybeans and soy-based products"));
+            alergenRepository.save(new Alergen("Eggs", "Eggs and egg-based products"));
         }
 
         // Order statuses
@@ -82,16 +87,69 @@ public class DataInitializer implements CommandLineRunner {
             orderStatusRepository.save(new OrderStatus("Cancelled"));
         }
 
-        // Test restaurants (only seeded if none exist yet)
-        // These cover different cuisines, ratings and price ranges so all CA2 filters can be tested
+        // Test restaurants — all in one block so the count() check only runs once.
+        // Includes:
+        //   - CA1 restaurants (La Marina Bistro, Green Bowl Kitchen) with allergen-tagged dishes
+        //   - CA2 restaurants (Pizza Roma, Sushi Tokyo, Taco Loco, Olive Garden) covering
+        //     different cuisines, ratings and price ranges for filter testing
         if (restaurantRepository.count() == 0) {
 
+            // -----------------------------------------------------------------
+            // CA1 restaurants — for menu management tests
+            // -----------------------------------------------------------------
+            Restaurant restaurant1 = new Restaurant(
+                "La Marina Bistro",
+                "Mediterranean restaurant near the seafront",
+                "+34 900 000 001",
+                "lamarina@justorder.com",
+                passwordEncoder.encode("restaurant123"),
+                "09:00-22:00", "09:00-22:00", "09:00-22:00",
+                "09:00-22:00", "09:00-23:00", "10:00-23:00", "10:00-22:00"
+            );
+            restaurant1 = restaurantRepository.save(restaurant1);
+
+            Restaurant restaurant2 = new Restaurant(
+                "Green Bowl Kitchen",
+                "Healthy bowls and plant-forward comfort food",
+                "+34 900 000 002",
+                "greenbowl@justorder.com",
+                passwordEncoder.encode("restaurant123"),
+                "11:00-22:00", "11:00-22:00", "11:00-22:00",
+                "11:00-22:00", "11:00-23:00", "11:00-23:00", "11:00-21:00"
+            );
+            restaurant2 = restaurantRepository.save(restaurant2);
+
+            if (dishRepository.count() == 0) {
+                Alergen gluten   = alergenRepository.findByName("Gluten").orElseThrow();
+                Alergen lactose  = alergenRepository.findByName("Lactose").orElseThrow();
+                Alergen soy      = alergenRepository.findByName("Soy").orElseThrow();
+                Alergen eggs     = alergenRepository.findByName("Eggs").orElseThrow();
+                Alergen peanuts  = alergenRepository.findByName("Peanuts").orElseThrow();
+
+                Dish dish1 = new Dish("Four Cheese Pizza", "Stone-baked pizza with four cheeses", 23.0, restaurant1);
+                dish1.setAlergens(Arrays.asList(gluten, lactose));
+
+                Dish dish2 = new Dish("Grilled Salmon", "Grilled salmon fillet with herbs", 25.0, restaurant1);
+                dish2.setAlergens(List.of());
+
+                Dish dish3 = new Dish("Thai Tofu Bowl", "Tofu bowl with peanut sauce and scrambled egg", 19.5, restaurant2);
+                dish3.setAlergens(Arrays.asList(soy, eggs, peanuts));
+
+                dishRepository.save(dish1);
+                dishRepository.save(dish2);
+                dishRepository.save(dish3);
+            }
+
+            // -----------------------------------------------------------------
+            // restaurants: for search & filter tests
+            // Different cuisines, ratings and price ranges to cover all filter combinations
+            // -----------------------------------------------------------------
             CuisineCategory italian       = cuisineCategoryRepository.findByName("Italian").orElseThrow();
             CuisineCategory japanese      = cuisineCategoryRepository.findByName("Japanese").orElseThrow();
             CuisineCategory mexican       = cuisineCategoryRepository.findByName("Mexican").orElseThrow();
             CuisineCategory mediterranean = cuisineCategoryRepository.findByName("Mediterranean").orElseThrow();
 
-            // --- Restaurant 1: Italian, high rating, mid price ---
+            // Italian, rating 4.5, dishes €9.50–€12.00
             Restaurant pizzaRoma = new Restaurant(
                 "Pizza Roma", "Authentic Italian pizza and pasta",
                 "+34 600 111 222", "pizzaroma@test.com", "test123",
@@ -100,13 +158,13 @@ public class DataInitializer implements CommandLineRunner {
             );
             pizzaRoma.setAverageRating(4.5);
             pizzaRoma.setCuisineCategories(List.of(italian));
-
-            Dish margherita = new Dish("Margherita", "Classic tomato and mozzarella", 9.50, pizzaRoma);
-            Dish carbonara  = new Dish("Carbonara", "Creamy pasta with bacon", 12.00, pizzaRoma);
-            pizzaRoma.setDishes(List.of(margherita, carbonara));
+            pizzaRoma.setDishes(List.of(
+                new Dish("Margherita", "Classic tomato and mozzarella", 9.50, pizzaRoma),
+                new Dish("Carbonara", "Creamy pasta with bacon", 12.00, pizzaRoma)
+            ));
             restaurantRepository.save(pizzaRoma);
 
-            // --- Restaurant 2: Japanese, very high rating, higher price ---
+            // Japanese, rating 4.8, dishes €13.50–€14.00
             Restaurant sushiTokyo = new Restaurant(
                 "Sushi Tokyo", "Premium Japanese sushi and ramen",
                 "+34 600 333 444", "sushitokyo@test.com", "test123",
@@ -115,13 +173,13 @@ public class DataInitializer implements CommandLineRunner {
             );
             sushiTokyo.setAverageRating(4.8);
             sushiTokyo.setCuisineCategories(List.of(japanese));
-
-            Dish salmonRoll = new Dish("Salmon Roll (8 pcs)", "Fresh salmon with avocado", 14.00, sushiTokyo);
-            Dish ramen      = new Dish("Tonkotsu Ramen", "Rich pork broth ramen", 13.50, sushiTokyo);
-            sushiTokyo.setDishes(List.of(salmonRoll, ramen));
+            sushiTokyo.setDishes(List.of(
+                new Dish("Salmon Roll (8 pcs)", "Fresh salmon with avocado", 14.00, sushiTokyo),
+                new Dish("Tonkotsu Ramen", "Rich pork broth ramen", 13.50, sushiTokyo)
+            ));
             restaurantRepository.save(sushiTokyo);
 
-            // --- Restaurant 3: Mexican, low rating, low price ---
+            // Mexican, rating 3.2, dishes €4.50–€7.00
             Restaurant tacoLoco = new Restaurant(
                 "Taco Loco", "Street-style Mexican tacos and burritos",
                 "+34 600 555 666", "tacoloco@test.com", "test123",
@@ -130,13 +188,13 @@ public class DataInitializer implements CommandLineRunner {
             );
             tacoLoco.setAverageRating(3.2);
             tacoLoco.setCuisineCategories(List.of(mexican));
-
-            Dish taco   = new Dish("Beef Taco", "Spicy beef with salsa and guacamole", 4.50, tacoLoco);
-            Dish burrito = new Dish("Chicken Burrito", "Grilled chicken with rice and beans", 7.00, tacoLoco);
-            tacoLoco.setDishes(List.of(taco, burrito));
+            tacoLoco.setDishes(List.of(
+                new Dish("Beef Taco", "Spicy beef with salsa and guacamole", 4.50, tacoLoco),
+                new Dish("Chicken Burrito", "Grilled chicken with rice and beans", 7.00, tacoLoco)
+            ));
             restaurantRepository.save(tacoLoco);
 
-            // --- Restaurant 4: Mediterranean, good rating, mid price ---
+            // Mediterranean, rating 4.1, dishes €6.50–€8.00
             Restaurant oliveGarden = new Restaurant(
                 "Olive Garden", "Fresh Mediterranean cuisine",
                 "+34 600 777 888", "olivegarden@test.com", "test123",
@@ -145,10 +203,10 @@ public class DataInitializer implements CommandLineRunner {
             );
             oliveGarden.setAverageRating(4.1);
             oliveGarden.setCuisineCategories(List.of(mediterranean));
-
-            Dish hummus = new Dish("Hummus Plate", "Homemade hummus with pita bread", 6.50, oliveGarden);
-            Dish falafel = new Dish("Falafel Wrap", "Crispy falafel with tahini sauce", 8.00, oliveGarden);
-            oliveGarden.setDishes(List.of(hummus, falafel));
+            oliveGarden.setDishes(List.of(
+                new Dish("Hummus Plate", "Homemade hummus with pita bread", 6.50, oliveGarden),
+                new Dish("Falafel Wrap", "Crispy falafel with tahini sauce", 8.00, oliveGarden)
+            ));
             restaurantRepository.save(oliveGarden);
         }
     }
