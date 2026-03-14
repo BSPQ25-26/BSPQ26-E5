@@ -85,8 +85,8 @@ public class RegisterService {
 	public Rider registerRider(RiderDTO request) {
 		// TODO
 		validateDniNotInUse(request.getDni(), "rider");
-		validateEmailNotInUse(request.getEmail(), "rider");
 		validateEmailTypo(request.getEmail());
+		validateEmailNotInUse(request.getEmail(), "rider");
 		validatePasswordTypo(request.getPassword());
 		if (request.getStarterPoint() == null) {
 			throw new IllegalArgumentException("Starter point is required");
@@ -108,8 +108,8 @@ public class RegisterService {
 	@Transactional
 	public RestaurantDTO registerRestaurant(RestaurantDTO request) {
 		// TODO
-		validateEmailNotInUse(request.getEmail(), "restaurant");
 		validateEmailTypo(request.getEmail());
+		validateEmailNotInUse(request.getEmail(), "restaurant");
 		validatePasswordTypo(request.getPassword());
 		verifyWorkingHours(request.getMondayWorkingHours());
 		verifyWorkingHours(request.getTuesdayWorkingHours());
@@ -184,14 +184,22 @@ public class RegisterService {
 	}
 
     private List<CuisineCategory> toCuisineCategoryEntities(List<String> cuisineCategories) {
-		return cuisineCategories.stream()
-			.map(name -> cuisineCategoryRepository.findByName(name).get())
-			.toList();
+        if (cuisineCategories == null) {
+            throw new IllegalArgumentException("Cuisine categories are required");
+        }
+        return cuisineCategories.stream()
+            .map(name -> cuisineCategoryRepository.findByName(name)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown cuisine category: " + name)))
+            .toList();
 	}
 
 	private List<Alergen> toAlergenEntities(List<String> alergenNames) {
+        if (alergenNames == null) {
+            throw new IllegalArgumentException("Alergen names are required");
+        }
 		return alergenNames.stream()
-			.map(name -> alergenRepository.findByName(name).get())
+			.map(name -> alergenRepository.findByName(name)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown alergen: " + name)))
 			.toList();
 	}
 
