@@ -14,9 +14,6 @@ import com.justorder.backend.service.OrderService;
 
 @RestController
 @RequestMapping("/api/orders")
-/**
- * Exposes order-related HTTP endpoints.
- */
 public class OrderController {
 
     private final OrderService orderService;
@@ -26,11 +23,18 @@ public class OrderController {
     }
 
     /**
-     * Creates a new order from a checkout request.
+        * Creates a new order from checkout data.
      *
-     * @param request payload that includes customer id, selected dishes and payment data
-     * @return 201 with the created order, 400 for invalid input, 404 for missing resources,
-     *         or 500 for unexpected errors
+        * Accepted payload rules:
+        * customerId must be present, dishIds must contain valid positive ids,
+        * clientTotal cannot be negative, and paymentToken cannot be blank.
+        *
+        * Validation is performed by {@code OrderService.checkout(...)} and returns:
+        * 201 when the order is created, 400 for invalid payload/payment,
+        * 404 when related entities do not exist, and 500 for unexpected errors.
+        *
+        * @param request checkout payload
+        * @return HTTP response with created order or an error status
      */
     @PostMapping("/checkout")
     public ResponseEntity<OrderDTO> checkout(@RequestBody CheckoutOrderRequestDTO request) {

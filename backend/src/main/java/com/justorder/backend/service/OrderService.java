@@ -21,9 +21,6 @@ import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RiderRepository;
 
 @Service
-/**
- * Handles order checkout business logic.
- */
 public class OrderService {
 
     private static final String DEFAULT_ORDER_STATUS = "Pending";
@@ -49,15 +46,6 @@ public class OrderService {
         this.riderRepository = riderRepository;
     }
 
-    /**
-     * Executes checkout: validates input, resolves entities, validates payment,
-     * assigns default status and rider, and persists the order.
-     *
-     * @param request checkout request payload
-     * @return created order as DTO
-     * @throws IllegalArgumentException when request or payment data is invalid
-     * @throws ResourceNotFoundException when required entities do not exist
-     */
     @Transactional
     public OrderDTO checkout(CheckoutOrderRequestDTO request) {
         validateCheckoutRequest(request);
@@ -95,10 +83,11 @@ public class OrderService {
     }
 
     /**
-     * Validates mandatory fields and basic constraints of a checkout request.
+        * Validates mandatory checkout fields and basic constraints.
      *
      * @param request checkout request payload
-     * @throws IllegalArgumentException when required fields are missing or invalid
+        * @throws IllegalArgumentException when request is null, customerId is missing,
+        *         dishIds is empty/invalid, or clientTotal is negative
      */
     private void validateCheckoutRequest(CheckoutOrderRequestDTO request) {
         if (request == null) {
@@ -119,12 +108,12 @@ public class OrderService {
     }
 
     /**
-     * Simulates payment validation for sprint scope.
+        * Validates payment payload used in sprint scope.
      *
      * @param paymentToken token provided by client
      * @param clientTotal total sent by client
      * @param calculatedTotal total recalculated on server
-     * @throws IllegalArgumentException when token is invalid or totals do not match
+        * @throws IllegalArgumentException when token is blank or totals do not match
      */
     private void validatePayment(String paymentToken, double clientTotal, double calculatedTotal) {
         // Simulated payment check for Sprint 1.
@@ -137,21 +126,10 @@ public class OrderService {
         }
     }
 
-    /**
-     * Computes total order price from the selected dishes.
-     *
-     * @param dishes selected dishes
-     * @return sum of dish prices
-     */
     private double calculateTotal(List<Dish> dishes) {
         return dishes.stream().mapToDouble(Dish::getPrice).sum();
     }
 
-    /**
-     * Generates a six-digit code used for delivery verification.
-     *
-     * @return random six-digit string
-     */
     private String generateSecretCode() {
         int value = RANDOM.nextInt(900000) + 100000;
         return String.valueOf(value);

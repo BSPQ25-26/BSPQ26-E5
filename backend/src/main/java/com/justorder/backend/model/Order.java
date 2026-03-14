@@ -21,9 +21,6 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "orders")
-/**
- * Order entity persisted in the database.
- */
 public class Order {
 
     @Id
@@ -58,20 +55,9 @@ public class Order {
     
     private LocalDateTime deliveredAt;
 
-    // Constructors
     public Order() {
     }
 
-    /**
-     * Creates an order with all business fields initialized.
-     *
-     * @param customer order owner
-     * @param dishes selected dishes
-     * @param status order status
-     * @param rider assigned rider
-     * @param totalPrice server-calculated total
-     * @param secretCode delivery verification code
-     */
     public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider, double totalPrice, String secretCode) {
         this.customer = customer;
         this.dishes = dishes;
@@ -81,7 +67,6 @@ public class Order {
         this.secretCode = secretCode;
     }
 
-    // Getters
     public Long getId() { return id; }
     public Customer getCustomer() { return customer; }
     public List<Dish> getDishes() { return dishes; }
@@ -92,7 +77,6 @@ public class Order {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
 
-    // Setters
     public void setId(Long id) { this.id = id; }
     public void setCustomer(Customer customer) { this.customer = customer; }
     public void setDishes(List<Dish> dishes) { this.dishes = dishes; }
@@ -103,12 +87,6 @@ public class Order {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
 
-    // toDTO
-    /**
-     * Converts the entity to its API DTO representation.
-     *
-     * @return order DTO with mapped dish list and timestamps
-     */
     public OrderDTO toDTO() {
         OrderDTO dto = new OrderDTO(
             this.id, this.customer.getId(), this.status.getStatus(), this.rider.getId(), this.totalPrice, this.secretCode

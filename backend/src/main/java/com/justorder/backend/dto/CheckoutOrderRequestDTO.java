@@ -2,9 +2,6 @@ package com.justorder.backend.dto;
 
 import java.util.List;
 
-/**
- * Request payload used to create an order during checkout.
- */
 public class CheckoutOrderRequestDTO {
 
     private Long customerId;
@@ -12,9 +9,6 @@ public class CheckoutOrderRequestDTO {
     private double clientTotal;
     private String paymentToken;
 
-    /**
-     * Creates an empty checkout request.
-     */
     public CheckoutOrderRequestDTO() {
     }
 
