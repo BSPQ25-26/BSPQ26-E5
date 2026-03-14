@@ -48,10 +48,7 @@ public class MenuService {
         Dish dish = new Dish(dishDTO.getName(), dishDTO.getDescription(), dishDTO.getPrice(), restaurant);
 
         if (dishDTO.getAlergenNames() != null) {
-            List<Alergen> alergens = dishDTO.getAlergenNames().stream()
-                    .map(name -> alergenRepository.findByName(name)
-                            .orElseGet(() -> alergenRepository.save(new Alergen(name))))
-                    .collect(Collectors.toList());
+            List<Alergen> alergens = resolveExistingAlergens(dishDTO.getAlergenNames());
             dish.setAlergens(alergens);
         }
 
@@ -74,10 +71,7 @@ public class MenuService {
         dish.setPrice(dishDTO.getPrice());
 
         if (dishDTO.getAlergenNames() != null) {
-            List<Alergen> alergens = dishDTO.getAlergenNames().stream()
-                    .map(name -> alergenRepository.findByName(name)
-                            .orElseGet(() -> alergenRepository.save(new Alergen(name))))
-                    .collect(Collectors.toList());
+            List<Alergen> alergens = resolveExistingAlergens(dishDTO.getAlergenNames());
             dish.setAlergens(alergens);
         }
 
@@ -110,6 +104,14 @@ public class MenuService {
         if (dishDTO.getPrice() < 0) {
             throw new InvalidDishDataException("Dish price cannot be negative");
         }
+    }
+
+    // Resolves the list of alergen names to a list of existing Alergen entities
+    private List<Alergen> resolveExistingAlergens(List<String> alergenNames) {
+        return alergenNames.stream()
+                .map(name -> alergenRepository.findByName(name)
+                        .orElseThrow(() -> new InvalidDishDataException("Alergen not found: " + name)))
+                .collect(Collectors.toList());
     }
 }
 

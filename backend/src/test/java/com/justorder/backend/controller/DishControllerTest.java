@@ -48,7 +48,7 @@ public class DishControllerTest {
                         alergenNames.add(alergenName);
                 }
         }
-        alergenNames.add("Lactosa");
+        alergenNames.add("Lactose");
         createdDish.setAlergenNames(alergenNames);
         createdDish.setDescription("Updated Description");
         mockMvc.perform(put("/api/dishes/" + dishId)

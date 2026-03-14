@@ -25,8 +25,12 @@ public class AlergenControllerTest {
         
         mockMvc.perform(get("/api/alergens"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[?(@.name=='Gluten' && @.description=='Cereales con gluten')]", hasSize(1)))
-                .andExpect(jsonPath("$[?(@.name=='Lactosa' && @.description=='Productos lacteos')]", hasSize(1)));
+            .andExpect(jsonPath("$", hasSize(6)))
+            .andExpect(jsonPath("$[?(@.name=='Gluten' && @.description=='Cereals containing gluten')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Lactose' && @.description=='Milk and dairy products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Peanuts' && @.description=='Peanuts and peanut-based products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Shellfish' && @.description=='Crustaceans and shellfish products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Soy' && @.description=='Soybeans and soy-based products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Eggs' && @.description=='Eggs and egg-based products')]", hasSize(1)));
     }
 }
