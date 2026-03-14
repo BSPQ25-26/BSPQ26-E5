@@ -87,11 +87,6 @@ public class DataInitializer implements CommandLineRunner {
             orderStatusRepository.save(new OrderStatus("Cancelled"));
         }
 
-        // Test restaurants — all in one block so the count() check only runs once.
-        // Includes:
-        //   - CA1 restaurants (La Marina Bistro, Green Bowl Kitchen) with allergen-tagged dishes
-        //   - CA2 restaurants (Pizza Roma, Sushi Tokyo, Taco Loco, Olive Garden) covering
-        //     different cuisines, ratings and price ranges for filter testing
         if (restaurantRepository.count() == 0) {
 
             // -----------------------------------------------------------------

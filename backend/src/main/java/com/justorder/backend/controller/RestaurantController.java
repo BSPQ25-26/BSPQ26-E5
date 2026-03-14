@@ -22,29 +22,11 @@ import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RestaurantService;
 
-/**
- * REST controller exposing the restaurant-related API endpoints.
- *
- * <p><b>Responsibility:</b> This controller handles only HTTP concerns:
- * parsing incoming request parameters and bodies, delegating all business
- * logic to the service layer, and wrapping results in the appropriate
- * {@link ResponseEntity} with the correct HTTP status code.</p>
- *
- * <p><b>What changed in this sprint (CA2):</b>
- * <ul>
- *   <li>Added {@link RestaurantService} as a dependency.</li>
- *   <li>Added the {@code GET /api/restaurants/search} endpoint for filtering.</li>
- * </ul>
- * </p>
- *
- * @see com.justorder.backend.service.RestaurantService
- * @see com.justorder.backend.service.RegisterService
- */
+
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
 
-    /** Handles menu retrieval logic (CA1). */
     @Autowired
     private MenuService menuService;
 
@@ -56,10 +38,6 @@ public class RestaurantController {
 
     /**
      * Direct repository access for the delete-all utility endpoint.
-     *
-     * <p><b>Tech debt:</b> This should eventually go through the service layer.
-     * Direct controller-to-repository calls bypass business logic and make
-     * the controller harder to test in isolation.</p>
      */
     private final RestaurantRepository restaurantRepository;
 
@@ -84,11 +62,6 @@ public class RestaurantController {
         this.restaurantService = restaurantService;
     }
 
-    /**
-     * Health-check endpoint to verify the restaurant API is reachable.
-     *
-     * @return A plain text greeting string.
-     */
     @GetMapping("/hello")
     public String hello() {
         return "Hello from JustOrder!";
@@ -110,24 +83,13 @@ public class RestaurantController {
         }
     }
 
-    /**
-     * Creates or updates the menu for a restaurant (CA1).
-     *
-     * @param request List of dishes to set as the restaurant's menu.
-     * @return {@code 501 Not Implemented} — pending CA1 implementation.
-     */
+
     @PostMapping("/menu")
     public ResponseEntity<HttpStatus> createOrUpdateMenu(@RequestBody List<DishDTO> request) {
         // TODO: implement (CA1 — Restaurant Menu Management)
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
-    /**
-     * Retrieves a single restaurant by its database ID.
-     *
-     * @param restaurantId The ID of the restaurant to retrieve.
-     * @return {@code 501 Not Implemented} (pending implementation).
-     */
     @GetMapping("/{restaurantId}")
     public ResponseEntity<RestaurantDTO> getRestaurant(@PathVariable String restaurantId) {
         // TODO: implement
@@ -147,9 +109,6 @@ public class RestaurantController {
 
     /**
      * Deletes all restaurants from the database.
-     *
-     * <p><b>Warning:</b> Development/testing utility — must be removed or
-     * secured before any production deployment.</p>
      *
      * @return {@code 200 OK} after all restaurants are deleted.
      */

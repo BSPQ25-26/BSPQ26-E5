@@ -2,30 +2,6 @@ package com.justorder.backend.dto;
 
 import java.util.List;
 
-/**
- * Data Transfer Object (DTO) representing a restaurant in API responses.
- *
- * <p><b>What is a DTO and why do we use one?</b><br>
- * A DTO is a plain Java object whose only job is to carry data between layers
- * (typically between the service layer and the HTTP response). We never expose
- * the raw {@link com.justorder.backend.model.Restaurant} JPA entity over the
- * API because:
- * <ul>
- *   <li>The entity contains sensitive fields like {@code password} that must
- *       never leave the server.</li>
- *   <li>JPA entities have lazy-loaded collections that break JSON serialization
- *       outside of a database transaction.</li>
- *   <li>DTOs let us evolve the database model independently of the API contract.</li>
- * </ul>
- *
- * <p>This DTO is used both as a <b>request body</b> (when registering a restaurant,
- * IAM-2) and as a <b>response body</b> (when returning search results, CA2).
- * In a larger system these would be split into separate request/response DTOs,
- * but they are combined here for simplicity in the current sprint.</p>
- *
- * @see com.justorder.backend.model.Restaurant#toDTO()
- * @see com.justorder.backend.service.RestaurantService
- */
 public class RestaurantDTO {
 
     /** Database ID of the restaurant. Null when used as a creation request. */
@@ -46,7 +22,7 @@ public class RestaurantDTO {
     /**
      * Login password.
      *
-     * <p><b>Security note:</b> This field is included for registration (IAM-2)
+     * <p><b>Security note:</b> This field is included for registration 
      * where the client sends a password. It should never be populated in
      * outbound responses (search results, profiles). A future improvement
      * would be to split this into a separate registration-only DTO.</p>
@@ -67,13 +43,6 @@ public class RestaurantDTO {
     private String sundayWorkingHours;
 
     /**
-     * Pre-computed average customer rating, exposed in search results (CA2)
-     * so the frontend can display star ratings without a separate API call.
-     *
-     * <p><b>Why added:</b> CA2 requires filtering by minimum rating.
-     * Including it here means the frontend gets everything it needs to
-     * render a restaurant card in one response.</p>
-     *
      * <p>Value range: 0.0 (no reviews yet) to 5.0 (maximum rating).</p>
      */
     private Double averageRating;
@@ -86,19 +55,12 @@ public class RestaurantDTO {
 
     /**
      * The restaurant's full menu.
-     * Populated from {@link com.justorder.backend.model.Dish} entities.
-     * Included in responses so customers can browse the menu without a
-     * separate API call.
      */
     private List<DishDTO> dishes;
 
     /**
      * Names of the cuisine categories this restaurant belongs to
      * (e.g. ["Italian", "Pizza"]).
-     *
-     * <p>Stored as plain strings rather than nested DTOs because the
-     * frontend only needs the names for display and filtering — no
-     * other category data is required at this point.</p>
      */
     private List<String> cuisineCategoryNames;
     public RestaurantDTO() {}
@@ -106,10 +68,6 @@ public class RestaurantDTO {
     /**
      * Full constructor used by {@link com.justorder.backend.model.Restaurant#toDTO()}
      * when converting a database entity into an API response.
-     *
-     * <p>Note: {@code averageRating}, {@code localizations}, {@code dishes},
-     * and {@code cuisineCategoryNames} are set separately via setters after
-     * construction because they require additional mapping logic.</p>
      *
      * @param id                    Database ID of the restaurant.
      * @param name                  Display name.
