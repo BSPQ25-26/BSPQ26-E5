@@ -62,8 +62,8 @@ public class RegisterService {
 	@Transactional
 	public Customer registerCustomer(CustomerDTO request) {
 		validateDniNotInUse(request.getDni(), "customer");
-		validateEmailNotInUse(request.getEmail(), "customer");
 		validateEmailTypo(request.getEmail());
+		validateEmailNotInUse(request.getEmail(), "customer");
 		validatePasswordTypo(request.getPassword());
 
 		Customer customer = new Customer(
