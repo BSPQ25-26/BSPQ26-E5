@@ -40,7 +40,6 @@ public class RestaurantController {
             this.registerService.registerRestaurant(request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            System.out.println("Error occurred while creating/updating restaurant: " + request + ". Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
