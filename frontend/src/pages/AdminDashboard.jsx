@@ -53,6 +53,7 @@ const AdminDashboard = () => {
         if (activeTab === 'restaurants') fetchRestaurants();
         if (activeTab === 'riders') fetchRiders();
         if (activeTab === 'customers') fetchCustomers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate, token, activeTab]);
 
     // --- FUNCIONES DE RESTAURANTES ---
