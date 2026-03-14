@@ -36,6 +36,7 @@ public class RestaurantController {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
+    // GET /api/restaurants/{restaurantId}/menu returns the menu of the restaurant with the given id
     @GetMapping("/{restaurantId}/menu")
     public ResponseEntity<List<DishDTO>> getMenu(@PathVariable Long restaurantId) {
         return ResponseEntity.ok(menuService.getMenu(restaurantId));

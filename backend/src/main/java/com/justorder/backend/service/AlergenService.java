@@ -16,6 +16,7 @@ public class AlergenService {
     @Autowired
     private AlergenRepository alergenRepository;
 
+    // Returns a list containing all the alergens
     public List<AlergenDTO> getAllAlergens() {
         return alergenRepository.findAll()
                 .stream()

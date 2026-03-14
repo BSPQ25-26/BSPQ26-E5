@@ -25,7 +25,7 @@ public class RestaurantControllerTest {
         mockMvc.perform(get("/api/restaurants/1/menu"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$[?(@.name=='Plato 1' && @.description=='Plato 1 descripcion' && @.price==23.0)]", hasSize(1)))
-            .andExpect(jsonPath("$[?(@.name=='Plato 2' && @.description=='Plato 2 descripcion' && @.price==25.0)]", hasSize(1)));
+            .andExpect(jsonPath("$[?(@.name=='Plato 1' && @.description=='Plato 1 descripcion' && @.price==23.0 && @.restaurantId==1 && @.alergenNames==[\"Gluten\",\"Lactosa\"])]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Plato 2' && @.description=='Plato 2 descripcion' && @.price==25.0 && @.restaurantId==1 && @.alergenNames==[])]", hasSize(1)));
     }
 }

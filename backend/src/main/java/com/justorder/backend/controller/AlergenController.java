@@ -18,7 +18,7 @@ public class AlergenController {
     @Autowired
     private AlergenService alergenService;
 
-    // GET /api/alergens devuelve la lista de alérgenos disponibles
+    // GET /api/alergens returns a list containing all the alergens
     @GetMapping
     public ResponseEntity<List<AlergenDTO>> getAllAlergens() {
         return ResponseEntity.ok(alergenService.getAllAlergens());
