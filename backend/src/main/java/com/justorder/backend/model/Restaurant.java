@@ -30,7 +30,7 @@ public class Restaurant {
     private String phone;
     private String email;
     private String password;
-    private String mondayWorkingHours;
+    private String mondayWorkingHours; // e.g. "09:00-18:00"
     private String tuesdayWorkingHours;
     private String wednesdayWorkingHours;
     private String thursdayWorkingHours;
