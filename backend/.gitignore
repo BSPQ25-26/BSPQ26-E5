@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# environment local variables
+.env
+
+# Archivos de configuracion local
+application-dev.properties
