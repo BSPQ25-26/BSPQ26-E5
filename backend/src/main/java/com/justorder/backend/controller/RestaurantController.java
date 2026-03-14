@@ -17,29 +17,53 @@ public class RestaurantController {
     @Autowired
     private RestaurantRepository restaurantRepository;
 
-    // RUTA PARA EL ADMIN: Devuelve todos los restaurantes de la base de datos
     @GetMapping("/all")
     public ResponseEntity<List<Restaurant>> getAllRestaurants() {
         List<Restaurant> restaurants = restaurantRepository.findAll();
         return ResponseEntity.ok(restaurants);
     }
-    
+
     @PostMapping("/create")
     public ResponseEntity<Restaurant> createRestaurant(@RequestBody RestaurantDTO request) {
-        // 1. Creamos un restaurante vacío
         Restaurant newRestaurant = new Restaurant();
-        
-        // 2. Lo rellenamos con los datos que llegan desde el formulario de React
         newRestaurant.setName(request.getName());
         newRestaurant.setDescription(request.getDescription());
         newRestaurant.setEmail(request.getEmail());
         newRestaurant.setPhone(request.getPhone());
         newRestaurant.setPassword(request.getPassword()); 
         
-        // 3. Lo guardamos en la base de datos
         Restaurant savedRestaurant = restaurantRepository.save(newRestaurant);
-        
-        // 4. Devolvemos un OK a React
         return ResponseEntity.ok(savedRestaurant);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteRestaurant(@PathVariable Long id) {
+        if (restaurantRepository.existsById(id)) {
+            restaurantRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long id, @RequestBody RestaurantDTO request) {
+        return restaurantRepository.findById(id)
+            .map(existingRestaurant -> {
+                // Actualizamos los datos con lo que llega del formulario
+                existingRestaurant.setName(request.getName());
+                existingRestaurant.setDescription(request.getDescription());
+                existingRestaurant.setEmail(request.getEmail());
+                existingRestaurant.setPhone(request.getPhone());
+                
+                // Solo cambiamos la contraseña si el admin ha escrito una nueva
+                if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                    existingRestaurant.setPassword(request.getPassword());
+                }
+                
+                Restaurant updatedRestaurant = restaurantRepository.save(existingRestaurant);
+                return ResponseEntity.ok(updatedRestaurant);
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
