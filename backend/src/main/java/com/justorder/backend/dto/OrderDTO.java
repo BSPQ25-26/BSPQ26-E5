@@ -3,6 +3,9 @@ package com.justorder.backend.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * DTO used to expose order data through the API.
+ */
 public class OrderDTO {
 
     private Long id;
@@ -18,6 +21,16 @@ public class OrderDTO {
     public OrderDTO() {
     }
 
+    /**
+     * Creates a DTO with the core fields returned after checkout or status reads.
+     *
+     * @param id order id
+     * @param customerId customer id
+     * @param status current order status
+     * @param riderId assigned rider id
+     * @param totalPrice final order total
+     * @param secretCode delivery verification code
+     */
     public OrderDTO(Long id, Long customerId, String status, Long riderId, double totalPrice, String secretCode) {
         this.id = id;
         this.customerId = customerId;

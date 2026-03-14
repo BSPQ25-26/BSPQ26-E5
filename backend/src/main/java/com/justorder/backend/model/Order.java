@@ -21,6 +21,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "orders")
+/**
+ * Order entity persisted in the database.
+ */
 public class Order {
 
     @Id
@@ -59,6 +62,16 @@ public class Order {
     public Order() {
     }
 
+    /**
+     * Creates an order with all business fields initialized.
+     *
+     * @param customer order owner
+     * @param dishes selected dishes
+     * @param status order status
+     * @param rider assigned rider
+     * @param totalPrice server-calculated total
+     * @param secretCode delivery verification code
+     */
     public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider, double totalPrice, String secretCode) {
         this.customer = customer;
         this.dishes = dishes;
@@ -91,6 +104,11 @@ public class Order {
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
 
     // toDTO
+    /**
+     * Converts the entity to its API DTO representation.
+     *
+     * @return order DTO with mapped dish list and timestamps
+     */
     public OrderDTO toDTO() {
         OrderDTO dto = new OrderDTO(
             this.id, this.customer.getId(), this.status.getStatus(), this.rider.getId(), this.totalPrice, this.secretCode
