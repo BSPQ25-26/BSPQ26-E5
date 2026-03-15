@@ -27,7 +27,6 @@ public class DishController {
     public ResponseEntity<List<Dish>> getAllDishes() {
         List<Dish> dishes = dishRepository.findAll();
         
-        // CORTAFUEGOS: Rompemos el bucle infinito de serialización
         for (Dish dish : dishes) {
             if (dish.getRestaurant() != null) {
                 dish.getRestaurant().setDishes(null);
@@ -54,7 +53,6 @@ public class DishController {
 
         Dish savedDish = dishRepository.save(newDish);
         
-        // CORTAFUEGOS: Evitamos que el servidor colapse al responderle a React
         if (savedDish.getRestaurant() != null) {
             savedDish.getRestaurant().setDishes(null);
         }
@@ -79,7 +77,6 @@ public class DishController {
 
             Dish updatedDish = dishRepository.save(existingDish);
             
-            // CORTAFUEGOS: Evitamos que el servidor colapse al responderle a React
             if (updatedDish.getRestaurant() != null) {
                 updatedDish.getRestaurant().setDishes(null);
             }
