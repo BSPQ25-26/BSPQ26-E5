@@ -37,6 +37,9 @@ const AdminDashboard = () => {
 
     // ESTADOS PARA PEDIDOS 
     const [orders, setOrders] = useState([]);
+    const [showOrderForm, setShowOrderForm] = useState(false);
+    const [editingOrderId, setEditingOrderId] = useState(null);
+    const [orderFormData, setOrderFormData] = useState({ customerId: '', riderId: '', statusId: '', totalPrice: '', secretCode: '', dishIds: [] });
 
     // ESTADOS PARA ESTADOS DE PEDIDO
     const [statuses, setStatuses] = useState([]);
@@ -112,14 +115,15 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         if (!token) { navigate('/admin/login'); return; }
-        if (activeTab === 'restaurants') fetchRestaurants();
-        if (activeTab === 'riders') fetchRiders();
-        if (activeTab === 'customers') fetchCustomers();
-        if (activeTab === 'alergens') fetchAlergens();
-        if (activeTab === 'categories') fetchCategories();
-        if (activeTab === 'orders') fetchOrders();
-        if (activeTab === 'statuses') fetchStatuses();
-        if (activeTab === 'dishes') fetchDishes(); // <--- NUEVO
+        
+        fetchRestaurants();
+        fetchRiders();
+        fetchCustomers();
+        fetchAlergens();
+        fetchCategories();
+        fetchStatuses();
+        fetchDishes();
+        fetchOrders();
         
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate, token, activeTab]);
@@ -229,6 +233,20 @@ const AdminDashboard = () => {
     };
 
     // --- FUNCIONES PEDIDOS ---
+    const handleOrderSubmit = async (e) => {
+        e.preventDefault();
+        const url = editingOrderId ? `http://localhost:8080/api/orders/update/${editingOrderId}` : 'http://localhost:8080/api/orders/create';
+        const method = editingOrderId ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(orderFormData) });
+            if (res.ok) { 
+                setShowOrderForm(false); setEditingOrderId(null); 
+                setOrderFormData({ customerId: '', riderId: '', statusId: '', totalPrice: '', secretCode: '', dishIds: [] }); 
+                fetchOrders(); 
+            } else alert("Error guardando pedido");
+        } catch (error) { alert("Fallo de conexión"); }
+    };
+
     const deleteOrder = async (id) => {
         if (!window.confirm("¿Seguro que quieres cancelar y eliminar este pedido del sistema?")) return;
         try {
@@ -609,7 +627,45 @@ const AdminDashboard = () => {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2>Monitor Global de Pedidos</h2>
+                        <button onClick={() => { setEditingOrderId(null); setOrderFormData({ customerId: '', riderId: '', statusId: '', totalPrice: '', secretCode: '', dishIds: [] }); setShowOrderForm(!showOrderForm); }} style={{ padding: '10px', background: showOrderForm && !editingOrderId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            {showOrderForm && !editingOrderId ? 'Cancelar' : '+ Añadir Pedido'}
+                        </button>
                     </div>
+
+                    {showOrderForm && (
+                        <form onSubmit={handleOrderSubmit} style={{ background: '#f8f9fa', padding: '20px', marginTop: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <select required value={orderFormData.customerId} onChange={(e) => setOrderFormData({...orderFormData, customerId: e.target.value})} style={{ padding: '8px', flex: 1 }}>
+                                    <option value="">Seleccionar Cliente...</option>
+                                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                                <select required value={orderFormData.riderId} onChange={(e) => setOrderFormData({...orderFormData, riderId: e.target.value})} style={{ padding: '8px', flex: 1 }}>
+                                    <option value="">Seleccionar Repartidor...</option>
+                                    {riders.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                                </select>
+                                <select required value={orderFormData.statusId} onChange={(e) => setOrderFormData({...orderFormData, statusId: e.target.value})} style={{ padding: '8px', flex: 1 }}>
+                                    <option value="">Seleccionar Estado...</option>
+                                    {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                            </div>
+                            
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Platos del pedido (Ctrl+Click para varios):</label>
+                                <select multiple value={orderFormData.dishIds} onChange={(e) => setOrderFormData({...orderFormData, dishIds: Array.from(e.target.selectedOptions, option => parseInt(option.value))})} style={{ width: '100%', padding: '8px', height: '100px' }}>
+                                    {dishes.map(d => <option key={d.id} value={d.id}>{d.name} - ({d.restaurant ? d.restaurant.name : 'Sin Restaurante'})</option>)}
+                                </select>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="number" step="0.01" placeholder="Precio Total (€)" required value={orderFormData.totalPrice} onChange={(e) => setOrderFormData({...orderFormData, totalPrice: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <input type="text" placeholder="Código Secreto" required value={orderFormData.secretCode} onChange={(e) => setOrderFormData({...orderFormData, secretCode: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar Pedido</button>
+                                {editingOrderId && <button type="button" onClick={() => setShowOrderForm(false)} style={{ padding: '10px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>}
+                            </div>
+                        </form>
+                    )}
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
                         <thead>
@@ -618,13 +674,14 @@ const AdminDashboard = () => {
                                 <th style={{ padding: '12px', border: '1px solid #ddd' }}>Cliente</th>
                                 <th style={{ padding: '12px', border: '1px solid #ddd' }}>Repartidor</th>
                                 <th style={{ padding: '12px', border: '1px solid #ddd' }}>Estado</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Platos</th>
                                 <th style={{ padding: '12px', border: '1px solid #ddd' }}>Total (€)</th>
                                 <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {orders.length === 0 ? (
-                                <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center', border: '1px solid #ddd' }}>No hay pedidos en el sistema.</td></tr>
+                                <tr><td colSpan="7" style={{ padding: '20px', textAlign: 'center', border: '1px solid #ddd' }}>No hay pedidos en el sistema.</td></tr>
                             ) : (
                                 orders.map((order, index) => (
                                     <tr key={order.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
@@ -632,8 +689,10 @@ const AdminDashboard = () => {
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.customer ? order.customer.name : 'N/A'}</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.rider ? order.rider.name : 'Sin asignar'}</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.status ? order.status.name : 'Desconocido'}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.dishes ? order.dishes.length + ' platos' : 'Ninguno'}</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{order.totalPrice} €</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                                            <button onClick={() => { setEditingOrderId(order.id); setOrderFormData({ customerId: order.customer?.id || '', riderId: order.rider?.id || '', statusId: order.status?.id || '', totalPrice: order.totalPrice, secretCode: order.secretCode, dishIds: order.dishes ? order.dishes.map(d => d.id) : [] }); setShowOrderForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
                                             <button onClick={() => deleteOrder(order.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>
                                         </td>
                                     </tr>
