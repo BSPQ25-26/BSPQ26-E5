@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/restaurants/**").permitAll()
                 .requestMatchers("/api/customers/**").permitAll()
                 .requestMatchers("/api/riders/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/alergens").permitAll() 
                 .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
