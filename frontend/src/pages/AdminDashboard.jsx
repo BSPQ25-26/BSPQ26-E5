@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     const [dishes, setDishes] = useState([]);
     const [showDishForm, setShowDishForm] = useState(false);
     const [editingDishId, setEditingDishId] = useState(null);
-    const [dishFormData, setDishFormData] = useState({ name: '', description: '', price: '', image: '', restaurantId: '', alergenIds: [], categoryIds: [] });
+    const [dishFormData, setDishFormData] = useState({ name: '', description: '', price: '', restaurantId: '', alergenIds: [] });
     
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken');
@@ -645,7 +645,7 @@ const AdminDashboard = () => {
                                 </select>
                                 <select required value={orderFormData.statusId} onChange={(e) => setOrderFormData({...orderFormData, statusId: e.target.value})} style={{ padding: '8px', flex: 1 }}>
                                     <option value="">Seleccionar Estado...</option>
-                                    {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    {statuses.map(s => <option key={s.id} value={s.id}>{s.status}</option>)}
                                 </select>
                             </div>
                             
@@ -688,7 +688,7 @@ const AdminDashboard = () => {
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>#{order.id}</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.customer ? order.customer.name : 'N/A'}</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.rider ? order.rider.name : 'Sin asignar'}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.status ? order.status.name : 'Desconocido'}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.status ? order.status.status : 'Desconocido'}</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.dishes ? order.dishes.length + ' platos' : 'Ninguno'}</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{order.totalPrice} €</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
@@ -737,9 +737,9 @@ const AdminDashboard = () => {
                             {statuses.map((status, index) => (
                                 <tr key={status.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
                                     <td style={{ padding: '12px', border: '1px solid #ddd' }}>{status.id}</td>
-                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{status.name}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{status.status}</td>
                                     <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                                        <button onClick={() => { setEditingStatusId(status.id); setStatusFormData({ name: status.name }); setShowStatusForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                        <button onClick={() => { setEditingStatusId(status.id); setStatusFormData({ name: status.status }); setShowStatusForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
                                         <button onClick={() => deleteStatus(status.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
                                     </td>
                                 </tr>
@@ -754,7 +754,7 @@ const AdminDashboard = () => {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2>Gestión de Platos</h2>
-                        <button onClick={() => { setEditingDishId(null); setDishFormData({ name: '', description: '', price: '', image: '', restaurantId: '', alergenIds: [], categoryIds: [] }); setShowDishForm(!showDishForm); }} style={{ padding: '10px', background: showDishForm && !editingDishId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                        <button onClick={() => { setEditingDishId(null); setDishFormData({ name: '', description: '', price: '', restaurantId: '', alergenIds: [] }); setShowDishForm(!showDishForm); }} style={{ padding: '10px', background: showDishForm && !editingDishId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                             {showDishForm && !editingDishId ? 'Cancelar' : '+ Añadir Plato'}
                         </button>
                     </div>
@@ -770,23 +770,14 @@ const AdminDashboard = () => {
                                 </select>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                                <input type="text" placeholder="URL de la Imagen (Opcional)" value={dishFormData.image} onChange={(e) => setDishFormData({...dishFormData, image: e.target.value})} style={{ padding: '8px', flex: 1 }} />
-                                <input type="text" placeholder="Descripción breve" required value={dishFormData.description} onChange={(e) => setDishFormData({...dishFormData, description: e.target.value})} style={{ padding: '8px', flex: 2 }} />
+                                <input type="text" placeholder="Descripción breve" required value={dishFormData.description} onChange={(e) => setDishFormData({...dishFormData, description: e.target.value})} style={{ padding: '8px', width: '100%', boxSizing: 'border-box' }} />
                             </div>
                             
-                            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                                <div style={{ flex: 1 }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Alérgenos (Ctrl+Click para varios):</label>
-                                    <select multiple value={dishFormData.alergenIds} onChange={(e) => setDishFormData({...dishFormData, alergenIds: Array.from(e.target.selectedOptions, option => parseInt(option.value))})} style={{ width: '100%', padding: '8px', height: '80px' }}>
-                                        {alergens.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                    </select>
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Categorías (Ctrl+Click para varias):</label>
-                                    <select multiple value={dishFormData.categoryIds} onChange={(e) => setDishFormData({...dishFormData, categoryIds: Array.from(e.target.selectedOptions, option => parseInt(option.value))})} style={{ width: '100%', padding: '8px', height: '80px' }}>
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                </div>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Alérgenos (Ctrl+Click para varios):</label>
+                                <select multiple value={dishFormData.alergenIds} onChange={(e) => setDishFormData({...dishFormData, alergenIds: Array.from(e.target.selectedOptions, option => parseInt(option.value))})} style={{ width: '100%', padding: '8px', height: '80px' }}>
+                                    {alergens.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                </select>
                             </div>
 
                             <div style={{ display: 'flex', gap: '10px' }}>
@@ -823,10 +814,8 @@ const AdminDashboard = () => {
                                                     name: dish.name, 
                                                     description: dish.description, 
                                                     price: dish.price, 
-                                                    image: dish.image || '', 
                                                     restaurantId: dish.restaurant?.id || '', 
-                                                    alergenIds: dish.alergens ? dish.alergens.map(a => a.id) : [], 
-                                                    categoryIds: dish.categories ? dish.categories.map(c => c.id) : [] 
+                                                    alergenIds: dish.alergens ? dish.alergens.map(a => a.id) : []
                                                 }); 
                                                 setShowDishForm(true); 
                                             }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
