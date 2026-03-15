@@ -4,12 +4,14 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.model.Order;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
+import com.justorder.backend.repository.DishRepository;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -23,6 +25,8 @@ public class OrderController {
     private RiderRepository riderRepository;
     @Autowired
     private OrderStatusRepository orderStatusRepository;
+    @Autowired
+    private DishRepository dishRepository;
 
     @GetMapping("/all")
     public ResponseEntity<List<Order>> getAllOrders() {
@@ -44,6 +48,10 @@ public class OrderController {
         if (request.getStatusId() != null) {
             orderStatusRepository.findById(request.getStatusId()).ifPresent(newOrder::setStatus);
         }
+        // NUEVO: Añadir los platos al pedido
+        if (request.getDishIds() != null && !request.getDishIds().isEmpty()) {
+            newOrder.setDishes(dishRepository.findAllById(request.getDishIds()));
+        }
         
         return ResponseEntity.ok(orderRepository.save(newOrder));
     }
@@ -62,6 +70,10 @@ public class OrderController {
             }
             if (request.getStatusId() != null) {
                 orderStatusRepository.findById(request.getStatusId()).ifPresent(existingOrder::setStatus);
+            }
+            // NUEVO: Actualizar los platos del pedido
+            if (request.getDishIds() != null) {
+                existingOrder.setDishes(dishRepository.findAllById(request.getDishIds()));
             }
             
             return ResponseEntity.ok(orderRepository.save(existingOrder));
