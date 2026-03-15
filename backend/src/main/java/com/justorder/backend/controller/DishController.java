@@ -25,7 +25,16 @@ public class DishController {
 
     @GetMapping("/all")
     public ResponseEntity<List<Dish>> getAllDishes() {
-        return ResponseEntity.ok(dishRepository.findAll());
+        List<Dish> dishes = dishRepository.findAll();
+        
+        // CORTAFUEGOS: Rompemos el bucle infinito de serialización
+        for (Dish dish : dishes) {
+            if (dish.getRestaurant() != null) {
+                dish.getRestaurant().setDishes(null);
+            }
+        }
+        
+        return ResponseEntity.ok(dishes);
     }
 
     @PostMapping("/create")
@@ -43,7 +52,14 @@ public class DishController {
             newDish.setAlergens(alergenRepository.findAllById(request.getAlergenIds()));
         }
 
-        return ResponseEntity.ok(dishRepository.save(newDish));
+        Dish savedDish = dishRepository.save(newDish);
+        
+        // CORTAFUEGOS: Evitamos que el servidor colapse al responderle a React
+        if (savedDish.getRestaurant() != null) {
+            savedDish.getRestaurant().setDishes(null);
+        }
+
+        return ResponseEntity.ok(savedDish);
     }
 
     @PutMapping("/update/{id}")
@@ -61,7 +77,14 @@ public class DishController {
                 existingDish.setAlergens(alergenRepository.findAllById(request.getAlergenIds()));
             }
 
-            return ResponseEntity.ok(dishRepository.save(existingDish));
+            Dish updatedDish = dishRepository.save(existingDish);
+            
+            // CORTAFUEGOS: Evitamos que el servidor colapse al responderle a React
+            if (updatedDish.getRestaurant() != null) {
+                updatedDish.getRestaurant().setDishes(null);
+            }
+
+            return ResponseEntity.ok(updatedDish);
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
