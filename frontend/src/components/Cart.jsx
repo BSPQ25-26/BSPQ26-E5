@@ -16,10 +16,10 @@ const Cart = () => {
 
   return (
     <section className="card" aria-labelledby="cart-title">
-      <h2 id="cart-title">Carrito</h2>
+      <h2 id="cart-title">Cart</h2>
 
       {items.length === 0 ? (
-        <p>Tu carrito esta vacio.</p>
+        <p>Your cart is empty.</p>
       ) : (
         <>
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -61,7 +61,7 @@ const Cart = () => {
                     className="btn btn-secondary"
                     onClick={() => removeFromCart(item.id)}
                   >
-                    Quitar
+                    Remove
                   </button>
                 </div>
               </li>
@@ -79,7 +79,7 @@ const Cart = () => {
             style={{ marginTop: "12px" }}
             onClick={clearCart}
           >
-            Vaciar carrito
+            Clear cart
           </button>
         </>
       )}

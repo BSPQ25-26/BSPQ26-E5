@@ -23,23 +23,28 @@ const CheckoutPage = () => {
     [items]
   );
 
+  /**
+   * Sends the checkout payload expected by the backend.
+   * A valid request requires a positive customerId, at least one dish id,
+   * and a non-empty payment token.
+   */
   const handleCheckout = async () => {
     setSuccessMessage("");
     setErrorMessage("");
 
     const parsedCustomerId = Number(customerId);
     if (!parsedCustomerId || parsedCustomerId <= 0) {
-      setErrorMessage("Introduce un customerId valido.");
+      setErrorMessage("Enter a valid customerId.");
       return;
     }
 
     if (dishIds.length === 0) {
-      setErrorMessage("El carrito esta vacio.");
+      setErrorMessage("Your cart is empty.");
       return;
     }
 
     if (!paymentToken.trim()) {
-      setErrorMessage("paymentToken es obligatorio.");
+      setErrorMessage("paymentToken is required.");
       return;
     }
 
@@ -68,16 +73,16 @@ const CheckoutPage = () => {
       if (!response.ok) {
         throw new Error(
           data?.message ||
-            `Checkout fallo con codigo ${response.status}. Revisa customerId, dishes o pago.`
+          `Checkout failed with status ${response.status}. Check customerId, dishes, or payment data.`
         );
       }
 
       clearCart();
       setSuccessMessage(
-        `Pedido confirmado. ID: ${data?.id ?? "N/A"}. Codigo secreto: ${data?.secretCode ?? "N/A"}.`
+        `Order confirmed. ID: ${data?.id ?? "N/A"}. Secret code: ${data?.secretCode ?? "N/A"}.`
       );
     } catch (error) {
-      setErrorMessage(error.message || "No se pudo completar el checkout.");
+      setErrorMessage(error.message || "Checkout could not be completed.");
     } finally {
       setIsLoading(false);
     }
@@ -88,14 +93,14 @@ const CheckoutPage = () => {
       <section className="home-hero">
         <p className="home-kicker">Checkout</p>
         <h1>Shopping Cart & Checkout</h1>
-        <p>Selecciona platos, revisa tu carrito y confirma el pedido contra el backend.</p>
+        <p>Select dishes, review your cart, and confirm the order against the backend.</p>
       </section>
 
       <section className="home-grid" style={{ marginTop: "18px" }}>
         <article className="card" style={{ gridColumn: "span 2" }}>
-          <h2>Platos de prueba</h2>
+          <h2>Sample dishes</h2>
           <p style={{ color: "#5d6b87" }}>
-            Esta lista es temporal para Sprint 1 y te permite probar el flujo completo de carrito.
+            This temporary list is enough to validate the Sprint 1 cart and checkout flow.
           </p>
 
           <div style={{ display: "grid", gap: "10px" }}>
@@ -116,7 +121,7 @@ const CheckoutPage = () => {
                   <p style={{ margin: "6px 0 0", color: "#5d6b87" }}>{formatPrice(dish.price)}</p>
                 </div>
                 <button type="button" className="btn btn-primary" onClick={() => addToCart(dish)}>
-                  Anadir al carrito
+                  Add to cart
                 </button>
               </div>
             ))}
@@ -127,7 +132,7 @@ const CheckoutPage = () => {
       </section>
 
       <section className="card" style={{ marginTop: "18px" }}>
-        <h2>Pago simulado</h2>
+        <h2>Simulated payment</h2>
 
         <div style={{ display: "grid", gap: "10px", maxWidth: "420px" }}>
           <label htmlFor="customerIdInput">Customer ID</label>
@@ -147,7 +152,7 @@ const CheckoutPage = () => {
             onChange={(event) => setPaymentToken(event.target.value)}
           />
 
-          <p style={{ margin: 0, color: "#5d6b87" }}>Total a enviar: {formatPrice(totalPrice)}</p>
+          <p style={{ margin: 0, color: "#5d6b87" }}>Total sent to backend: {formatPrice(totalPrice)}</p>
 
           <button
             type="button"
@@ -155,7 +160,7 @@ const CheckoutPage = () => {
             onClick={handleCheckout}
             disabled={isLoading}
           >
-            {isLoading ? "Procesando..." : "Pagar y Confirmar"}
+            {isLoading ? "Processing..." : "Pay and Confirm"}
           </button>
         </div>
 

@@ -2,6 +2,10 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 
 const CartContext = createContext(undefined);
 
+/**
+ * Stores cart items grouped by dish id and exposes the operations used by the
+ * checkout flow.
+ */
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([]);
 

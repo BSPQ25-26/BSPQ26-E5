@@ -23,18 +23,9 @@ public class OrderController {
     }
 
     /**
-        * Creates a new order from checkout data.
-     *
-        * Accepted payload rules:
-        * customerId must be present, dishIds must contain valid positive ids,
-        * clientTotal cannot be negative, and paymentToken cannot be blank.
-        *
-        * Validation is performed by {@code OrderService.checkout(...)} and returns:
-        * 201 when the order is created, 400 for invalid payload/payment,
-        * 404 when related entities do not exist, and 500 for unexpected errors.
-        *
-        * @param request checkout payload
-        * @return HTTP response with created order or an error status
+     * Accepts checkout payloads with customerId, dishIds, clientTotal and paymentToken.
+     * Returns 201 when the order is created, 400 for invalid payload or payment data,
+     * and 404 when referenced entities or an assignable rider are missing.
      */
     @PostMapping("/checkout")
     public ResponseEntity<OrderDTO> checkout(@RequestBody CheckoutOrderRequestDTO request) {
