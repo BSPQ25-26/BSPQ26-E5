@@ -139,7 +139,7 @@ const RegisterRestaurant = () => {
                 ))}
             </fieldset>
 
-            <button type="submit">Registrar restaurante</button>
+            <button type="submit">Register restaurant</button>
             </form>
 
             {message && <p role="alert">{message}</p>}
