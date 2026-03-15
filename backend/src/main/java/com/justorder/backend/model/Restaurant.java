@@ -24,21 +24,9 @@ public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    /** Display name of the restaurant shown to customers in search results. */
     private String name;
-
-    /** Short description of the restaurant, e.g. cuisine style or specialty. */
     private String description;
-
-    /** Contact phone number. Stored as String to support international formats. */
     private String phone;
-
-    /**
-     * Email address used for login and notifications.
-     * Must be unique across all restaurants
-     * {@link com.justorder.backend.repository.RestaurantRepository#existsByEmail(String)}.
-     */
     private String email;
 
     /**
@@ -95,10 +83,6 @@ public class Restaurant {
     )
     private List<CuisineCategory> cuisineCategories = new ArrayList<>();
 
-    /**
-     * No-argument constructor required by JPA.
-     * Do not use directly in application code (use the parameterized constructor).
-     */
     public Restaurant() {}
 
     /**
@@ -139,25 +123,13 @@ public class Restaurant {
     // Getters
     // -------------------------------------------------------------------------
 
-    /** @return The auto-generated database ID. */
+
     public Long getId() { return id; }
-
-    /** @return The display name of the restaurant. */
     public String getName() { return name; }
-
-    /** @return Short description of the restaurant. */
     public String getDescription() { return description; }
-
-    /** @return Contact phone number. */
     public String getPhone() { return phone; }
-
-    /** @return Login email address. */
     public String getEmail() { return email; }
-
-    /** @return Login password (see field Javadoc, should be hashed). */
     public String getPassword() { return password; }
-
-    /** @return Working hours for Monday, e.g. "09:00-22:00". Null if closed. */
     public String getMondayWorkingHours() { return mondayWorkingHours; }
     public String getTuesdayWorkingHours() { return tuesdayWorkingHours; }
     public String getWednesdayWorkingHours() { return wednesdayWorkingHours; }

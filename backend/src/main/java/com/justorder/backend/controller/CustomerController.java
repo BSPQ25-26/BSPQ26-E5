@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.service.RegisterService;
 
 @RestController
@@ -23,20 +24,23 @@ public class CustomerController {
 
     private final RegisterService registerService;
     private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
 
-    public CustomerController(RegisterService registerService, CustomerRepository customerRepository) {
+    public CustomerController(RegisterService registerService,
+                              CustomerRepository customerRepository,
+                              OrderRepository orderRepository) {
         this.registerService = registerService;
         this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
     }
 
     @GetMapping("/hello")
     public String hello() {
         return "Hello from JustOrder!";
     }
-    
+
     @PostMapping("/create")
     public ResponseEntity<HttpStatus> createOrUpdateCustomer(@RequestBody CustomerDTO request) {
-        // TODO: implement
         try {
             this.registerService.registerCustomer(request);
             return ResponseEntity.ok().build();
@@ -47,10 +51,10 @@ public class CustomerController {
 
     @PostMapping("/order")
     public ResponseEntity<HttpStatus> createOrUpdateOrder(@RequestBody OrderDTO request) {
-        // TODO: implement
+        // TODO: implement (CO1 — Order Creation)
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
-    
+
     @GetMapping("/{customerId}")
     public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long customerId) {
         // TODO: implement
@@ -63,8 +67,14 @@ public class CustomerController {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
+    /**
+     * Deletes all customers from the database.
+     *
+     * @return {@code 200 OK} after all customers and their orders are deleted.
+     */
     @DeleteMapping()
     public ResponseEntity<HttpStatus> deleteAllCustomers() {
+        orderRepository.deleteAll(); 
         customerRepository.deleteAll();
         return ResponseEntity.ok(HttpStatus.OK);
     }

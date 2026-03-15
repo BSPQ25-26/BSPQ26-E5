@@ -119,10 +119,7 @@ public class RestaurantController {
     }
 
     /**
-     * Searches and filters restaurants by cuisine, rating, and price range (CA2).
-     *
-     * <p>All query parameters are optional. Omitting a parameter means no filter
-     * is applied for that field. Omitting all parameters returns every restaurant.</p>
+     * Searches and filters restaurants by cuisine, rating, and price range.
      *
      * <p><b>Example requests:</b>
      * <pre>

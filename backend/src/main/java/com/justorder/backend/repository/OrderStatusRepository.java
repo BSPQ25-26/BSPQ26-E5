@@ -1,11 +1,13 @@
 package com.justorder.backend.repository;
 
-import java.util.Optional;
-
+import com.justorder.backend.model.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.justorder.backend.model.OrderStatus;
+import java.util.Optional;
 
 public interface OrderStatusRepository extends JpaRepository<OrderStatus, Long> {
-	Optional<OrderStatus> findByStatusIgnoreCase(String status);
+
+    Optional<OrderStatus> findByStatus(String status);
+
+    Optional<OrderStatus> findByStatusIgnoreCase(String status);
 }
