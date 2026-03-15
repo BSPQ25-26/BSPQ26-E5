@@ -11,29 +11,38 @@ const AdminDashboard = () => {
     const [editingRestId, setEditingRestId] = useState(null);
     const [restFormData, setRestFormData] = useState({ name: '', description: '', email: '', phone: '', password: '' });
 
-    // ESTADOS PARA REPARTIDORES (RIDERS)
+    // ESTADOS PARA REPARTIDORES 
     const [riders, setRiders] = useState([]);
     const [showRiderForm, setShowRiderForm] = useState(false);
     const [editingRiderId, setEditingRiderId] = useState(null);
     const [riderFormData, setRiderFormData] = useState({ name: '', email: '', phoneNumber: '', password: '' });
 
-    // ESTADOS PARA CLIENTES (NUEVO)
+    // ESTADOS PARA CLIENTES 
     const [customers, setCustomers] = useState([]);
     const [showCustForm, setShowCustForm] = useState(false);
     const [editingCustId, setEditingCustId] = useState(null);
     const [custFormData, setCustFormData] = useState({ name: '', email: '', phone: '', password: '', age: '', dni: '' });
 
-    // ESTADOS PARA ALÉRGENOS (NUEVO)
+    // ESTADOS PARA ALÉRGENOS 
     const [alergens, setAlergens] = useState([]);
     const [showAlergenForm, setShowAlergenForm] = useState(false);
     const [editingAlergenId, setEditingAlergenId] = useState(null);
     const [alergenFormData, setAlergenFormData] = useState({ name: '', description: '' });
 
-    // ESTADOS PARA CATEGORÍAS (NUEVO)
+    // ESTADOS PARA CATEGORÍAS 
     const [categories, setCategories] = useState([]);
     const [showCategoryForm, setShowCategoryForm] = useState(false);
     const [editingCategoryId, setEditingCategoryId] = useState(null);
     const [categoryFormData, setCategoryFormData] = useState({ name: '', description: '' });
+
+    // ESTADOS PARA PEDIDOS 
+    const [orders, setOrders] = useState([]);
+
+    // ESTADOS PARA ESTADOS DE PEDIDO
+    const [statuses, setStatuses] = useState([]);
+    const [showStatusForm, setShowStatusForm] = useState(false);
+    const [editingStatusId, setEditingStatusId] = useState(null);
+    const [statusFormData, setStatusFormData] = useState({ name: '' });
 
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken');
@@ -74,6 +83,20 @@ const AdminDashboard = () => {
         } catch (error) { console.error("Error cargando categorías"); }
     };
 
+    const fetchOrders = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/orders/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (response.ok) setOrders(await response.json());
+        } catch (error) { console.error("Error cargando pedidos"); }
+    };
+
+    const fetchStatuses = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/order-statuses/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (response.ok) setStatuses(await response.json());
+        } catch (error) { console.error("Error cargando estados de pedido"); }
+    };
+
     useEffect(() => {
         if (!token) { navigate('/admin/login'); return; }
         if (activeTab === 'restaurants') fetchRestaurants();
@@ -81,6 +104,8 @@ const AdminDashboard = () => {
         if (activeTab === 'customers') fetchCustomers();
         if (activeTab === 'alergens') fetchAlergens();
         if (activeTab === 'categories') fetchCategories();
+        if (activeTab === 'orders') fetchOrders();
+        if (activeTab === 'statuses') fetchStatuses();
         
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate, token, activeTab]);
@@ -189,6 +214,34 @@ const AdminDashboard = () => {
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
+    // --- FUNCIONES PEDIDOS ---
+    const deleteOrder = async (id) => {
+        if (!window.confirm("¿Seguro que quieres cancelar y eliminar este pedido del sistema?")) return;
+        try {
+            const res = await fetch(`http://localhost:8080/api/orders/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) fetchOrders();
+        } catch (error) { alert("Fallo al eliminar pedido"); }
+    };
+
+    // --- FUNCIONES ESTADOS DE PEDIDO ---
+    const handleStatusSubmit = async (e) => {
+        e.preventDefault();
+        const url = editingStatusId ? `http://localhost:8080/api/order-statuses/update/${editingStatusId}` : 'http://localhost:8080/api/order-statuses/create';
+        const method = editingStatusId ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(statusFormData) });
+            if (res.ok) { setShowStatusForm(false); setEditingStatusId(null); setStatusFormData({ name: '' }); fetchStatuses(); }
+        } catch (error) { alert("Fallo de conexión"); }
+    };
+
+    const deleteStatus = async (id) => {
+        if (!window.confirm("¿Seguro que quieres eliminar este estado de pedido?")) return;
+        try {
+            const res = await fetch(`http://localhost:8080/api/order-statuses/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) fetchStatuses();
+        } catch (error) { alert("Fallo al eliminar estado"); }
+    };
+
     const handleLogout = () => { localStorage.removeItem('adminToken'); navigate('/admin/login'); };
 
     return (
@@ -229,6 +282,18 @@ const AdminDashboard = () => {
                     style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'categories' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'categories' ? 'bold' : 'normal', color: activeTab === 'categories' ? '#007bff' : '#555' }}
                 >
                     🍽️ Categorías
+                </button>
+                <button 
+                    onClick={() => setActiveTab('orders')}
+                    style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'orders' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'orders' ? 'bold' : 'normal', color: activeTab === 'orders' ? '#007bff' : '#555' }}
+                >
+                    📦 Pedidos
+                </button>
+                <button 
+                    onClick={() => setActiveTab('statuses')}
+                    style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'statuses' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'statuses' ? 'bold' : 'normal', color: activeTab === 'statuses' ? '#007bff' : '#555' }}
+                >
+                    🏷️ Estados
                 </button>
             </div>
 
@@ -488,6 +553,92 @@ const AdminDashboard = () => {
                                     <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
                                         <button onClick={() => { setEditingCategoryId(cat.id); setCategoryFormData({ name: cat.name, description: cat.description }); setShowCategoryForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
                                         <button onClick={() => deleteCategory(cat.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* SECCIÓN PEDIDOS */}
+            {activeTab === 'orders' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>Monitor Global de Pedidos</h2>
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#343a40', color: 'white', textAlign: 'left' }}>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>ID Pedido</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Cliente</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Repartidor</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Estado</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Total (€)</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orders.length === 0 ? (
+                                <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center', border: '1px solid #ddd' }}>No hay pedidos en el sistema.</td></tr>
+                            ) : (
+                                orders.map((order, index) => (
+                                    <tr key={order.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>#{order.id}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.customer ? order.customer.name : 'N/A'}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.rider ? order.rider.name : 'Sin asignar'}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.status ? order.status.name : 'Desconocido'}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{order.totalPrice} €</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                                            <button onClick={() => deleteOrder(order.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* SECCIÓN ESTADOS DE PEDIDO */}
+            {activeTab === 'statuses' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>Gestión de Estados de Pedido</h2>
+                        <button onClick={() => { setEditingStatusId(null); setStatusFormData({ name: '' }); setShowStatusForm(!showStatusForm); }} style={{ padding: '10px', background: showStatusForm && !editingStatusId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            {showStatusForm && !editingStatusId ? 'Cancelar' : '+ Añadir Estado'}
+                        </button>
+                    </div>
+
+                    {showStatusForm && (
+                        <form onSubmit={handleStatusSubmit} style={{ background: '#f8f9fa', padding: '20px', marginTop: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="text" placeholder="Nombre (Ej: En cocina, Entregado)" required value={statusFormData.name} onChange={(e) => setStatusFormData({...statusFormData, name: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar Estado</button>
+                                {editingStatusId && <button type="button" onClick={() => setShowStatusForm(false)} style={{ padding: '10px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>}
+                            </div>
+                        </form>
+                    )}
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#343a40', color: 'white', textAlign: 'left' }}>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>ID</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Nombre del Estado</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {statuses.map((status, index) => (
+                                <tr key={status.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{status.id}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{status.name}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                                        <button onClick={() => { setEditingStatusId(status.id); setStatusFormData({ name: status.name }); setShowStatusForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                        <button onClick={() => deleteStatus(status.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
                                     </td>
                                 </tr>
                             ))}
