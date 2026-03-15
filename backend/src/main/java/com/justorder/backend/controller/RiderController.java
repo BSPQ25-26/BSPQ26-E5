@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.model.Rider;
-import com.justorder.backend.model.Order;
 import com.justorder.backend.model.Localization;
 import com.justorder.backend.repository.RiderRepository;
 
@@ -24,11 +23,7 @@ public class RiderController {
         List<Rider> riders = riderRepository.findAll();
         
         for (Rider rider : riders) {
-            if (rider.getOrders() != null) {
-                for (Order order : rider.getOrders()) {
-                    order.setRider(null);
-                }
-            }
+            rider.setOrders(null);
         }
         
         return ResponseEntity.ok(riders);
@@ -47,12 +42,8 @@ public class RiderController {
         newRider.setStarterPoint(starter);
 
         Rider savedRider = riderRepository.save(newRider);
-        
-        if (savedRider.getOrders() != null) {
-            for (Order order : savedRider.getOrders()) {
-                order.setRider(null);
-            }
-        }
+
+        savedRider.setOrders(null);
         
         return ResponseEntity.ok(savedRider);
     }
@@ -71,11 +62,7 @@ public class RiderController {
                 
                 Rider updatedRider = riderRepository.save(existingRider);
                 
-                if (updatedRider.getOrders() != null) {
-                    for (Order order : updatedRider.getOrders()) {
-                        order.setRider(null);
-                    }
-                }
+                updatedRider.setOrders(null);
                 
                 return ResponseEntity.ok(updatedRider);
             })

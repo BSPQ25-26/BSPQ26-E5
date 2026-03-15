@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.model.Customer;
-import com.justorder.backend.model.Order;
 import com.justorder.backend.repository.CustomerRepository;
 
 @RestController
@@ -23,11 +22,7 @@ public class CustomerController {
         List<Customer> customers = customerRepository.findAll();
         
         for (Customer customer : customers) {
-            if (customer.getOrders() != null) {
-                for (Order order : customer.getOrders()) {
-                    order.setCustomer(null);
-                }
-            }
+            customer.setOrders(null);
         }
         
         return ResponseEntity.ok(customers);
@@ -45,11 +40,7 @@ public class CustomerController {
 
         Customer savedCustomer = customerRepository.save(newCustomer);
 
-        if (savedCustomer.getOrders() != null) {
-            for (Order order : savedCustomer.getOrders()) {
-                order.setCustomer(null);
-            }
-        }
+        savedCustomer.setOrders(null);
 
         return ResponseEntity.ok(savedCustomer);
     }
@@ -69,11 +60,7 @@ public class CustomerController {
 
             Customer updatedCustomer = customerRepository.save(existingCustomer);
 
-            if (updatedCustomer.getOrders() != null) {
-                for (Order order : updatedCustomer.getOrders()) {
-                    order.setCustomer(null);
-                }
-            }
+            updatedCustomer.setOrders(null);
 
             return ResponseEntity.ok(updatedCustomer);
         }).orElseGet(() -> ResponseEntity.notFound().build());
