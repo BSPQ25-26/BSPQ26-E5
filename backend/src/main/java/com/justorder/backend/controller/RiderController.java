@@ -8,19 +8,30 @@ import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.model.Rider;
+import com.justorder.backend.model.Order;
 import com.justorder.backend.model.Localization;
 import com.justorder.backend.repository.RiderRepository;
 
 @RestController
 @RequestMapping("/api/riders")
 public class RiderController {
-
+    
     @Autowired
     private RiderRepository riderRepository;
 
     @GetMapping("/all")
     public ResponseEntity<List<Rider>> getAllRiders() {
-        return ResponseEntity.ok(riderRepository.findAll());
+        List<Rider> riders = riderRepository.findAll();
+        
+        for (Rider rider : riders) {
+            if (rider.getOrders() != null) {
+                for (Order order : rider.getOrders()) {
+                    order.setRider(null);
+                }
+            }
+        }
+        
+        return ResponseEntity.ok(riders);
     }
 
     @PostMapping("/create")
@@ -28,14 +39,21 @@ public class RiderController {
         Rider newRider = new Rider();
         newRider.setName(request.getName());
         newRider.setEmail(request.getEmail());
-        newRider.setPhoneNumber(request.getPhoneNumber()); // Rider usa phoneNumber
-        newRider.setPassword(request.getPassword()); 
+        newRider.setPhoneNumber(request.getPhoneNumber());
+        newRider.setPassword(request.getPassword());
         
-        // Creamos una Localización vacía porque la base de datos lo exige (nullable=false)
-        Localization starterPoint = new Localization();
-        newRider.setStarterPoint(starterPoint);
-        
+        Localization starter = new Localization();
+        starter.setCity("Punto de inicio por defecto");
+        newRider.setStarterPoint(starter);
+
         Rider savedRider = riderRepository.save(newRider);
+        
+        if (savedRider.getOrders() != null) {
+            for (Order order : savedRider.getOrders()) {
+                order.setRider(null);
+            }
+        }
+        
         return ResponseEntity.ok(savedRider);
     }
 
@@ -51,7 +69,15 @@ public class RiderController {
                     existingRider.setPassword(request.getPassword());
                 }
                 
-                return ResponseEntity.ok(riderRepository.save(existingRider));
+                Rider updatedRider = riderRepository.save(existingRider);
+                
+                if (updatedRider.getOrders() != null) {
+                    for (Order order : updatedRider.getOrders()) {
+                        order.setRider(null);
+                    }
+                }
+                
+                return ResponseEntity.ok(updatedRider);
             })
             .orElseGet(() -> ResponseEntity.notFound().build());
     }

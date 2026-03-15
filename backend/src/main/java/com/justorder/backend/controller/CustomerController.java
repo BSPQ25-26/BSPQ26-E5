@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.model.Customer;
+import com.justorder.backend.model.Order;
 import com.justorder.backend.repository.CustomerRepository;
 
 @RestController
@@ -19,40 +20,63 @@ public class CustomerController {
 
     @GetMapping("/all")
     public ResponseEntity<List<Customer>> getAllCustomers() {
-        return ResponseEntity.ok(customerRepository.findAll());
+        List<Customer> customers = customerRepository.findAll();
+        
+        for (Customer customer : customers) {
+            if (customer.getOrders() != null) {
+                for (Order order : customer.getOrders()) {
+                    order.setCustomer(null);
+                }
+            }
+        }
+        
+        return ResponseEntity.ok(customers);
     }
 
     @PostMapping("/create")
     public ResponseEntity<Customer> createCustomer(@RequestBody CustomerDTO request) {
         Customer newCustomer = new Customer();
         newCustomer.setName(request.getName());
-        newCustomer.setEmail(request.getEmail());
-        newCustomer.setPhone(request.getPhone());
-        newCustomer.setPassword(request.getPassword());
         newCustomer.setAge(request.getAge());
         newCustomer.setDni(request.getDni());
-        
+        newCustomer.setPhone(request.getPhone());
+        newCustomer.setEmail(request.getEmail());
+        newCustomer.setPassword(request.getPassword());
+
         Customer savedCustomer = customerRepository.save(newCustomer);
+
+        if (savedCustomer.getOrders() != null) {
+            for (Order order : savedCustomer.getOrders()) {
+                order.setCustomer(null);
+            }
+        }
+
         return ResponseEntity.ok(savedCustomer);
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody CustomerDTO request) {
-        return customerRepository.findById(id)
-            .map(existingCustomer -> {
-                existingCustomer.setName(request.getName());
-                existingCustomer.setEmail(request.getEmail());
-                existingCustomer.setPhone(request.getPhone());
-                existingCustomer.setAge(request.getAge());
-                existingCustomer.setDni(request.getDni());
-                
-                if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-                    existingCustomer.setPassword(request.getPassword());
+        return customerRepository.findById(id).map(existingCustomer -> {
+            existingCustomer.setName(request.getName());
+            existingCustomer.setAge(request.getAge());
+            existingCustomer.setDni(request.getDni());
+            existingCustomer.setPhone(request.getPhone());
+            existingCustomer.setEmail(request.getEmail());
+            
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                existingCustomer.setPassword(request.getPassword());
+            }
+
+            Customer updatedCustomer = customerRepository.save(existingCustomer);
+
+            if (updatedCustomer.getOrders() != null) {
+                for (Order order : updatedCustomer.getOrders()) {
+                    order.setCustomer(null);
                 }
-                
-                return ResponseEntity.ok(customerRepository.save(existingCustomer));
-            })
-            .orElseGet(() -> ResponseEntity.notFound().build());
+            }
+
+            return ResponseEntity.ok(updatedCustomer);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/delete/{id}")
@@ -60,8 +84,7 @@ public class CustomerController {
         if (customerRepository.existsById(id)) {
             customerRepository.deleteById(id);
             return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.notFound().build();
     }
 }
