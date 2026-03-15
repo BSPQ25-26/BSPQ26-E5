@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.model.Dish; // IMPORTANTE: Añadimos la importación de Dish
 import com.justorder.backend.repository.RestaurantRepository;
 
 @RestController
@@ -20,6 +21,16 @@ public class RestaurantController {
     @GetMapping("/all")
     public ResponseEntity<List<Restaurant>> getAllRestaurants() {
         List<Restaurant> restaurants = restaurantRepository.findAll();
+        
+        // CORTAFUEGOS: Rompemos el bucle infinito de los platos
+        for (Restaurant restaurant : restaurants) {
+            if (restaurant.getDishes() != null) {
+                for (Dish dish : restaurant.getDishes()) {
+                    dish.setRestaurant(null); // Ocultamos el restaurante del plato solo para el envío JSON
+                }
+            }
+        }
+        
         return ResponseEntity.ok(restaurants);
     }
 
@@ -33,6 +44,13 @@ public class RestaurantController {
         newRestaurant.setPassword(request.getPassword()); 
         
         Restaurant savedRestaurant = restaurantRepository.save(newRestaurant);
+        
+        if (savedRestaurant.getDishes() != null) {
+            for (Dish dish : savedRestaurant.getDishes()) {
+                dish.setRestaurant(null);
+            }
+        }
+        
         return ResponseEntity.ok(savedRestaurant);
     }
 
@@ -50,18 +68,23 @@ public class RestaurantController {
     public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long id, @RequestBody RestaurantDTO request) {
         return restaurantRepository.findById(id)
             .map(existingRestaurant -> {
-                // Actualizamos los datos con lo que llega del formulario
                 existingRestaurant.setName(request.getName());
                 existingRestaurant.setDescription(request.getDescription());
                 existingRestaurant.setEmail(request.getEmail());
                 existingRestaurant.setPhone(request.getPhone());
                 
-                // Solo cambiamos la contraseña si el admin ha escrito una nueva
                 if (request.getPassword() != null && !request.getPassword().isEmpty()) {
                     existingRestaurant.setPassword(request.getPassword());
                 }
                 
                 Restaurant updatedRestaurant = restaurantRepository.save(existingRestaurant);
+                
+                if (updatedRestaurant.getDishes() != null) {
+                    for (Dish dish : updatedRestaurant.getDishes()) {
+                        dish.setRestaurant(null);
+                    }
+                }
+                
                 return ResponseEntity.ok(updatedRestaurant);
             })
             .orElseGet(() -> ResponseEntity.notFound().build());
