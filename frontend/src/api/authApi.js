@@ -26,3 +26,17 @@ export const registerRestaurant = async (restaurantData) => {
     if (!response.ok) throw new Error(text || "Error en el registro del restaurante");
     return text ? JSON.parse(text) : null;
 };
+
+export const registerRider = async (riderData) => {
+    const response = await fetch(`${API_URL}/riders/create`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(riderData),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error registrating rider");
+    return text ? JSON.parse(text) : null;
+};

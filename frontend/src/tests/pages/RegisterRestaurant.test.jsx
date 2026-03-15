@@ -44,7 +44,7 @@ describe('RegisterRestaurant', () => {
 
     test('renders restaurant registration title', () => {
         render(<RegisterRestaurant />);
-        expect(screen.getByText(/Register Restaurant/i)).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: /Register Restaurant/i, level: 2 })).toBeInTheDocument();
     });
 
     test('allows typing in inputs', () => {
