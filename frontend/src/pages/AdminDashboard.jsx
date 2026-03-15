@@ -44,6 +44,12 @@ const AdminDashboard = () => {
     const [editingStatusId, setEditingStatusId] = useState(null);
     const [statusFormData, setStatusFormData] = useState({ name: '' });
 
+    // ESTADOS PARA PLATOS
+    const [dishes, setDishes] = useState([]);
+    const [showDishForm, setShowDishForm] = useState(false);
+    const [editingDishId, setEditingDishId] = useState(null);
+    const [dishFormData, setDishFormData] = useState({ name: '', description: '', price: '', image: '', restaurantId: '', alergenIds: [], categoryIds: [] });
+    
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken');
 
@@ -97,6 +103,13 @@ const AdminDashboard = () => {
         } catch (error) { console.error("Error cargando estados de pedido"); }
     };
 
+    const fetchDishes = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/dishes/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (response.ok) setDishes(await response.json());
+        } catch (error) { console.error("Error cargando platos"); }
+    };
+
     useEffect(() => {
         if (!token) { navigate('/admin/login'); return; }
         if (activeTab === 'restaurants') fetchRestaurants();
@@ -106,6 +119,7 @@ const AdminDashboard = () => {
         if (activeTab === 'categories') fetchCategories();
         if (activeTab === 'orders') fetchOrders();
         if (activeTab === 'statuses') fetchStatuses();
+        if (activeTab === 'dishes') fetchDishes(); // <--- NUEVO
         
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate, token, activeTab]);
@@ -242,6 +256,29 @@ const AdminDashboard = () => {
         } catch (error) { alert("Fallo al eliminar estado"); }
     };
 
+    // --- FUNCIONES PLATOS ---
+    const handleDishSubmit = async (e) => {
+        e.preventDefault();
+        const url = editingDishId ? `http://localhost:8080/api/dishes/update/${editingDishId}` : 'http://localhost:8080/api/dishes/create';
+        const method = editingDishId ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(dishFormData) });
+            if (res.ok) { 
+                setShowDishForm(false); setEditingDishId(null); 
+                setDishFormData({ name: '', description: '', price: '', image: '', restaurantId: '', alergenIds: [], categoryIds: [] }); 
+                fetchDishes(); 
+            } else alert("Error guardando plato");
+        } catch (error) { alert("Fallo de conexión"); }
+    };
+
+    const deleteDish = async (id) => {
+        if (!window.confirm("¿Seguro que quieres eliminar este plato?")) return;
+        try {
+            const res = await fetch(`http://localhost:8080/api/dishes/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) fetchDishes();
+        } catch (error) { alert("Fallo al eliminar plato"); }
+    };
+
     const handleLogout = () => { localStorage.removeItem('adminToken'); navigate('/admin/login'); };
 
     return (
@@ -282,6 +319,12 @@ const AdminDashboard = () => {
                     style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'categories' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'categories' ? 'bold' : 'normal', color: activeTab === 'categories' ? '#007bff' : '#555' }}
                 >
                     🍽️ Categorías
+                </button>
+                <button 
+                    onClick={() => setActiveTab('dishes')}
+                    style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'dishes' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'dishes' ? 'bold' : 'normal', color: activeTab === 'dishes' ? '#007bff' : '#555' }}
+                >
+                    🍲 Platos
                 </button>
                 <button 
                     onClick={() => setActiveTab('orders')}
@@ -642,6 +685,97 @@ const AdminDashboard = () => {
                                     </td>
                                 </tr>
                             ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* SECCIÓN PLATOS */}
+            {activeTab === 'dishes' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>Gestión de Platos</h2>
+                        <button onClick={() => { setEditingDishId(null); setDishFormData({ name: '', description: '', price: '', image: '', restaurantId: '', alergenIds: [], categoryIds: [] }); setShowDishForm(!showDishForm); }} style={{ padding: '10px', background: showDishForm && !editingDishId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            {showDishForm && !editingDishId ? 'Cancelar' : '+ Añadir Plato'}
+                        </button>
+                    </div>
+
+                    {showDishForm && (
+                        <form onSubmit={handleDishSubmit} style={{ background: '#f8f9fa', padding: '20px', marginTop: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="text" placeholder="Nombre del Plato" required value={dishFormData.name} onChange={(e) => setDishFormData({...dishFormData, name: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <input type="number" step="0.01" placeholder="Precio (€)" required value={dishFormData.price} onChange={(e) => setDishFormData({...dishFormData, price: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <select required value={dishFormData.restaurantId} onChange={(e) => setDishFormData({...dishFormData, restaurantId: e.target.value})} style={{ padding: '8px', flex: 1 }}>
+                                    <option value="">Seleccionar Restaurante...</option>
+                                    {restaurants.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="text" placeholder="URL de la Imagen (Opcional)" value={dishFormData.image} onChange={(e) => setDishFormData({...dishFormData, image: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <input type="text" placeholder="Descripción breve" required value={dishFormData.description} onChange={(e) => setDishFormData({...dishFormData, description: e.target.value})} style={{ padding: '8px', flex: 2 }} />
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Alérgenos (Ctrl+Click para varios):</label>
+                                    <select multiple value={dishFormData.alergenIds} onChange={(e) => setDishFormData({...dishFormData, alergenIds: Array.from(e.target.selectedOptions, option => parseInt(option.value))})} style={{ width: '100%', padding: '8px', height: '80px' }}>
+                                        {alergens.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                    </select>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Categorías (Ctrl+Click para varias):</label>
+                                    <select multiple value={dishFormData.categoryIds} onChange={(e) => setDishFormData({...dishFormData, categoryIds: Array.from(e.target.selectedOptions, option => parseInt(option.value))})} style={{ width: '100%', padding: '8px', height: '80px' }}>
+                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar Plato</button>
+                                {editingDishId && <button type="button" onClick={() => setShowDishForm(false)} style={{ padding: '10px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>}
+                            </div>
+                        </form>
+                    )}
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#343a40', color: 'white', textAlign: 'left' }}>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>ID</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Nombre</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Restaurante</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Precio</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dishes.length === 0 ? (
+                                <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center', border: '1px solid #ddd' }}>No hay platos en el sistema.</td></tr>
+                            ) : (
+                                dishes.map((dish, index) => (
+                                    <tr key={dish.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.id}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.name}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.restaurant ? dish.restaurant.name : 'N/A'}</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{dish.price} €</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                                            <button onClick={() => { 
+                                                setEditingDishId(dish.id); 
+                                                setDishFormData({ 
+                                                    name: dish.name, 
+                                                    description: dish.description, 
+                                                    price: dish.price, 
+                                                    image: dish.image || '', 
+                                                    restaurantId: dish.restaurant?.id || '', 
+                                                    alergenIds: dish.alergens ? dish.alergens.map(a => a.id) : [], 
+                                                    categoryIds: dish.categories ? dish.categories.map(c => c.id) : [] 
+                                                }); 
+                                                setShowDishForm(true); 
+                                            }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                            <button onClick={() => deleteDish(dish.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
