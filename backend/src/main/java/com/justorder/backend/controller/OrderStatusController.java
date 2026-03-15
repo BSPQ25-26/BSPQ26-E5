@@ -25,7 +25,8 @@ public class OrderStatusController {
     @PostMapping("/create")
     public ResponseEntity<OrderStatus> createOrderStatus(@RequestBody OrderStatusDTO request) {
         OrderStatus newStatus = new OrderStatus();
-        newStatus.setName(request.getName());
+        // Adaptamos el nombre del DTO al campo 'status' del Modelo
+        newStatus.setStatus(request.getName());
         return ResponseEntity.ok(orderStatusRepository.save(newStatus));
     }
 
@@ -33,7 +34,7 @@ public class OrderStatusController {
     public ResponseEntity<OrderStatus> updateOrderStatus(@PathVariable Long id, @RequestBody OrderStatusDTO request) {
         return orderStatusRepository.findById(id)
             .map(existingStatus -> {
-                existingStatus.setName(request.getName());
+                existingStatus.setStatus(request.getName());
                 return ResponseEntity.ok(orderStatusRepository.save(existingStatus));
             })
             .orElseGet(() -> ResponseEntity.notFound().build());

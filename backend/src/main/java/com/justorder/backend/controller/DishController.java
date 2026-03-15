@@ -11,7 +11,6 @@ import com.justorder.backend.model.Dish;
 import com.justorder.backend.repository.DishRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.repository.AlergenRepository;
-import com.justorder.backend.repository.CuisineCategoryRepository;
 
 @RestController
 @RequestMapping("/api/dishes")
@@ -23,8 +22,6 @@ public class DishController {
     private RestaurantRepository restaurantRepository;
     @Autowired
     private AlergenRepository alergenRepository;
-    @Autowired
-    private CuisineCategoryRepository categoryRepository;
 
     @GetMapping("/all")
     public ResponseEntity<List<Dish>> getAllDishes() {
@@ -37,7 +34,6 @@ public class DishController {
         newDish.setName(request.getName());
         newDish.setDescription(request.getDescription());
         newDish.setPrice(request.getPrice());
-        newDish.setImage(request.getImage());
 
         if (request.getRestaurantId() != null) {
             restaurantRepository.findById(request.getRestaurantId()).ifPresent(newDish::setRestaurant);
@@ -45,10 +41,6 @@ public class DishController {
         
         if (request.getAlergenIds() != null && !request.getAlergenIds().isEmpty()) {
             newDish.setAlergens(alergenRepository.findAllById(request.getAlergenIds()));
-        }
-
-        if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
-            newDish.setCategories(categoryRepository.findAllById(request.getCategoryIds()));
         }
 
         return ResponseEntity.ok(dishRepository.save(newDish));
@@ -60,7 +52,6 @@ public class DishController {
             existingDish.setName(request.getName());
             existingDish.setDescription(request.getDescription());
             existingDish.setPrice(request.getPrice());
-            existingDish.setImage(request.getImage());
 
             if (request.getRestaurantId() != null) {
                 restaurantRepository.findById(request.getRestaurantId()).ifPresent(existingDish::setRestaurant);
@@ -68,10 +59,6 @@ public class DishController {
             
             if (request.getAlergenIds() != null) {
                 existingDish.setAlergens(alergenRepository.findAllById(request.getAlergenIds()));
-            }
-
-            if (request.getCategoryIds() != null) {
-                existingDish.setCategories(categoryRepository.findAllById(request.getCategoryIds()));
             }
 
             return ResponseEntity.ok(dishRepository.save(existingDish));
