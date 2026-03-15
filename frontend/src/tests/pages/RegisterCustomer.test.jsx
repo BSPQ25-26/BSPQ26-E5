@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import RegisterCustomer from './RegisterCustomer';
+import RegisterCustomer from '../../pages/RegisterCustomer';
 
 test('must display the registration title', () => {
     render(<RegisterCustomer />);
