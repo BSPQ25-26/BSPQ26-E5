@@ -23,6 +23,18 @@ const AdminDashboard = () => {
     const [editingCustId, setEditingCustId] = useState(null);
     const [custFormData, setCustFormData] = useState({ name: '', email: '', phone: '', password: '', age: '', dni: '' });
 
+    // ESTADOS PARA ALÉRGENOS (NUEVO)
+    const [alergens, setAlergens] = useState([]);
+    const [showAlergenForm, setShowAlergenForm] = useState(false);
+    const [editingAlergenId, setEditingAlergenId] = useState(null);
+    const [alergenFormData, setAlergenFormData] = useState({ name: '', description: '' });
+
+    // ESTADOS PARA CATEGORÍAS (NUEVO)
+    const [categories, setCategories] = useState([]);
+    const [showCategoryForm, setShowCategoryForm] = useState(false);
+    const [editingCategoryId, setEditingCategoryId] = useState(null);
+    const [categoryFormData, setCategoryFormData] = useState({ name: '', description: '' });
+
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken');
 
@@ -48,11 +60,28 @@ const AdminDashboard = () => {
         } catch (error) { console.error("Error cargando clientes"); }
     };
 
+    const fetchAlergens = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/alergens/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (response.ok) setAlergens(await response.json());
+        } catch (error) { console.error("Error cargando alérgenos"); }
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/categories/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (response.ok) setCategories(await response.json());
+        } catch (error) { console.error("Error cargando categorías"); }
+    };
+
     useEffect(() => {
         if (!token) { navigate('/admin/login'); return; }
         if (activeTab === 'restaurants') fetchRestaurants();
         if (activeTab === 'riders') fetchRiders();
         if (activeTab === 'customers') fetchCustomers();
+        if (activeTab === 'alergens') fetchAlergens();
+        if (activeTab === 'categories') fetchCategories();
+        
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate, token, activeTab]);
 
@@ -124,6 +153,42 @@ const AdminDashboard = () => {
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
+    const handleAlergenSubmit = async (e) => {
+        e.preventDefault();
+        const url = editingAlergenId ? `http://localhost:8080/api/alergens/update/${editingAlergenId}` : 'http://localhost:8080/api/alergens/create';
+        const method = editingAlergenId ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(alergenFormData) });
+            if (res.ok) { setShowAlergenForm(false); setEditingAlergenId(null); setAlergenFormData({ name: '', description: '' }); fetchAlergens(); }
+        } catch (error) { alert("Fallo de conexión"); }
+    };
+
+    const deleteAlergen = async (id) => {
+        if (!window.confirm("¿Seguro que quieres eliminar este alérgeno?")) return;
+        try {
+            const res = await fetch(`http://localhost:8080/api/alergens/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) fetchAlergens();
+        } catch (error) { alert("Fallo al eliminar"); }
+    };
+
+    const handleCategorySubmit = async (e) => {
+        e.preventDefault();
+        const url = editingCategoryId ? `http://localhost:8080/api/categories/update/${editingCategoryId}` : 'http://localhost:8080/api/categories/create';
+        const method = editingCategoryId ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(categoryFormData) });
+            if (res.ok) { setShowCategoryForm(false); setEditingCategoryId(null); setCategoryFormData({ name: '', description: '' }); fetchCategories(); }
+        } catch (error) { alert("Fallo de conexión"); }
+    };
+
+    const deleteCategory = async (id) => {
+        if (!window.confirm("¿Seguro que quieres eliminar esta categoría?")) return;
+        try {
+            const res = await fetch(`http://localhost:8080/api/categories/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) fetchCategories();
+        } catch (error) { alert("Fallo al eliminar"); }
+    };
+
     const handleLogout = () => { localStorage.removeItem('adminToken'); navigate('/admin/login'); };
 
     return (
@@ -152,6 +217,18 @@ const AdminDashboard = () => {
                     style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'customers' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'customers' ? 'bold' : 'normal', color: activeTab === 'customers' ? '#007bff' : '#555' }}
                 >
                     👥 Clientes
+                </button>
+                <button 
+                    onClick={() => setActiveTab('alergens')}
+                    style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'alergens' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'alergens' ? 'bold' : 'normal', color: activeTab === 'alergens' ? '#007bff' : '#555' }}
+                >
+                    ⚠️ Alérgenos
+                </button>
+                <button 
+                    onClick={() => setActiveTab('categories')}
+                    style={{ padding: '10px 20px', fontSize: '16px', background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'categories' ? '3px solid #007bff' : 'none', fontWeight: activeTab === 'categories' ? 'bold' : 'normal', color: activeTab === 'categories' ? '#007bff' : '#555' }}
+                >
+                    🍽️ Categorías
                 </button>
             </div>
 
@@ -313,6 +390,104 @@ const AdminDashboard = () => {
                                     <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
                                         <button onClick={() => { setEditingCustId(cust.id); setCustFormData({ name: cust.name, email: cust.email, phone: cust.phone, password: '', age: cust.age, dni: cust.dni }); setShowCustForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
                                         <button onClick={() => deleteCustomer(cust.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* SECCIÓN ALÉRGENOS */}
+            {activeTab === 'alergens' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>Gestión de Alérgenos</h2>
+                        <button onClick={() => { setEditingAlergenId(null); setAlergenFormData({ name: '', description: '' }); setShowAlergenForm(!showAlergenForm); }} style={{ padding: '10px', background: showAlergenForm && !editingAlergenId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            {showAlergenForm && !editingAlergenId ? 'Cancelar' : '+ Añadir Alérgeno'}
+                        </button>
+                    </div>
+
+                    {showAlergenForm && (
+                        <form onSubmit={handleAlergenSubmit} style={{ background: '#f8f9fa', padding: '20px', marginTop: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="text" placeholder="Nombre (Ej: Gluten)" required value={alergenFormData.name} onChange={(e) => setAlergenFormData({...alergenFormData, name: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                            </div>
+                            <input type="text" placeholder="Descripción breve" value={alergenFormData.description} onChange={(e) => setAlergenFormData({...alergenFormData, description: e.target.value})} style={{ padding: '8px', width: '100%', marginBottom: '10px', boxSizing: 'border-box' }} />
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar Alérgeno</button>
+                                {editingAlergenId && <button type="button" onClick={() => setShowAlergenForm(false)} style={{ padding: '10px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>}
+                            </div>
+                        </form>
+                    )}
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#343a40', color: 'white', textAlign: 'left' }}>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>ID</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Nombre</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Descripción</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {alergens.map((alergen, index) => (
+                                <tr key={alergen.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{alergen.id}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{alergen.name}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{alergen.description}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                                        <button onClick={() => { setEditingAlergenId(alergen.id); setAlergenFormData({ name: alergen.name, description: alergen.description }); setShowAlergenForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                        <button onClick={() => deleteAlergen(alergen.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* SECCIÓN CATEGORÍAS */}
+            {activeTab === 'categories' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>Gestión de Categorías de Cocina</h2>
+                        <button onClick={() => { setEditingCategoryId(null); setCategoryFormData({ name: '', description: '' }); setShowCategoryForm(!showCategoryForm); }} style={{ padding: '10px', background: showCategoryForm && !editingCategoryId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                            {showCategoryForm && !editingCategoryId ? 'Cancelar' : '+ Añadir Categoría'}
+                        </button>
+                    </div>
+
+                    {showCategoryForm && (
+                        <form onSubmit={handleCategorySubmit} style={{ background: '#f8f9fa', padding: '20px', marginTop: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <input type="text" placeholder="Nombre (Ej: Italiana)" required value={categoryFormData.name} onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                            </div>
+                            <input type="text" placeholder="Descripción breve" value={categoryFormData.description} onChange={(e) => setCategoryFormData({...categoryFormData, description: e.target.value})} style={{ padding: '8px', width: '100%', marginBottom: '10px', boxSizing: 'border-box' }} />
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar Categoría</button>
+                                {editingCategoryId && <button type="button" onClick={() => setShowCategoryForm(false)} style={{ padding: '10px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>}
+                            </div>
+                        </form>
+                    )}
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#343a40', color: 'white', textAlign: 'left' }}>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>ID</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Nombre</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd' }}>Descripción</th>
+                                <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {categories.map((cat, index) => (
+                                <tr key={cat.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{cat.id}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{cat.name}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd' }}>{cat.description}</td>
+                                    <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                                        <button onClick={() => { setEditingCategoryId(cat.id); setCategoryFormData({ name: cat.name, description: cat.description }); setShowCategoryForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                        <button onClick={() => deleteCategory(cat.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
                                     </td>
                                 </tr>
                             ))}
