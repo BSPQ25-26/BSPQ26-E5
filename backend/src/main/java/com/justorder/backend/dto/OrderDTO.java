@@ -27,7 +27,6 @@ public class OrderDTO {
         this.secretCode = secretCode;
     }
 
-    // Getters
     public Long getId() { return id; }
     public Long getCustomerId() { return customerId; }
     public List<DishDTO> getdishes() { return dishes; }
@@ -38,7 +37,6 @@ public class OrderDTO {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
 
-    // Setters
     public void setId(Long id) { this.id = id; }
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
     public void setdishes(List<DishDTO> dishes) { this.dishes = dishes; }
