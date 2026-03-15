@@ -5,6 +5,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controlador REST protegido para operaciones exclusivas del Administrador.
+ * Sirve como punto de entrada seguro que verifica que el usuario tiene
+ * el rol 'ROLE_ADMIN' mediante su token JWT antes de permitir el acceso.
+ * @version 1.0
+ */
+
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {

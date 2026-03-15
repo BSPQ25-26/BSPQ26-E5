@@ -13,6 +13,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+/**
+ * Controlador REST encargado de la autenticación y la seguridad.
+ * Gestiona el inicio de sesión validando las credenciales contra la base de datos
+ * y genera un token JWT firmado para mantener la sesión activa de forma segura.
+ * @version 1.0
+ */
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
