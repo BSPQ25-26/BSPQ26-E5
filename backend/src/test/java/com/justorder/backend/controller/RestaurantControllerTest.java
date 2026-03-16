@@ -31,10 +31,6 @@ public class RestaurantControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    // -------------------------------------------------------------------------
-    // CA1 — Menu tests (added by teammate)
-    // -------------------------------------------------------------------------
-
     @Test
     public void testGetMenu() throws Exception {
         mockMvc.perform(get("/api/restaurants/1/menu"))
@@ -43,10 +39,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[?(@.name=='Four Cheese Pizza' && @.description=='Stone-baked pizza with four cheeses' && @.price==23.0 && @.restaurantId==1 && @.alergenNames==[\"Gluten\",\"Lactose\"])]", hasSize(1)))
                 .andExpect(jsonPath("$[?(@.name=='Grilled Salmon' && @.description=='Grilled salmon fillet with herbs' && @.price==25.0 && @.restaurantId==1 && @.alergenNames==[])]", hasSize(1)));
     }
-
-    // -------------------------------------------------------------------------
-    // IAM-2 — Restaurant Registration tests
-    // -------------------------------------------------------------------------
 
     @Test
     void testRegisterRestaurant() throws Exception {

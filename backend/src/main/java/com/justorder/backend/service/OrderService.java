@@ -89,10 +89,11 @@ public class OrderService {
     }
 
     /**
-      * Validates required checkout fields before any database lookup.
+        * Validates mandatory checkout fields and basic constraints.
      *
-      * Rejects null requests, missing customerId, empty or invalid dishIds,
-      * and negative clientTotal values.
+     * @param request checkout request payload
+        * @throws IllegalArgumentException when request is null, customerId is missing,
+        *         dishIds is empty/invalid, or clientTotal is negative
      */
     private void validateCheckoutRequest(CheckoutOrderRequestDTO request) {
         if (request == null) {

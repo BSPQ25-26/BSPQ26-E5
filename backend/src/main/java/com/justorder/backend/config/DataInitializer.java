@@ -11,15 +11,19 @@ import org.springframework.stereotype.Component;
 import com.justorder.backend.model.Admin;
 import com.justorder.backend.model.Alergen;
 import com.justorder.backend.model.CuisineCategory;
+import com.justorder.backend.model.Customer;
 import com.justorder.backend.model.Dish;
+import com.justorder.backend.model.Localization;
+import com.justorder.backend.model.Order;
 import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.model.Rider;
 import com.justorder.backend.repository.AdminRepository;
 import com.justorder.backend.repository.AlergenRepository;
 import com.justorder.backend.repository.CuisineCategoryRepository;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.DishRepository;
-import com.justorder.backend.repository.LocalizationRepository;
+import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.repository.RiderRepository;
@@ -35,9 +39,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private RiderRepository riderRepository;
-     
-    @Autowired
-    private LocalizationRepository localizationRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -57,10 +58,12 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private OrderStatusRepository orderStatusRepository;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     @Override
     public void run(String... args) throws Exception {
 
-        // Admin
         if (adminRepository.count() == 0) {
             Admin superAdmin = new Admin();
             superAdmin.setName("Super Admin");
@@ -69,7 +72,6 @@ public class DataInitializer implements CommandLineRunner {
             adminRepository.save(superAdmin);
         }
 
-        // Cuisine categories — saved first so restaurants can reference them
         if (cuisineCategoryRepository.count() == 0) {
             cuisineCategoryRepository.save(new CuisineCategory("Italian"));
             cuisineCategoryRepository.save(new CuisineCategory("Chinese"));
@@ -79,7 +81,6 @@ public class DataInitializer implements CommandLineRunner {
             cuisineCategoryRepository.save(new CuisineCategory("Mediterranean"));
         }
 
-        // Allergens
         if (alergenRepository.count() == 0) {
             alergenRepository.save(new Alergen("Gluten", "Cereals containing gluten"));
             alergenRepository.save(new Alergen("Lactose", "Milk and dairy products"));
@@ -89,7 +90,6 @@ public class DataInitializer implements CommandLineRunner {
             alergenRepository.save(new Alergen("Eggs", "Eggs and egg-based products"));
         }
 
-        // Order statuses
         if (orderStatusRepository.count() == 0) {
             orderStatusRepository.save(new OrderStatus("Pending"));
             orderStatusRepository.save(new OrderStatus("Confirmed"));
@@ -101,14 +101,9 @@ public class DataInitializer implements CommandLineRunner {
 
         if (restaurantRepository.count() == 0) {
 
-            // -----------------------------------------------------------------
-            // CA1 restaurants — for menu management tests
-            // -----------------------------------------------------------------
             Restaurant restaurant1 = new Restaurant(
-                "La Marina Bistro",
-                "Mediterranean restaurant near the seafront",
-                "+34 900 000 001",
-                "lamarina@justorder.com",
+                "La Marina Bistro", "Mediterranean restaurant near the seafront",
+                "+34 900 000 001", "lamarina@justorder.com",
                 passwordEncoder.encode("restaurant123"),
                 "09:00-22:00", "09:00-22:00", "09:00-22:00",
                 "09:00-22:00", "09:00-23:00", "10:00-23:00", "10:00-22:00"
@@ -116,10 +111,8 @@ public class DataInitializer implements CommandLineRunner {
             restaurant1 = restaurantRepository.save(restaurant1);
 
             Restaurant restaurant2 = new Restaurant(
-                "Green Bowl Kitchen",
-                "Healthy bowls and plant-forward comfort food",
-                "+34 900 000 002",
-                "greenbowl@justorder.com",
+                "Green Bowl Kitchen", "Healthy bowls and plant-forward comfort food",
+                "+34 900 000 002", "greenbowl@justorder.com",
                 passwordEncoder.encode("restaurant123"),
                 "11:00-22:00", "11:00-22:00", "11:00-22:00",
                 "11:00-22:00", "11:00-23:00", "11:00-23:00", "11:00-21:00"
@@ -127,18 +120,16 @@ public class DataInitializer implements CommandLineRunner {
             restaurant2 = restaurantRepository.save(restaurant2);
 
             if (dishRepository.count() == 0) {
-                Alergen gluten   = alergenRepository.findByName("Gluten").orElseThrow();
-                Alergen lactose  = alergenRepository.findByName("Lactose").orElseThrow();
-                Alergen soy      = alergenRepository.findByName("Soy").orElseThrow();
-                Alergen eggs     = alergenRepository.findByName("Eggs").orElseThrow();
-                Alergen peanuts  = alergenRepository.findByName("Peanuts").orElseThrow();
+                Alergen gluten  = alergenRepository.findByName("Gluten").orElseThrow();
+                Alergen lactose = alergenRepository.findByName("Lactose").orElseThrow();
+                Alergen soy     = alergenRepository.findByName("Soy").orElseThrow();
+                Alergen eggs    = alergenRepository.findByName("Eggs").orElseThrow();
+                Alergen peanuts = alergenRepository.findByName("Peanuts").orElseThrow();
 
                 Dish dish1 = new Dish("Four Cheese Pizza", "Stone-baked pizza with four cheeses", 23.0, restaurant1);
                 dish1.setAlergens(Arrays.asList(gluten, lactose));
-
                 Dish dish2 = new Dish("Grilled Salmon", "Grilled salmon fillet with herbs", 25.0, restaurant1);
                 dish2.setAlergens(List.of());
-
                 Dish dish3 = new Dish("Thai Tofu Bowl", "Tofu bowl with peanut sauce and scrambled egg", 19.5, restaurant2);
                 dish3.setAlergens(Arrays.asList(soy, eggs, peanuts));
 
@@ -147,16 +138,11 @@ public class DataInitializer implements CommandLineRunner {
                 dishRepository.save(dish3);
             }
 
-            // -----------------------------------------------------------------
-            // restaurants: for search & filter tests
-            // Different cuisines, ratings and price ranges to cover all filter combinations
-            // -----------------------------------------------------------------
             CuisineCategory italian       = cuisineCategoryRepository.findByName("Italian").orElseThrow();
             CuisineCategory japanese      = cuisineCategoryRepository.findByName("Japanese").orElseThrow();
             CuisineCategory mexican       = cuisineCategoryRepository.findByName("Mexican").orElseThrow();
             CuisineCategory mediterranean = cuisineCategoryRepository.findByName("Mediterranean").orElseThrow();
 
-            // Italian, rating 4.5, dishes €9.50–€12.00
             Restaurant pizzaRoma = new Restaurant(
                 "Pizza Roma", "Authentic Italian pizza and pasta",
                 "+34 600 111 222", "pizzaroma@test.com", "test123",
@@ -171,7 +157,6 @@ public class DataInitializer implements CommandLineRunner {
             ));
             restaurantRepository.save(pizzaRoma);
 
-            // Japanese, rating 4.8, dishes €13.50–€14.00
             Restaurant sushiTokyo = new Restaurant(
                 "Sushi Tokyo", "Premium Japanese sushi and ramen",
                 "+34 600 333 444", "sushitokyo@test.com", "test123",
@@ -186,7 +171,6 @@ public class DataInitializer implements CommandLineRunner {
             ));
             restaurantRepository.save(sushiTokyo);
 
-            // Mexican, rating 3.2, dishes €4.50–€7.00
             Restaurant tacoLoco = new Restaurant(
                 "Taco Loco", "Street-style Mexican tacos and burritos",
                 "+34 600 555 666", "tacoloco@test.com", "test123",
@@ -201,7 +185,6 @@ public class DataInitializer implements CommandLineRunner {
             ));
             restaurantRepository.save(tacoLoco);
 
-            // Mediterranean, rating 4.1, dishes €6.50–€8.00
             Restaurant oliveGarden = new Restaurant(
                 "Olive Garden", "Fresh Mediterranean cuisine",
                 "+34 600 777 888", "olivegarden@test.com", "test123",
@@ -215,6 +198,59 @@ public class DataInitializer implements CommandLineRunner {
                 new Dish("Falafel Wrap", "Crispy falafel with tahini sauce", 8.00, oliveGarden)
             ));
             restaurantRepository.save(oliveGarden);
+        }
+
+        if (riderRepository.count() == 0) {
+            // Constructor: city, province, country, postalCode, number, longitude, latitude
+            Localization rider1Location = new Localization(
+                "Bilbao", "Bizkaia", "Spain", "48001", "1", -2.9253, 43.2630
+            );
+            Rider rider1 = new Rider(
+                "Carlos Rider", "12345678A", "+34 611 111 111",
+                "carlos.rider@test.com", passwordEncoder.encode("rider123"),
+                rider1Location
+            );
+            riderRepository.save(rider1);
+
+            Localization rider2Location = new Localization(
+                "Bilbao", "Bizkaia", "Spain", "48002", "20", -2.9300, 43.2650
+            );
+            Rider rider2 = new Rider(
+                "Ana Rider", "87654321B", "+34 622 222 222",
+                "ana.rider@test.com", passwordEncoder.encode("rider123"),
+                rider2Location
+            );
+            riderRepository.save(rider2);
+        }
+
+        if (customerRepository.count() == 0) {
+            Localization customerLocation = new Localization(
+                "Bilbao", "Bizkaia", "Spain", "48003", "5", -2.9200, 43.2600
+            );
+            Customer customer1 = new Customer(
+                "Test Customer", "customer@test.com", "+34 633 333 333",
+                passwordEncoder.encode("customer123"), 30, "11111111C",
+                List.of(customerLocation), List.of(), List.of()
+            );
+            customerRepository.save(customer1);
+        }
+
+        // Orders depend on riders + customers existing, so we check both
+        if (orderRepository.count() == 0
+                && riderRepository.count() > 0
+                && customerRepository.count() > 0) {
+
+            Rider rider1        = riderRepository.findAll().get(0);
+            Customer customer1  = customerRepository.findAll().get(0);
+            OrderStatus pending = orderStatusRepository.findByStatus("Pending").orElseThrow();
+
+            // Order 1 — for testing rejection + reassignment to Rider 2
+            Order order1 = new Order(customer1, List.of(), pending, rider1, 23.0, "1234");
+            orderRepository.save(order1);
+
+            // Order 2 — for testing rejection + cancellation
+            Order order2 = new Order(customer1, List.of(), pending, rider1, 14.0, "5678");
+            orderRepository.save(order2);
         }
     }
 }

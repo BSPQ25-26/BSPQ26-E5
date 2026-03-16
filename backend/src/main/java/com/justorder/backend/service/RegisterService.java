@@ -1,10 +1,8 @@
 package com.justorder.backend.service;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,11 +31,9 @@ public class RegisterService {
 	private final CustomerRepository customerRepository;
 	private final RiderRepository riderRepository;
 	private final RestaurantRepository restaurantRepository;
-	private final AdminRepository adminRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final CuisineCategoryRepository cuisineCategoryRepository;
 	private final AlergenRepository alergenRepository;
-	private final LocalizationRepository localizationRepository;
 
 	public RegisterService(
 		CustomerRepository customerRepository,
@@ -52,11 +48,9 @@ public class RegisterService {
 		this.customerRepository = customerRepository;
 		this.riderRepository = riderRepository;
 		this.restaurantRepository = restaurantRepository;
-		this.adminRepository = adminRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.cuisineCategoryRepository = cuisineCategoryRepository;
 		this.alergenRepository = alergenRepository;
-		this.localizationRepository = localizationRepository;
 	}
 	
 	@Transactional
@@ -83,7 +77,6 @@ public class RegisterService {
 
 	@Transactional
 	public Rider registerRider(RiderDTO request) {
-		// TODO
 		validateDniNotInUse(request.getDni(), "rider");
 		validateEmailTypo(request.getEmail());
 		validateEmailNotInUse(request.getEmail(), "rider");
@@ -107,7 +100,6 @@ public class RegisterService {
 
 	@Transactional
 	public RestaurantDTO registerRestaurant(RestaurantDTO request) {
-		// TODO
 		validateEmailTypo(request.getEmail());
 		validateEmailNotInUse(request.getEmail(), "restaurant");
 		validatePasswordTypo(request.getPassword());
