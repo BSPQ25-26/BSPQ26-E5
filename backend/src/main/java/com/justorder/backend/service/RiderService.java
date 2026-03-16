@@ -20,13 +20,7 @@ public class RiderService {
     private final RiderRepository riderRepository;
     private final OrderStatusRepository orderStatusRepository;
 
-    /**
-     * Constructor injection of all required repositories.
-     *
-     * @param orderRepository       For loading and saving orders.
-     * @param riderRepository       For finding available riders to reassign to.
-     * @param orderStatusRepository For looking up the "Cancelled" status by name.
-     */
+
     public RiderService(OrderRepository orderRepository,
                         RiderRepository riderRepository,
                         OrderStatusRepository orderStatusRepository) {
@@ -35,16 +29,7 @@ public class RiderService {
         this.orderStatusRepository = orderStatusRepository;
     }
 
-    /**
-     * Processes a rider's rejection of an assigned order (CO3).
-     *
-     * @param riderId         ID of the rider attempting to reject the order.
-     * @param orderId         ID of the order to reject.
-     * @param rejectionReason Human-readable reason why delivery is not possible.
-     * @return The updated order as a DTO.
-     * @throws IllegalArgumentException if the order or "Cancelled" status is not found.
-     * @throws SecurityException        if the order does not belong to this rider.
-     */
+
     @Transactional
     public OrderDTO rejectOrder(Long riderId, Long orderId, String rejectionReason) {
 
@@ -82,16 +67,7 @@ public class RiderService {
         return savedOrder.toDTO();
     }
 
-    /**
-     * Returns all orders assigned to a specific rider.
-     *
-     * <p>Used by {@code GET /api/riders/{riderId}/orders} to let a rider
-     * view their assigned deliveries.</p>
-     *
-     * @param riderId The ID of the rider whose orders to retrieve.
-     * @return List of the rider's orders as DTOs. Empty list if none assigned.
-     * @throws IllegalArgumentException if no rider exists with the given ID.
-     */
+
     @Transactional(readOnly = true)
     public List<OrderDTO> getRiderOrders(Long riderId) {
         if (!riderRepository.existsById(riderId)) {

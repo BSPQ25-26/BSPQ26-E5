@@ -20,13 +20,6 @@ public class RiderController {
     private final RiderRepository riderRepository;
     private final RiderService riderService;
 
-    /**
-     * Constructor injection of all dependencies.
-     *
-     * @param registerService  Handles rider registration (IAM-3).
-     * @param riderRepository  Direct DB access for delete-all utility.
-     * @param riderService     Handles rider business logic (CO3).
-     */
     public RiderController(RegisterService registerService,
                            RiderRepository riderRepository,
                            RiderService riderService) {
@@ -35,20 +28,13 @@ public class RiderController {
         this.riderService = riderService;
     }
 
-    /**
-     * Health-check endpoint.
-     */
+
     @GetMapping("/hello")
     public String hello() {
         return "Hello from JustOrder!";
     }
 
-    /**
-     * Registers a new rider account (IAM-3).
-     *
-     * @param request Rider registration data from the request body.
-     * @return {@code 200 OK} on success, {@code 500} on failure.
-     */
+
     @PostMapping("/create")
     public ResponseEntity<HttpStatus> createOrUpdateRider(@RequestBody RiderDTO request) {
         try {
@@ -71,14 +57,6 @@ public class RiderController {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
     }
 
-    /**
-     * Returns all orders assigned to a specific rider.
-     *
-     * <p>Example: {@code GET /api/riders/1/orders}</p>
-     *
-     * @param riderId The ID of the rider.
-     * @return {@code 200 OK} with list of orders, or {@code 404} if rider not found.
-     */
     @GetMapping("/{riderId}/orders")
     public ResponseEntity<List<OrderDTO>> getRiderOrders(@PathVariable Long riderId) {
         try {
@@ -89,18 +67,7 @@ public class RiderController {
         }
     }
 
-    /**
-     * Allows a rider to reject an assigned order (CO3 — Driver Claim System).
-     * <p><b>Example:</b> {@code POST /api/riders/1/orders/5/reject}</p>
-     *
-     * @param riderId  The ID of the rider rejecting the order.
-     * @param orderId  The ID of the order being rejected.
-     * @param body     JSON object with a {@code "reason"} field.
-     * @return {@code 200 OK} with the updated {@link OrderDTO},
-     *         {@code 404} if the order or rider is not found,
-     *         {@code 403} if this order does not belong to the requesting rider,
-     *         {@code 500} on unexpected errors.
-     */
+
     @PostMapping("/{riderId}/orders/{orderId}/reject")
     public ResponseEntity<OrderDTO> rejectOrder(
             @PathVariable Long riderId,
@@ -124,11 +91,6 @@ public class RiderController {
         }
     }
 
-    /**
-     * Deletes all riders from the database.
-     *
-     * @return {@code 200 OK} after deletion.
-     */
     @DeleteMapping()
     public ResponseEntity<HttpStatus> deleteAllRiders() {
         riderRepository.deleteAll();

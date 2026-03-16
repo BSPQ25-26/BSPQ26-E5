@@ -107,14 +107,6 @@ public class OrderService {
         }
     }
 
-    /**
-        * Validates payment payload used in sprint scope.
-     *
-     * @param paymentToken token provided by client
-     * @param clientTotal total sent by client
-     * @param calculatedTotal total recalculated on server
-        * @throws IllegalArgumentException when token is blank or totals do not match
-     */
     private void validatePayment(String paymentToken, double clientTotal, double calculatedTotal) {
         // Simulated payment check for Sprint 1.
         if (paymentToken == null || paymentToken.isBlank()) {
