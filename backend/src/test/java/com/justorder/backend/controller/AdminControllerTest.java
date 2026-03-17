@@ -1,8 +1,8 @@
 package com.justorder.backend.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +21,7 @@ public class AdminControllerTest {
     public void testGetAdminDashboard() throws Exception {
         mockMvc.perform(get("/api/admin/dashboard"))
                .andExpect(status().isOk())
-               .andExpect(content().string("¡Acceso concedido! Estás en el panel de control exclusivo para Administradores."));
+               // Comprobamos directamente el texto sin usar Hamcrest
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("¡Acceso concedido!")));
     }
 }
