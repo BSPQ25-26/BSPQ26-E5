@@ -22,6 +22,11 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    /**
+     * Accepts checkout payloads with customerId, dishIds, clientTotal and paymentToken.
+     * Returns 201 when the order is created, 400 for invalid payload or payment data,
+     * and 404 when referenced entities or an assignable rider are missing.
+     */
     @PostMapping("/checkout")
     public ResponseEntity<OrderDTO> checkout(@RequestBody CheckoutOrderRequestDTO request) {
         try {

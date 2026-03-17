@@ -1,5 +1,6 @@
 package com.justorder.backend.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +16,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.justorder.backend.model.Customer;
+import com.justorder.backend.model.Localization;
+import com.justorder.backend.model.Order;
+import com.justorder.backend.model.OrderStatus;
+import com.justorder.backend.model.Rider;
+import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.repository.OrderRepository;
+import com.justorder.backend.repository.OrderStatusRepository;
+import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.security.JwtUtil;
+import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -25,8 +36,74 @@ class RiderControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private RiderRepository riderRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
+
     @MockitoBean
     private JwtUtil jwtUtil;
+
+    private Long orderId1;
+    private Long orderId2;
+
+    @BeforeEach
+    void setUp() {
+        // Initialization for tests that don't need order IDs
+        // Order IDs are loaded on-demand by ensureOrdersLoaded()
+    }
+
+    private void ensureOrdersLoaded() {
+        if (orderId1 == null || orderId2 == null) {
+            // Create test orders explicitly
+            Rider rider1 = riderRepository.findById(1L)
+                .orElseGet(() -> {
+                    Localization loc = new Localization("Test", "Test", "Test", "28001", "1", 0.0, 0.0);
+                    Rider r = new Rider("Test Rider", "12345678A", "+34 612345678", 
+                        "test@test.com", "TestPass123", loc);
+                    return riderRepository.save(r);
+                });
+            
+            Customer customer1 = customerRepository.findById(1L)
+                .orElseGet(() -> {
+                    Localization loc = new Localization("Test", "Test", "Test", "28001", "1", 0.0, 0.0);
+                    Customer c = new Customer("Test Customer", "test@test.com", "+34 612345678", 
+                        "TestPass123", 30, "11111111A", List.of(loc), List.of(), List.of());
+                    return customerRepository.save(c);
+                });
+            
+            OrderStatus pending = orderStatusRepository.findByStatus("Pending")
+                .orElseGet(() -> orderStatusRepository.save(new OrderStatus("Pending")));
+            
+            // Create orders if they don't exist
+            if (orderRepository.count() < 2) {
+                Order order1 = new Order(customer1, List.of(), pending, rider1, 23.0, "1234");
+                Order order2 = new Order(customer1, List.of(), pending, rider1, 14.0, "5678");
+                orderRepository.save(order1);
+                orderRepository.save(order2);
+            }
+            
+            // Get the actual order IDs
+            List<Long> orderIds = orderRepository.findAll().stream()
+                .map(Order::getId)
+                .sorted()
+                .toList();
+            
+            if (orderIds.size() < 2) {
+                throw new IllegalStateException("Failed to create orders for testing");
+            }
+            
+            orderId1 = orderIds.get(0);
+            orderId2 = orderIds.get(1);
+        }
+    }
 
     @Test
     void testCreateRider() throws Exception {
@@ -114,12 +191,13 @@ class RiderControllerTest {
      */
     @Test
     void testRejectOrderReassignsToAnotherRider() throws Exception {
+        ensureOrdersLoaded();
         String requestBody = """
                 {
                     "reason": "Area unreachable due to road closure"
                 }
                 """;
-        mockMvc.perform(post("/api/riders/1/orders/1/reject")
+        mockMvc.perform(post("/api/riders/1/orders/" + orderId1 + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
@@ -135,8 +213,9 @@ class RiderControllerTest {
      */
     @Test
     void testSecondRejectionCancelsOrder() throws Exception {
+        ensureOrdersLoaded();
 
-        mockMvc.perform(post("/api/riders/1/orders/2/reject")
+        mockMvc.perform(post("/api/riders/1/orders/" + orderId2 + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -146,7 +225,7 @@ class RiderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.riderId").value(2));
 
-        mockMvc.perform(post("/api/riders/2/orders/2/reject")
+        mockMvc.perform(post("/api/riders/2/orders/" + orderId2 + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -164,12 +243,13 @@ class RiderControllerTest {
      */
     @Test
     void testRejectOrderWrongRiderReturnsForbidden() throws Exception {
+        ensureOrdersLoaded();
         String requestBody = """
                 {
                     "reason": "Wrong rider attempting rejection"
                 }
                 """;
-        mockMvc.perform(post("/api/riders/2/orders/1/reject")
+        mockMvc.perform(post("/api/riders/2/orders/" + orderId1 + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isForbidden());
@@ -197,12 +277,13 @@ class RiderControllerTest {
      */
     @Test
     void testRejectOrderWithEmptyReasonReturnsBadRequest() throws Exception {
+        ensureOrdersLoaded();
         String requestBody = """
                 {
                     "reason": ""
                 }
                 """;
-        mockMvc.perform(post("/api/riders/1/orders/1/reject")
+        mockMvc.perform(post("/api/riders/1/orders/" + orderId1 + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isBadRequest());
