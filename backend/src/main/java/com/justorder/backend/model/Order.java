@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.justorder.backend.dto.OrderDTO;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -55,6 +56,9 @@ public class Order {
     
     private LocalDateTime deliveredAt;
 
+    @Column(length = 500)
+    private String rejectionReason;
+
     public Order() {
     }
 
@@ -76,6 +80,7 @@ public class Order {
     public String getSecretCode() { return secretCode; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public String getRejectionReason() { return rejectionReason; }
 
     public void setId(Long id) { this.id = id; }
     public void setCustomer(Customer customer) { this.customer = customer; }
@@ -86,6 +91,7 @@ public class Order {
     public void setSecretCode(String secretCode) { this.secretCode = secretCode; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 
     public OrderDTO toDTO() {
         OrderDTO dto = new OrderDTO(
@@ -94,6 +100,7 @@ public class Order {
         dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
+        dto.setRejectionReason(this.rejectionReason);
         return dto;
     }
 }

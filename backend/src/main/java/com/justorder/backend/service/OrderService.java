@@ -83,6 +83,33 @@ public class OrderService {
     }
 
     /**
+     * Rejects a specific order on behalf of a restaurant.
+     * Business rules applied:
+     * - Order must exist.
+     * - Verifies the order belongs to the restaurant rejecting it.
+     * - Changes order status to 'Cancelled'.
+     * - Saves the detailed rejection reason (Requirement CO2).
+     */
+    @Transactional
+    public OrderDTO rejectOrder(Long restaurantId, Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order with id " + orderId + " not found"));
+
+        if (order.getDishes().isEmpty() || !order.getDishes().get(0).getRestaurant().getId().equals(restaurantId)) {
+            throw new IllegalArgumentException("This order does not belong to your restaurant");
+        }
+
+        OrderStatus cancelledStatus = orderStatusRepository.findByStatusIgnoreCase("Cancelled")
+                .orElseThrow(() -> new ResourceNotFoundException("Cancelled status not found"));
+
+        order.setStatus(cancelledStatus);
+        order.setRejectionReason(reason);
+
+        Order updatedOrder = orderRepository.save(order);
+        return updatedOrder.toDTO();
+    }
+
+    /**
         * Validates mandatory checkout fields and basic constraints.
      *
      * @param request checkout request payload

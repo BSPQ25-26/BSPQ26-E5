@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.justorder.backend.dto.DishDTO;
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RejectionRequestDTO;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.service.MenuService;
+import com.justorder.backend.service.OrderService;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RestaurantService;
@@ -48,6 +51,13 @@ public class RestaurantController {
     private final RestaurantService restaurantService;
 
     /**
+     * Handles order-related business logic (CO2).
+     * Injected here to process restaurant-initiated actions on their assigned orders, 
+     * such as order rejection.
+     */
+    private final OrderService orderService;
+
+    /**
      * Constructor injection of all dependencies.
      *
      * @param registerService      Service handling registration for all user types.
@@ -56,10 +66,12 @@ public class RestaurantController {
      */
     public RestaurantController(RegisterService registerService,
                                 RestaurantRepository restaurantRepository,
-                                RestaurantService restaurantService) {
+                                RestaurantService restaurantService,
+                                OrderService orderService) {    
         this.registerService = registerService;
         this.restaurantRepository = restaurantRepository;
         this.restaurantService = restaurantService;
+        this.orderService = orderService;
     }
 
     @GetMapping("/hello")
@@ -150,5 +162,14 @@ public class RestaurantController {
                 cuisine, minRating, minPrice, maxPrice
         );
         return ResponseEntity.ok(results);
+    }
+    @PostMapping("/{restaurantId}/orders/{orderId}/reject")
+    public ResponseEntity<OrderDTO> rejectOrder(
+            @PathVariable Long restaurantId,
+            @PathVariable Long orderId,
+            @RequestBody RejectionRequestDTO rejectionRequest) {
+        
+        OrderDTO updatedOrder = orderService.rejectOrder(restaurantId, orderId, rejectionRequest.getReason());
+        return ResponseEntity.ok(updatedOrder);
     }
 }

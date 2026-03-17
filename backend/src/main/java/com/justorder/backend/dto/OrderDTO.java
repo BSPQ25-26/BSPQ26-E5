@@ -14,6 +14,7 @@ public class OrderDTO {
     private String secretCode;
     private LocalDateTime createdAt;
     private LocalDateTime deliveredAt;
+    private String rejectionReason;
 
     public OrderDTO() {
     }
@@ -36,6 +37,7 @@ public class OrderDTO {
     public String getSecretCode() { return secretCode; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public String getRejectionReason() { return rejectionReason; }
 
     public void setId(Long id) { this.id = id; }
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
@@ -46,4 +48,5 @@ public class OrderDTO {
     public void setSecretCode(String secretCode) { this.secretCode = secretCode; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 }
