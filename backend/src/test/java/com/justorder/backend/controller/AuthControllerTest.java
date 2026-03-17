@@ -9,9 +9,9 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,9 +29,9 @@ public class AuthControllerTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
 
-    @MockBean private AdminRepository adminRepository;
-    @MockBean private PasswordEncoder passwordEncoder;
-    @MockBean private JwtUtil jwtUtil;
+    @MockitoBean private AdminRepository adminRepository;
+    @MockitoBean private PasswordEncoder passwordEncoder;
+    @MockitoBean private JwtUtil jwtUtil;
 
     @Test
     public void testLoginAdminSuccess() throws Exception {
