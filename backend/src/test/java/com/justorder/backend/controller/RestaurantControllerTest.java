@@ -29,8 +29,8 @@ import com.justorder.backend.repository.RestaurantRepository;
 @AutoConfigureMockMvc(addFilters = false)
 public class RestaurantControllerTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
+    private ObjectMapper objectMapper = new ObjectMapper();
     @MockitoBean private RestaurantRepository repository;
 
     @Test

@@ -29,8 +29,8 @@ import com.justorder.backend.repository.OrderStatusRepository;
 @AutoConfigureMockMvc(addFilters = false)
 public class OrderStatusControllerTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
+    private ObjectMapper objectMapper = new ObjectMapper();
     @MockitoBean private OrderStatusRepository repository;
 
     @Test
@@ -41,7 +41,7 @@ public class OrderStatusControllerTest {
         
         when(repository.findAll()).thenReturn(Arrays.asList(status));
 
-        mockMvc.perform(get("/api/orderStatus/all"))
+        mockMvc.perform(get("/api/order-statuses/all"))
                .andExpect(status().isOk())
                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("En Preparación")));
     }
@@ -57,7 +57,7 @@ public class OrderStatusControllerTest {
 
         when(repository.save(any(OrderStatus.class))).thenReturn(saved);
 
-        mockMvc.perform(post("/api/orderStatus/create")
+        mockMvc.perform(post("/api/order-statuses/create")
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
@@ -80,7 +80,7 @@ public class OrderStatusControllerTest {
         when(repository.findById(2L)).thenReturn(Optional.of(existing));
         when(repository.save(any(OrderStatus.class))).thenReturn(updated);
 
-        mockMvc.perform(put("/api/orderStatus/update/2")
+        mockMvc.perform(put("/api/order-statuses/update/2")
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
@@ -90,7 +90,7 @@ public class OrderStatusControllerTest {
     @Test
     public void testDelete() throws Exception {
         when(repository.existsById(1L)).thenReturn(true);
-        mockMvc.perform(delete("/api/orderStatus/delete/1"))
+        mockMvc.perform(delete("/api/order-statuses/delete/1"))
                .andExpect(status().isOk());
     }
 }

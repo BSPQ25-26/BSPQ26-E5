@@ -20,18 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.LoginRequest;
 import com.justorder.backend.model.Admin;
 import com.justorder.backend.repository.AdminRepository;
-import com.justorder.backend.security.JwtUtil;
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
 public class AuthControllerTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean private AdminRepository adminRepository;
     @MockitoBean private PasswordEncoder passwordEncoder;
-    @MockitoBean private JwtUtil jwtUtil;
 
     @Test
     public void testLoginAdminSuccess() throws Exception {

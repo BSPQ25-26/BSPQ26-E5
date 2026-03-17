@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 public class AdminControllerTest {
 
     @Autowired 
-    private MockMvc mockMvc;
+    private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
 
     @Test
     public void testGetAdminDashboard() throws Exception {

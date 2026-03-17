@@ -31,8 +31,8 @@ import com.justorder.backend.repository.AlergenRepository;
 @AutoConfigureMockMvc(addFilters = false)
 public class DishControllerTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
+    private ObjectMapper objectMapper = new ObjectMapper();
     
     @MockitoBean private DishRepository dishRepository;
     @MockitoBean private RestaurantRepository restaurantRepository;
