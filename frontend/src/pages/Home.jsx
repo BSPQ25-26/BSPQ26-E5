@@ -9,6 +9,9 @@ function Home() {
                 <p className="home-kicker">JustOrder</p>
                 <h1>Order food from your favourite restaurants</h1>
                 <div className="home-actions">
+                    <Link className="btn btn-primary" to="/checkout">
+                        Go to checkout
+                    </Link>
                     <Link className="btn btn-primary" to="/register-customer">
                         Create customer account
                     </Link>

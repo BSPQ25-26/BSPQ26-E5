@@ -111,4 +111,70 @@ public class OrderControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
     }
+
+    @Test
+    @Transactional
+    public void checkoutCreatesOrderWithRepeatedDishIds() throws Exception {
+        Customer customer = new Customer(
+            "Repeated Dish User",
+            "repeat.user@justorder.com",
+            "+34 600 000 001",
+            "plain-pass",
+            24,
+            "00000001A",
+            List.of(),
+            List.of(),
+            List.of()
+        );
+        customer = customerRepository.save(customer);
+
+        Localization riderStart = new Localization(
+            "Bilbao",
+            "Bizkaia",
+            "Spain",
+            "48001",
+            "2",
+            -2.934985,
+            43.263012
+        );
+        Rider rider = new Rider(
+            "Repeated Dish Rider",
+            "11111112B",
+            "+34 611 111 112",
+            "repeat.rider@justorder.com",
+            "plain-pass",
+            riderStart
+        );
+        riderRepository.save(rider);
+
+        Restaurant restaurant = new Restaurant(
+            "Repeated Dish Restaurant",
+            "Test restaurant",
+            "+34 900 000 101",
+            "repeat.restaurant@justorder.com",
+            "plain-pass",
+            "09:00-22:00",
+            "09:00-22:00",
+            "09:00-22:00",
+            "09:00-22:00",
+            "09:00-22:00",
+            "09:00-22:00",
+            "09:00-22:00"
+        );
+        restaurant = restaurantRepository.save(restaurant);
+
+        Dish dish = new Dish("Repeated Checkout Dish", "Dish for repeated quantity", 18.5, restaurant);
+        dish = dishRepository.save(dish);
+
+        CheckoutOrderRequestDTO request = new CheckoutOrderRequestDTO();
+        request.setCustomerId(customer.getId());
+        request.setDishIds(List.of(dish.getId(), dish.getId()));
+        request.setClientTotal(37.0);
+        request.setPaymentToken("mock-payment-token");
+
+        mockMvc.perform(post("/api/orders/checkout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+    }
 }

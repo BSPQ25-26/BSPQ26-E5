@@ -1,7 +1,9 @@
 package com.justorder.backend.service;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,13 @@ public class OrderService {
         this.riderRepository = riderRepository;
     }
 
+    /**
+     * Creates an order from checkout data after validating the payload,
+     * recalculating the total, and resolving the required related entities.
+     *
+     * Accepted payload: existing customerId, at least one existing dishId,
+     * non-negative clientTotal, and a non-blank paymentToken.
+     */
     @Transactional
     public OrderDTO checkout(CheckoutOrderRequestDTO request) {
         validateCheckoutRequest(request);
@@ -53,10 +62,7 @@ public class OrderService {
         Customer customer = customerRepository.findById(request.getCustomerId())
             .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + request.getCustomerId()));
 
-        List<Dish> dishes = dishRepository.findAllById(request.getDishIds());
-        if (dishes.size() != request.getDishIds().size()) {
-            throw new ResourceNotFoundException("One or more dishes do not exist");
-        }
+        List<Dish> dishes = resolveRequestedDishes(request.getDishIds());
 
         double calculatedTotal = calculateTotal(dishes);
         validatePayment(request.getPaymentToken(), request.getClientTotal(), calculatedTotal);
@@ -135,15 +141,10 @@ public class OrderService {
     }
 
     /**
-        * Validates payment payload used in sprint scope.
-     *
-     * @param paymentToken token provided by client
-     * @param clientTotal total sent by client
-     * @param calculatedTotal total recalculated on server
-        * @throws IllegalArgumentException when token is blank or totals do not match
+     * Performs the sprint payment check by ensuring the token is present and
+     * the client total matches the server-side recalculated total.
      */
     private void validatePayment(String paymentToken, double clientTotal, double calculatedTotal) {
-        // Simulated payment check for Sprint 1.
         if (paymentToken == null || paymentToken.isBlank()) {
             throw new IllegalArgumentException("Invalid payment token");
         }
@@ -155,6 +156,27 @@ public class OrderService {
 
     private double calculateTotal(List<Dish> dishes) {
         return dishes.stream().mapToDouble(Dish::getPrice).sum();
+    }
+
+    private List<Dish> resolveRequestedDishes(List<Long> dishIds) {
+        Map<Long, Dish> dishesById = new HashMap<>();
+        dishRepository.findAllById(dishIds).forEach(dish -> dishesById.put(dish.getId(), dish));
+
+        List<Dish> resolvedDishes = dishIds.stream()
+            .map(dishId -> {
+                Dish dish = dishesById.get(dishId);
+                if (dish == null) {
+                    throw new ResourceNotFoundException("Dish not found: " + dishId);
+                }
+                return dish;
+            })
+            .toList();
+
+        if (resolvedDishes.isEmpty()) {
+            throw new ResourceNotFoundException("One or more dishes do not exist");
+        }
+
+        return resolvedDishes;
     }
 
     private String generateSecretCode() {

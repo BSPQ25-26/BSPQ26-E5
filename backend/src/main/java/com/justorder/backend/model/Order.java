@@ -20,6 +20,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -40,29 +41,44 @@ public class Order {
     )
     private List<Dish> dishes = new ArrayList<>();
 
+    /**
+     * The current status of the order (e.g. Pending, Confirmed, Cancelled).
+     * Updated throughout the order lifecycle by restaurant, rider, and system.
+     */
     @ManyToOne
-    @JoinColumn(name = "status_id", nullable=false)
+    @JoinColumn(name = "status_id", nullable = false)
     private OrderStatus status;
 
+    /**
+     * The rider assigned to deliver this order.
+     */
     @ManyToOne
     @JoinColumn(name = "rider_id", nullable = false)
     private Rider rider;
 
+    /** Pre-calculated total price of all dishes in the order, in euros. */
     private double totalPrice;
+
+    /**
+     * The rider must ask for this code upon delivery to verify the recipient.
+     */
     private String secretCode;
+
+    /**
+     * <p>Null if the order has not been rejected by a rider.</p>
+     */
+    private String rejectionReason;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-    
     private LocalDateTime deliveredAt;
-
-    @Column(length = 500)
-    private String rejectionReason;
 
     public Order() {
     }
 
-    public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider, double totalPrice, String secretCode) {
+
+    public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider,
+                 double totalPrice, String secretCode) {
         this.customer = customer;
         this.dishes = dishes;
         this.status = status;
@@ -71,6 +87,10 @@ public class Order {
         this.secretCode = secretCode;
     }
 
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
+
     public Long getId() { return id; }
     public Customer getCustomer() { return customer; }
     public List<Dish> getDishes() { return dishes; }
@@ -78,9 +98,13 @@ public class Order {
     public Rider getRider() { return rider; }
     public double getTotalPrice() { return totalPrice; }
     public String getSecretCode() { return secretCode; }
+    public String getRejectionReason() { return rejectionReason; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
-    public String getRejectionReason() { return rejectionReason; }
+
+    // -------------------------------------------------------------------------
+    // Setters
+    // -------------------------------------------------------------------------
 
     public void setId(Long id) { this.id = id; }
     public void setCustomer(Customer customer) { this.customer = customer; }
@@ -89,14 +113,20 @@ public class Order {
     public void setRider(Rider rider) { this.rider = rider; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
     public void setSecretCode(String secretCode) { this.secretCode = secretCode; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
-    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+
+    // -------------------------------------------------------------------------
+    // Conversion
+    // -------------------------------------------------------------------------
 
     public OrderDTO toDTO() {
         OrderDTO dto = new OrderDTO(
-            this.id, this.customer.getId(), this.status.getStatus(), this.rider.getId(), this.totalPrice, this.secretCode
+            this.id, this.customer.getId(), this.status.getStatus(),
+            this.rider.getId(), this.totalPrice, this.secretCode
         );
+        dto.setRejectionReason(this.rejectionReason);
         dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
