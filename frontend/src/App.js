@@ -6,8 +6,8 @@ import RegisterRestaurant from "./pages/RegisterRestaurant";
 import RegisterRider from "./pages/RegisterRider";
 import CheckoutPage from "./pages/CheckoutPage";
 import { CartProvider } from "./store/CartContext";
-import "./styles/Home.css";
-import "./styles/Register.css";
+import "./assets/css/Home.css";
+import "./assets/css/Register.css";
 
 function App() {
   return (
