@@ -1,0 +1,83 @@
+.register-container {
+  width: min(760px, calc(100% - 32px));
+  margin: 36px auto;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid #d8d8d8;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.register-container h2 {
+  margin: 0 0 18px;
+  font-size: clamp(24px, 2.4vw, 34px);
+}
+
+.register-container form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.register-container input,
+.register-container button,
+.register-container fieldset {
+  grid-column: span 2;
+}
+
+.register-container input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #cbcbcb;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.register-container input:focus-visible {
+  outline: 3px solid #8bed8f;
+  outline-offset: 1px;
+  border-color: #8bed8f;
+}
+
+.register-container fieldset {
+  border: 1px solid #cbcbcb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.register-container legend {
+  font-weight: 700;
+}
+
+.register-container label {
+  font-size: 14px;
+}
+
+.register-container button {
+  margin-top: 8px;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 700;
+  background: #8bed8f;
+  color: #111111;
+  cursor: pointer;
+}
+
+.register-container p[role="alert"] {
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+@media (min-width: 880px) {
+  .register-container input[name="name"],
+  .register-container input[name="description"],
+  .register-container input[name="email"],
+  .register-container input[name="password"],
+  .register-container input[name="phone"],
+  .register-container input[name="phoneNumber"],
+  .register-container fieldset,
+  .register-container button {
+    grid-column: span 2;
+  }
+}

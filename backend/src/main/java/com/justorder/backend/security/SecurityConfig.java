@@ -1,8 +1,11 @@
 package com.justorder.backend.security;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,8 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -31,11 +32,20 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas (Login)
-                .requestMatchers("/api/auth/**").permitAll() 
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/hello").permitAll()
+                .requestMatchers("/api/restaurants/**").permitAll()
+                .requestMatchers("/api/customers/**").permitAll()
+                .requestMatchers("/api/riders/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/alergens").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
                 // Rutas protegidas (Solo usuarios con el rol ROLE_ADMIN)
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Cualquier otra ruta requerirá autenticación genérica
                 .anyRequest().authenticated()
             )
             // Añadimos nuestro portero justo antes del filtro normal de Spring

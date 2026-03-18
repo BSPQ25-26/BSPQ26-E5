@@ -1,21 +1,37 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard'; // Importamos la nueva pantalla
+import React from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import RegisterCustomer from "./pages/RegisterCustomer";
+import RegisterRestaurant from "./pages/RegisterRestaurant";
+import RegisterRider from "./pages/RegisterRider";
+import CheckoutPage from "./pages/CheckoutPage";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import { CartProvider } from "./store/CartContext";
+import "./assets/css/Home.css";
+import "./assets/css/Register.css";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* La pantalla de Login */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        
-        {/* La pantalla segura del Dashboard (RBAC) */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        
-        {/* Si alguien entra a la raíz "/", lo mandamos al login */}
-        <Route path="/" element={<Navigate to="/admin/login" />} />
-      </Routes>
-    </Router>
+    <CartProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* General Application Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/register-customer" element={<RegisterCustomer />} />
+          <Route path="/register-restaurant" element={<RegisterRestaurant />} />
+          <Route path="/register-rider" element={<RegisterRider />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+
+          {/* Administrator Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+          {/* Fallback: Redirect to home if the URL does not exist */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </CartProvider>
   );
 }
 

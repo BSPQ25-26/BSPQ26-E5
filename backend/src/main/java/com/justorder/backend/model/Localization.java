@@ -38,6 +38,16 @@ public class Localization {
         this.latitude = latitude;
     }
 
+    public Localization(LocalizationDTO dto) {
+        this.city = dto.getCity();
+        this.province = dto.getProvince();
+        this.country = dto.getCountry();
+        this.postalCode = dto.getPostalCode();
+        this.number = dto.getNumber();
+        this.longitude = dto.getLongitude();
+        this.latitude = dto.getLatitude();
+    }
+
     // Getters
     public Long getId() { return id; }
     public String getCity() { return city; }

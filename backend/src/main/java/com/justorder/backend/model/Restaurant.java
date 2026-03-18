@@ -24,7 +24,6 @@ public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
     private String description;
     private String phone;
@@ -37,12 +36,14 @@ public class Restaurant {
     private String fridayWorkingHours;
     private String saturdayWorkingHours;
     private String sundayWorkingHours;
+    private Double averageRating = 0.0;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Localization> localizations = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Dish> dishes = new ArrayList<>();
+
 
     @ManyToMany
     @JoinTable(
@@ -52,9 +53,7 @@ public class Restaurant {
     )
     private List<CuisineCategory> cuisineCategories = new ArrayList<>();
 
-    // Constructors
-    public Restaurant() {
-    }
+    public Restaurant() {}
     public Restaurant(String name, String description, String phone, String email, String password,
                       String mondayWorkingHours, String tuesdayWorkingHours, String wednesdayWorkingHours,
                       String thursdayWorkingHours, String fridayWorkingHours, String saturdayWorkingHours,
@@ -73,6 +72,7 @@ public class Restaurant {
         this.sundayWorkingHours = sundayWorkingHours;
     }
 
+
     // Getters
     public Long getId() { return id; }
     public String getName() { return name; }
@@ -87,9 +87,11 @@ public class Restaurant {
     public String getFridayWorkingHours() { return fridayWorkingHours; }
     public String getSaturdayWorkingHours() { return saturdayWorkingHours; }
     public String getSundayWorkingHours() { return sundayWorkingHours; }
+    public Double getAverageRating() { return averageRating; }
     public List<Localization> getLocalizations() { return localizations; }
     public List<Dish> getDishes() { return dishes; }
     public List<CuisineCategory> getCuisineCategories() { return cuisineCategories; }
+
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -105,11 +107,10 @@ public class Restaurant {
     public void setFridayWorkingHours(String fridayWorkingHours) { this.fridayWorkingHours = fridayWorkingHours; }
     public void setSaturdayWorkingHours(String saturdayWorkingHours) { this.saturdayWorkingHours = saturdayWorkingHours; }
     public void setSundayWorkingHours(String sundayWorkingHours) { this.sundayWorkingHours = sundayWorkingHours; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
     public void setLocalizations(List<Localization> localizations) { this.localizations = localizations; }
     public void setDishes(List<Dish> dishes) { this.dishes = dishes; }
     public void setCuisineCategories(List<CuisineCategory> cuisineCategories) { this.cuisineCategories = cuisineCategories; }
-
-    // toDTO
     public RestaurantDTO toDTO() {
         RestaurantDTO dto = new RestaurantDTO(
             this.id, this.name, this.description, this.phone, this.email, this.password,
@@ -117,6 +118,7 @@ public class Restaurant {
             this.thursdayWorkingHours, this.fridayWorkingHours, this.saturdayWorkingHours,
             this.sundayWorkingHours
         );
+        dto.setAverageRating(this.averageRating);
         dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
         dto.setDishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
         dto.setCuisineCategoryNames(this.cuisineCategories.stream().map(CuisineCategory::getName).collect(Collectors.toList()));

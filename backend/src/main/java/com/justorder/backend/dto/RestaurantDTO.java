@@ -17,13 +17,11 @@ public class RestaurantDTO {
     private String fridayWorkingHours;
     private String saturdayWorkingHours;
     private String sundayWorkingHours;
+    private Double averageRating;
     private List<LocalizationDTO> localizations;
     private List<DishDTO> dishes;
     private List<String> cuisineCategoryNames;
-
-    public RestaurantDTO() {
-    }
-
+    public RestaurantDTO() {}
     public RestaurantDTO(Long id, String name, String description, String phone, String email, String password,
                          String mondayWorkingHours, String tuesdayWorkingHours, String wednesdayWorkingHours,
                          String thursdayWorkingHours, String fridayWorkingHours, String saturdayWorkingHours,
@@ -43,7 +41,8 @@ public class RestaurantDTO {
         this.sundayWorkingHours = sundayWorkingHours;
     }
 
-    // Getters
+
+    // Getters & Setters
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getDescription() { return description; }
@@ -57,11 +56,10 @@ public class RestaurantDTO {
     public String getFridayWorkingHours() { return fridayWorkingHours; }
     public String getSaturdayWorkingHours() { return saturdayWorkingHours; }
     public String getSundayWorkingHours() { return sundayWorkingHours; }
+    public Double getAverageRating() { return averageRating; }
     public List<LocalizationDTO> getLocalizations() { return localizations; }
     public List<DishDTO> getDishes() { return dishes; }
     public List<String> getCuisineCategoryNames() { return cuisineCategoryNames; }
-
-    // Setters
     public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setDescription(String description) { this.description = description; }
@@ -75,6 +73,7 @@ public class RestaurantDTO {
     public void setFridayWorkingHours(String fridayWorkingHours) { this.fridayWorkingHours = fridayWorkingHours; }
     public void setSaturdayWorkingHours(String saturdayWorkingHours) { this.saturdayWorkingHours = saturdayWorkingHours; }
     public void setSundayWorkingHours(String sundayWorkingHours) { this.sundayWorkingHours = sundayWorkingHours; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
     public void setLocalizations(List<LocalizationDTO> localizations) { this.localizations = localizations; }
     public void setDishes(List<DishDTO> dishes) { this.dishes = dishes; }
     public void setCuisineCategoryNames(List<String> cuisineCategoryNames) { this.cuisineCategoryNames = cuisineCategoryNames; }
