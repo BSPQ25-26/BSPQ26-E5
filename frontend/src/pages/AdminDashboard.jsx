@@ -2,28 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
-    // ESTADOS PARA PESTAÑAS
-    const [activeTab, setActiveTab] = useState('restaurants'); // 'restaurants' o 'riders'
 
-    // ESTADOS PARA RESTAURANTES
+    const [activeTab, setActiveTab] = useState('restaurants');
+
     const [restaurants, setRestaurants] = useState([]);
     const [showRestForm, setShowRestForm] = useState(false);
     const [editingRestId, setEditingRestId] = useState(null);
     const [restFormData, setRestFormData] = useState({ name: '', description: '', email: '', phone: '', password: '' });
 
-    // ESTADOS PARA REPARTIDORES 
     const [riders, setRiders] = useState([]);
     const [showRiderForm, setShowRiderForm] = useState(false);
     const [editingRiderId, setEditingRiderId] = useState(null);
     const [riderFormData, setRiderFormData] = useState({ name: '', email: '', phoneNumber: '', password: '' });
 
-    // ESTADOS PARA CLIENTES 
     const [customers, setCustomers] = useState([]);
     const [showCustForm, setShowCustForm] = useState(false);
     const [editingCustId, setEditingCustId] = useState(null);
     const [custFormData, setCustFormData] = useState({ name: '', email: '', phone: '', password: '', age: '', dni: '' });
-
-    // ESTADOS PARA ALÉRGENOS 
+ 
     const [alergens, setAlergens] = useState([]);
     const [showAlergenForm, setShowAlergenForm] = useState(false);
     const [editingAlergenId, setEditingAlergenId] = useState(null);
@@ -35,19 +31,16 @@ const AdminDashboard = () => {
     const [editingCategoryId, setEditingCategoryId] = useState(null);
     const [categoryFormData, setCategoryFormData] = useState({ name: '', description: '' });
 
-    // ESTADOS PARA PEDIDOS 
     const [orders, setOrders] = useState([]);
     const [showOrderForm, setShowOrderForm] = useState(false);
     const [editingOrderId, setEditingOrderId] = useState(null);
     const [orderFormData, setOrderFormData] = useState({ customerId: '', riderId: '', statusId: '', totalPrice: '', secretCode: '', dishIds: [] });
 
-    // ESTADOS PARA ESTADOS DE PEDIDO
     const [statuses, setStatuses] = useState([]);
     const [showStatusForm, setShowStatusForm] = useState(false);
     const [editingStatusId, setEditingStatusId] = useState(null);
     const [statusFormData, setStatusFormData] = useState({ name: '' });
 
-    // ESTADOS PARA PLATOS
     const [dishes, setDishes] = useState([]);
     const [showDishForm, setShowDishForm] = useState(false);
     const [editingDishId, setEditingDishId] = useState(null);
@@ -56,7 +49,6 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken');
 
-    // --- FUNCIONES DE CARGA ---
     const fetchRestaurants = async () => {
         try {
             const response = await fetch('http://localhost:8080/api/restaurants/all', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -128,7 +120,6 @@ const AdminDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate, token, activeTab]);
 
-    // --- FUNCIONES DE RESTAURANTES ---
     const handleRestSubmit = async (e) => {
         e.preventDefault();
         const url = editingRestId ? `http://localhost:8080/api/restaurants/update/${editingRestId}` : 'http://localhost:8080/api/restaurants/create';
@@ -151,7 +142,6 @@ const AdminDashboard = () => {
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
-    // --- FUNCIONES DE RIDERS ---
     const handleRiderSubmit = async (e) => {
         e.preventDefault();
         const url = editingRiderId ? `http://localhost:8080/api/riders/update/${editingRiderId}` : 'http://localhost:8080/api/riders/create';
@@ -232,7 +222,6 @@ const AdminDashboard = () => {
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
-    // --- FUNCIONES PEDIDOS ---
     const handleOrderSubmit = async (e) => {
         e.preventDefault();
         const url = editingOrderId ? `http://localhost:8080/api/orders/update/${editingOrderId}` : 'http://localhost:8080/api/orders/create';
@@ -255,7 +244,6 @@ const AdminDashboard = () => {
         } catch (error) { alert("Fallo al eliminar pedido"); }
     };
 
-    // --- FUNCIONES ESTADOS DE PEDIDO ---
     const handleStatusSubmit = async (e) => {
         e.preventDefault();
         const url = editingStatusId ? `http://localhost:8080/api/order-statuses/update/${editingStatusId}` : 'http://localhost:8080/api/order-statuses/create';
@@ -274,7 +262,6 @@ const AdminDashboard = () => {
         } catch (error) { alert("Fallo al eliminar estado"); }
     };
 
-    // --- FUNCIONES PLATOS ---
     const handleDishSubmit = async (e) => {
         e.preventDefault();
         const url = editingDishId ? `http://localhost:8080/api/dishes/update/${editingDishId}` : 'http://localhost:8080/api/dishes/create';
@@ -306,7 +293,7 @@ const AdminDashboard = () => {
                 <button onClick={handleLogout} style={{ padding: '10px 20px', background: 'red', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cerrar Sesión</button>
             </div>
             
-            {/* MENÚ DE PESTAÑAS */}
+            {/* MENU */}
             <div style={{ display: 'flex', borderBottom: '2px solid #ddd', marginBottom: '20px' }}>
                 <button 
                     onClick={() => setActiveTab('restaurants')}
@@ -358,7 +345,7 @@ const AdminDashboard = () => {
                 </button>
             </div>
 
-            {/* SECCIÓN RESTAURANTES */}
+            {/* RESTAURANTS SECTION */}
             {activeTab === 'restaurants' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -412,7 +399,7 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* SECCIÓN REPARTIDORES */}
+            {/* RIDERS SECTION */}
             {activeTab === 'riders' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -465,7 +452,7 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* SECCIÓN CLIENTES */}
+            {/* CLIENTS SECTION */}
             {activeTab === 'customers' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -524,7 +511,7 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* SECCIÓN ALÉRGENOS */}
+            {/* ALERGENS SECTION */}
             {activeTab === 'alergens' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -573,7 +560,7 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* SECCIÓN CATEGORÍAS */}
+            {/* CATEGORY SECTION */}
             {activeTab === 'categories' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -622,7 +609,7 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* SECCIÓN PEDIDOS */}
+            {/* ORDERS SECTION */}
             {activeTab === 'orders' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -703,7 +690,7 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* SECCIÓN ESTADOS DE PEDIDO */}
+            {/* STATUSES SECTION */}
             {activeTab === 'statuses' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -749,7 +736,7 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* SECCIÓN PLATOS */}
+            {/* DISHES SECTION */}
             {activeTab === 'dishes' && (
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

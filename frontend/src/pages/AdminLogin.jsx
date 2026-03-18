@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Importamos la herramienta de viaje
+import { useNavigate } from 'react-router-dom';
 import { loginAdmin } from '../api/authService';
 
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate(); // 2. La inicializamos
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -15,7 +15,6 @@ const AdminLogin = () => {
             const token = await loginAdmin(email, password);
             localStorage.setItem('adminToken', token);
             
-            // 3. ¡EL CAMBIO MÁGICO! En vez del alert, viajamos al dashboard
             navigate('/admin/dashboard'); 
 
         } catch (err) {
@@ -23,7 +22,6 @@ const AdminLogin = () => {
         }
     };
 
-    // ... (El resto de estilos de abajo se mantienen igual)
     const containerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', fontFamily: 'Arial, sans-serif' };
     const formStyle = { padding: '30px', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', width: '300px' };
 

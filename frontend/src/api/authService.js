@@ -14,5 +14,5 @@ export const loginAdmin = async (email, password) => {
     }
 
     const data = await response.json();
-    return data.token; // Aquí recibimos el JWT
+    return data.token;
 };
