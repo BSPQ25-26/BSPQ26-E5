@@ -22,7 +22,6 @@ public class Localization {
     private double longitude;
     private double latitude;
 
-    // Constructors
     public Localization() {
     }
 

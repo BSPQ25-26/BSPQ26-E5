@@ -49,7 +49,6 @@ public class Restaurant {
     )
     private List<CuisineCategory> cuisineCategories = new ArrayList<>();
 
-    // Constructors
     public Restaurant() {
     }
     public Restaurant(String name, String description, String phone, String email, String password,

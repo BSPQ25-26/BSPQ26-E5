@@ -20,7 +20,6 @@ public class Alergen {
 
     private String description;
 
-    // Constructors
     public Alergen() {
     }
 

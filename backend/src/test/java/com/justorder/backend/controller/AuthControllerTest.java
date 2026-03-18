@@ -49,7 +49,7 @@ public class AuthControllerTest {
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
-               // ¡Corregido! Verificamos el texto directamente
+
                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("token-falso-123")));
     }
 

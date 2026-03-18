@@ -15,6 +15,12 @@ import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.DishRepository;
 
+/**
+ * REST controller for managing Order entities.
+ * Provides endpoints for performing CRUD operations on orders and handles 
+ * complex associations with customers, riders, order statuses, and dishes.
+ * * @version 1.0
+ */
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -25,6 +31,12 @@ public class OrderController {
     @Autowired private OrderStatusRepository orderStatusRepository;
     @Autowired private DishRepository dishRepository;
 
+    /**
+     * Helper method that acts as a "firewall" to prevent infinite recursion 
+     * during JSON serialization. It nullifies the back-references from associated 
+     * entities (like customers, riders, and restaurants inside dishes) to their order lists.
+     * * @param order the {@link Order} entity to be sanitized before returning it to the client.
+     */
     private void aplicarCortafuegos(Order order) {
         if (order.getCustomer() != null) {
             order.getCustomer().setOrders(null);
@@ -41,6 +53,11 @@ public class OrderController {
         }
     }
 
+    /**
+     * Retrieves a list of all available orders in the database.
+     * The serialization firewall is applied to each order to keep the JSON response clean and optimized.
+     * * @return a ResponseEntity containing a list of {@link Order} objects and an HTTP 200 OK status.
+     */
     @GetMapping("/all")
     public ResponseEntity<List<Order>> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
@@ -50,6 +67,13 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    /**
+     * Creates a new order and saves it to the database.
+     * Links the associated customer, rider, status, and dishes based on the IDs 
+     * provided in the request payload.
+     * * @param request the data transfer object containing the details of the order to be created.
+     * @return a ResponseEntity containing the newly created {@link Order} and an HTTP 200 OK status.
+     */
     @PostMapping("/create")
     public ResponseEntity<Order> createOrder(@RequestBody OrderDTO request) {
         Order newOrder = new Order();
@@ -74,6 +98,15 @@ public class OrderController {
         return ResponseEntity.ok(savedOrder);
     }
 
+    /**
+     * Updates an existing order identified by its ID.
+     * Re-links all provided associations (customer, rider, status, and dishes) 
+     * if they are present in the request DTO.
+     * * @param id the unique identifier of the order to be updated.
+     * @param request the data transfer object containing the updated details.
+     * @return a ResponseEntity containing the updated {@link Order} if found, 
+     * or an HTTP 404 Not Found status if the order does not exist.
+     */
     @PutMapping("/update/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody OrderDTO request) {
         return orderRepository.findById(id).map(existingOrder -> {
@@ -99,6 +132,12 @@ public class OrderController {
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Deletes a specific order by its ID.
+     * * @param id the unique identifier of the order to be deleted.
+     * @return a ResponseEntity with an HTTP 200 OK status if the deletion was successful, 
+     * or an HTTP 404 Not Found status if the order does not exist.
+     */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteOrder(@PathVariable Long id) {
         if (orderRepository.existsById(id)) {

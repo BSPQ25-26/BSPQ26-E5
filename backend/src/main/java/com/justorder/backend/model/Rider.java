@@ -33,7 +33,6 @@ public class Rider {
     @JoinColumn(name = "starter_point_id")
     private Localization starterPoint;
 
-    // Constructors
     public Rider() {
     }
     public Rider(String name, String phoneNumber, String email, String password, Localization starterPoint) {

@@ -18,12 +18,12 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Solo creamos el admin si la tabla está vacía
+
         if (adminRepository.count() == 0) {
             Admin superAdmin = new Admin();
             superAdmin.setName("Super Admin");
             superAdmin.setEmail("admin@justorder.com");
-            // Encriptamos la contraseña "admin123" antes de guardarla
+
             superAdmin.setPassword(passwordEncoder.encode("admin123")); 
             
             adminRepository.save(superAdmin);

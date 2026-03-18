@@ -21,7 +21,7 @@ public class AdminControllerTest {
     public void testGetAdminDashboard() throws Exception {
         mockMvc.perform(get("/api/admin/dashboard"))
                .andExpect(status().isOk())
-               // Comprobamos directamente el texto sin usar Hamcrest
+
                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("¡Acceso concedido!")));
     }
 }

@@ -44,7 +44,6 @@ public class Order {
     private double totalPrice;
     private String secretCode;
 
-    // Constructors
     public Order() {
     }
 

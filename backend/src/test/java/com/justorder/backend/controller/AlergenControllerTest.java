@@ -40,7 +40,7 @@ public class AlergenControllerTest {
 
         mockMvc.perform(get("/api/alergens/all"))
                .andExpect(status().isOk())
-               // Verificamos que el texto de respuesta contenga "Gluten" de forma directa
+
                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Gluten")));
     }
 
@@ -59,7 +59,7 @@ public class AlergenControllerTest {
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
-               // Verificamos que el texto de respuesta contenga "Lácteos"
+
                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Lácteos")));
     }
 }

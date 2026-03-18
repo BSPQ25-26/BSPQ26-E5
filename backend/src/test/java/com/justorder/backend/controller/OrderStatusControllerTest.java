@@ -37,7 +37,7 @@ public class OrderStatusControllerTest {
     public void testGetAll() throws Exception {
         OrderStatus status = new OrderStatus();
         status.setId(1L);
-        status.setStatus("En Preparación"); // Corregido aquí
+        status.setStatus("En Preparación");
         
         when(repository.findAll()).thenReturn(Arrays.asList(status));
 
@@ -53,7 +53,7 @@ public class OrderStatusControllerTest {
 
         OrderStatus saved = new OrderStatus();
         saved.setId(2L);
-        saved.setStatus("En Camino"); // Corregido aquí
+        saved.setStatus("En Camino");
 
         when(repository.save(any(OrderStatus.class))).thenReturn(saved);
 
@@ -71,11 +71,11 @@ public class OrderStatusControllerTest {
 
         OrderStatus existing = new OrderStatus();
         existing.setId(2L);
-        existing.setStatus("En Camino"); // Corregido aquí
+        existing.setStatus("En Camino");
 
         OrderStatus updated = new OrderStatus();
         updated.setId(2L);
-        updated.setStatus("Entregado"); // Corregido aquí
+        updated.setStatus("Entregado");
 
         when(repository.findById(2L)).thenReturn(Optional.of(existing));
         when(repository.save(any(OrderStatus.class))).thenReturn(updated);

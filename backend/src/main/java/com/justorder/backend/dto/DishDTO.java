@@ -8,12 +8,12 @@ public class DishDTO {
     private String name;
     private String description;
     private double price;
-    private String image; // Añadido para el Admin
+    private String image;
     private Long restaurantId;
     private String restaurantName;
     private List<String> alergenNames;
-    private List<Long> alergenIds; // Añadido para guardar Alérgenos
-    private List<Long> categoryIds; // Añadido para guardar Categorías
+    private List<Long> alergenIds;
+    private List<Long> categoryIds;
 
     public DishDTO() {
     }
