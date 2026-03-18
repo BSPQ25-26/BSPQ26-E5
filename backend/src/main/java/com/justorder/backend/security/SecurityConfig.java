@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/customers/**").permitAll()
                 .requestMatchers("/api/riders/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/alergens").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/api/allergens").permitAll() 
                 .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/dishes/**").permitAll()//.hasAnyRole("RESTAURANT", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/dishes/**").permitAll()//.hasAnyRole("RESTAURANT", "ADMIN")

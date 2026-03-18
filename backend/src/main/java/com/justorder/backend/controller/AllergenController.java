@@ -8,19 +8,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.justorder.backend.dto.AlergenDTO;
-import com.justorder.backend.service.AlergenService;
+import com.justorder.backend.dto.AllergenDTO;
+import com.justorder.backend.service.AllergenService;
 
 @RestController
-@RequestMapping("/api/alergens")
-public class AlergenController {
+@RequestMapping("/api/allergens")
+public class AllergenController {
 
     @Autowired
-    private AlergenService alergenService;
+    private AllergenService allergenService;
 
-    // GET /api/alergens returns a list containing all the alergens
+    // GET /api/allergens returns a list containing all the allergens
     @GetMapping
-    public ResponseEntity<List<AlergenDTO>> getAllAlergens() {
-        return ResponseEntity.ok(alergenService.getAllAlergens());
+    public ResponseEntity<List<AllergenDTO>> getAllAllergens() {
+        return ResponseEntity.ok(allergenService.getAllAllergens());
     }
 }

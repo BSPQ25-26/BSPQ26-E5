@@ -1,6 +1,6 @@
 package com.justorder.backend.model;
 
-import com.justorder.backend.dto.AlergenDTO;
+import com.justorder.backend.dto.AllergenDTO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "alergens")
-public class Alergen {
+@Table(name = "allergens")
+public class Allergen {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,14 +23,14 @@ public class Alergen {
     private String description;
 
     // Constructors
-    public Alergen() {
+    public Allergen() {
     }
 
-    public Alergen(String name) {
+    public Allergen(String name) {
         this.name = name;
     }
 
-    public Alergen(String name, String description) {
+    public Allergen(String name, String description) {
         this.name = name;
         this.description = description;
     }
@@ -46,7 +46,7 @@ public class Alergen {
     public void setDescription(String description) { this.description = description; }
 
     // toDTO
-    public AlergenDTO toDTO() {
-        return new AlergenDTO(this.name, this.description);
+    public AllergenDTO toDTO() {
+        return new AllergenDTO(this.name, this.description);
     }
 }

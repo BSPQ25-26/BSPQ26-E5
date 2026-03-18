@@ -34,11 +34,11 @@ public class Dish {
 
     @ManyToMany
     @JoinTable(
-        name = "dish_alergens",
+        name = "dish_allergens",
         joinColumns = @JoinColumn(name = "dish_id"),
-        inverseJoinColumns = @JoinColumn(name = "alergen_id")
+        inverseJoinColumns = @JoinColumn(name = "allergen_id")
     )
-    private List<Alergen> alergens = new ArrayList<>();
+    private List<Allergen> allergens = new ArrayList<>();
 
     // Constructors
     public Dish() {
@@ -56,7 +56,7 @@ public class Dish {
     public String getDescription() { return description; }
     public double getPrice() { return price; }
     public Restaurant getRestaurant() { return restaurant; }
-    public List<Alergen> getAlergens() { return alergens; }
+    public List<Allergen> getAllergens() { return allergens; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -64,12 +64,12 @@ public class Dish {
     public void setDescription(String description) { this.description = description; }
     public void setPrice(double price) { this.price = price; }
     public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
-    public void setAlergens(List<Alergen> alergens) { this.alergens = alergens; }
+    public void setAllergens(List<Allergen> allergens) { this.allergens = allergens; }
 
     // toDTO
     public DishDTO toDTO() {
         DishDTO dto = new DishDTO(this.id, this.name, this.description, this.price, this.restaurant.getId(), this.restaurant.getName());
-        dto.setAlergenNames(this.alergens.stream().map(Alergen::getName).collect(Collectors.toList()));
+        dto.setAllergenNames(this.allergens.stream().map(Allergen::getName).collect(Collectors.toList()));
         return dto;
     }
 }

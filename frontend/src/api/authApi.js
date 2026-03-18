@@ -42,7 +42,7 @@ export const registerRider = async (riderData) => {
 };
 
 export const getAllergens = async () => {
-    const response = await fetch(`${API_URL}/alergens`, {
+    const response = await fetch(`${API_URL}/allergens`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",

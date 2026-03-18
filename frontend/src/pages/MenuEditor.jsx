@@ -15,7 +15,7 @@ const EMPTY_FORM = {
   name: "",
   description: "",
   price: "",
-  alergenNames: [],
+  allergenNames: [],
 };
 
 function MenuEditor() {
@@ -85,9 +85,9 @@ function MenuEditor() {
     // Keep allergen selection in sync with checkbox state.
     setForm((prev) => ({
       ...prev,
-      alergenNames: checked
-        ? [...prev.alergenNames, value]
-        : prev.alergenNames.filter((allergen) => allergen !== value),
+      allergenNames: checked
+        ? [...prev.allergenNames, value]
+        : prev.allergenNames.filter((allergen) => allergen !== value),
     }));
   };
 
@@ -124,7 +124,7 @@ function MenuEditor() {
         name: form.name.trim(),
         description: form.description.trim(),
         price: Number(priceNumber.toFixed(2)),
-        alergenNames: form.alergenNames,
+        allergenNames: form.allergenNames,
       };
 
       if (isEditing) {
@@ -152,7 +152,7 @@ function MenuEditor() {
       name: dish.name,
       description: dish.description,
       price: String(dish.price),
-      alergenNames: dish.alergenNames || [],
+      allergenNames: dish.allergenNames || [],
     });
     setEditingDishId(dish.id);
     setMessage("");
@@ -240,7 +240,7 @@ function MenuEditor() {
                       <input
                         type="checkbox"
                         value={allergen}
-                        checked={form.alergenNames.includes(allergen)}
+                        checked={form.allergenNames.includes(allergen)}
                         onChange={onAllergenChange}
                         disabled={isSubmitting}
                       />
@@ -290,8 +290,8 @@ function MenuEditor() {
                       <p className="dish-price">{dish.price.toFixed(2)} EUR</p>
                       <p className="dish-allergens">
                         <strong>Allergens:</strong>{" "}
-                        {dish.alergenNames && dish.alergenNames.length > 0
-                          ? dish.alergenNames.join(", ")
+                        {dish.allergenNames && dish.allergenNames.length > 0
+                          ? dish.allergenNames.join(", ")
                           : "None"}
                       </p>
                     </div>
