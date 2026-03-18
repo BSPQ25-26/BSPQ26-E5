@@ -9,7 +9,7 @@ import MenuEditor from "./pages/MenuEditor";
 import { CartProvider } from "./store/CartContext";
 import "./assets/css/Home.css";
 import "./assets/css/Register.css";
-import "./assets/MenuEditor.css";
+import "./assets/css/MenuEditor.css";
 function App() {
   return (
     <CartProvider>
