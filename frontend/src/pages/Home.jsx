@@ -21,6 +21,9 @@ function Home() {
                     <Link className="btn btn-primary" to="/register-rider">
                         Create rider account
                     </Link>
+                    <Link className="btn btn-primary" to="/restaurants/1/menu-editor">
+                        Edit restaurant 1 menu
+                    </Link>
                     <a className="btn btn-secondary" href="http://localhost:8080/api/hello" target="_blank" rel="noreferrer">
                         Test API
                     </a>
