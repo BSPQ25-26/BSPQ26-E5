@@ -7,10 +7,9 @@ import RegisterRider from "./pages/RegisterRider";
 import CheckoutPage from "./pages/CheckoutPage";
 import MenuEditor from "./pages/MenuEditor";
 import { CartProvider } from "./store/CartContext";
-import "./styles/Home.css";
-import "./styles/Register.css";
-import "./styles/MenuEditor.css";
-
+import "./assets/css/Home.css";
+import "./assets/css/Register.css";
+import "./assets/MenuEditor.css";
 function App() {
   return (
     <CartProvider>
