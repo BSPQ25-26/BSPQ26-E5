@@ -7,7 +7,7 @@ import {
   updateDish, 
   deleteDish 
 } from "../api/authApi";
-import "../assets/css/MenuEditor.css";
+
 
 const RESTAURANT_ID = 1; //WE WILL CHANGE IT WHEN WE IMPLEMENT AUTH
 
