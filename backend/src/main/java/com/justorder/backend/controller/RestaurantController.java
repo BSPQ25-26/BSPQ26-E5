@@ -1,128 +1,134 @@
 package com.justorder.backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Restaurant;
-import com.justorder.backend.model.Dish;
 import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.service.MenuService;
+import com.justorder.backend.service.RegisterService;
+import com.justorder.backend.service.RestaurantService;
 
 /**
  * REST controller for managing Restaurant entities.
- * Provides endpoints for performing CRUD (Create, Read, Update, Delete) 
- * operations on restaurants and carefully handles bidirectional 
- * relationships with dishes to optimize JSON responses.
- * * @version 1.0
+ * Handles administrative CRUD operations, public searches, and menu management.
  */
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
 
-    @Autowired
-    private RestaurantRepository restaurantRepository;
+    private final MenuService menuService;
+    private final RegisterService registerService;
+    private final RestaurantRepository restaurantRepository;
+    private final RestaurantService restaurantService;
 
     /**
-     * Retrieves a list of all available restaurants in the database.
-     * To prevent infinite recursion during JSON serialization, the back-reference 
-     * (the 'restaurant' field) inside each associated dish is explicitly set to null 
-     * before returning the response.
-     * * @return a ResponseEntity containing a list of {@link Restaurant} objects and an HTTP 200 OK status.
+     * Unified constructor for service and repository injection.
      */
-    @GetMapping("/all")
-    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
-        List<Restaurant> restaurants = restaurantRepository.findAll();
-        
-        // Prevents infinite recursion during JSON serialization
-        for (Restaurant restaurant : restaurants) {
-            if (restaurant.getDishes() != null) {
-                for (Dish dish : restaurant.getDishes()) {
-                    // Hides the restaurant back-reference within the dish solely for the JSON payload
-                    dish.setRestaurant(null); 
-                }
-            }
-        }
-        
-        return ResponseEntity.ok(restaurants);
+    public RestaurantController(MenuService menuService,
+                                RegisterService registerService,
+                                RestaurantRepository restaurantRepository,
+                                RestaurantService restaurantService) {
+        this.menuService = menuService;
+        this.registerService = registerService;
+        this.restaurantRepository = restaurantRepository;
+        this.restaurantService = restaurantService;
+    }
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello from JustOrder!";
     }
 
     /**
-     * Creates a newly registered restaurant and saves it to the database.
-     * * @param request the data transfer object containing the details of the restaurant to be created.
-     * @return a ResponseEntity containing the newly created {@link Restaurant} and an HTTP 200 OK status.
+     * Retrieves all restaurants converted to DTOs to avoid recursion.
+     */
+    @GetMapping
+    public ResponseEntity<List<RestaurantDTO>> getAllRestaurants() {
+        List<RestaurantDTO> results = restaurantRepository.findAll().stream()
+                .map(Restaurant::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(results);
+    }
+
+    /**
+     * Registers a new restaurant using the RegisterService.
      */
     @PostMapping("/create")
-    public ResponseEntity<Restaurant> createRestaurant(@RequestBody RestaurantDTO request) {
-        Restaurant newRestaurant = new Restaurant();
-        newRestaurant.setName(request.getName());
-        newRestaurant.setDescription(request.getDescription());
-        newRestaurant.setEmail(request.getEmail());
-        newRestaurant.setPhone(request.getPhone());
-        newRestaurant.setPassword(request.getPassword()); 
-        
-        Restaurant savedRestaurant = restaurantRepository.save(newRestaurant);
-        
-        // Prevents infinite recursion in the returned JSON
-        if (savedRestaurant.getDishes() != null) {
-            for (Dish dish : savedRestaurant.getDishes()) {
-                dish.setRestaurant(null);
-            }
+    public ResponseEntity<Void> createRestaurant(@RequestBody RestaurantDTO request) {
+        try {
+            this.registerService.registerRestaurant(request);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        
-        return ResponseEntity.ok(savedRestaurant);
     }
 
     /**
-     * Deletes a specific restaurant by its ID.
-     * * @param id the unique identifier of the restaurant to be deleted.
-     * @return a ResponseEntity with an HTTP 200 OK status if the deletion was successful, 
-     * or an HTTP 404 Not Found status if the restaurant does not exist.
+     * Updates an existing restaurant's details.
      */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteRestaurant(@PathVariable Long id) {
+    @PutMapping("/{id}")
+    public ResponseEntity<RestaurantDTO> updateRestaurant(@PathVariable Long id, @RequestBody RestaurantDTO request) {
+        return restaurantRepository.findById(id).map(existing -> {
+            existing.setName(request.getName());
+            existing.setDescription(request.getDescription());
+            existing.setEmail(request.getEmail());
+            existing.setPhone(request.getPhone());
+            
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                existing.setPassword(request.getPassword());
+            }
+            
+            Restaurant updated = restaurantRepository.save(existing);
+            return ResponseEntity.ok(updated.toDTO());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Deletes a specific restaurant by ID.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
         if (restaurantRepository.existsById(id)) {
             restaurantRepository.deleteById(id);
             return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.notFound().build();
     }
 
     /**
-     * Updates an existing restaurant identified by its ID.
-     * The password field is only updated if a new, non-empty value is provided.
-     * * @param id the unique identifier of the restaurant to be updated.
-     * @param request the data transfer object containing the updated details.
-     * @return a ResponseEntity containing the updated {@link Restaurant} if found, 
-     * or an HTTP 404 Not Found status if the restaurant does not exist.
+     * Searches for restaurants based on cuisine, rating, and price range.
      */
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long id, @RequestBody RestaurantDTO request) {
-        return restaurantRepository.findById(id)
-            .map(existingRestaurant -> {
-                existingRestaurant.setName(request.getName());
-                existingRestaurant.setDescription(request.getDescription());
-                existingRestaurant.setEmail(request.getEmail());
-                existingRestaurant.setPhone(request.getPhone());
-                
-                if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-                    existingRestaurant.setPassword(request.getPassword());
-                }
-                
-                Restaurant updatedRestaurant = restaurantRepository.save(existingRestaurant);
-                
-                // Prevents infinite recursion in the returned JSON
-                if (updatedRestaurant.getDishes() != null) {
-                    for (Dish dish : updatedRestaurant.getDishes()) {
-                        dish.setRestaurant(null);
-                    }
-                }
-                
-                return ResponseEntity.ok(updatedRestaurant);
-            })
-            .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/search")
+    public ResponseEntity<List<RestaurantDTO>> searchRestaurants(
+            @RequestParam(required = false) String cuisine,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice) {
+
+        return ResponseEntity.ok(restaurantService.searchRestaurants(cuisine, minRating, minPrice, maxPrice));
+    }
+
+    /**
+     * Retrieves the menu for a specific restaurant.
+     */
+    @GetMapping("/{restaurantId}/menu")
+    public ResponseEntity<List<DishDTO>> getMenu(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(menuService.getMenu(restaurantId));
+    }
+
+    /**
+     * Bulk deletion of all restaurants (Admin utility).
+     */
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAllRestaurants() {
+        restaurantRepository.deleteAll();
+        return ResponseEntity.ok().build();
     }
 }

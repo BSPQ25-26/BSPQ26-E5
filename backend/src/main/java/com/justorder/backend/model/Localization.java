@@ -1,5 +1,7 @@
 package com.justorder.backend.model;
 
+import com.justorder.backend.dto.LocalizationDTO;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -35,6 +37,16 @@ public class Localization {
         this.latitude = latitude;
     }
 
+    public Localization(LocalizationDTO dto) {
+        this.city = dto.getCity();
+        this.province = dto.getProvince();
+        this.country = dto.getCountry();
+        this.postalCode = dto.getPostalCode();
+        this.number = dto.getNumber();
+        this.longitude = dto.getLongitude();
+        this.latitude = dto.getLatitude();
+    }
+
     // Getters
     public Long getId() { return id; }
     public String getCity() { return city; }
@@ -54,4 +66,9 @@ public class Localization {
     public void setNumber(String number) { this.number = number; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
     public void setLatitude(double latitude) { this.latitude = latitude; }
+
+    // toDTO
+    public LocalizationDTO toDTO() {
+        return new LocalizationDTO(this.id, this.city, this.province, this.country, this.postalCode, this.number, this.longitude, this.latitude);
+    }
 }

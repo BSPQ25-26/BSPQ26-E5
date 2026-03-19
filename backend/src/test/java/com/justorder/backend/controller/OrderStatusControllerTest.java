@@ -24,14 +24,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.OrderStatusDTO;
 import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.repository.OrderStatusRepository;
+import com.justorder.backend.security.JwtUtil;
 
 @WebMvcTest(OrderStatusController.class)
 @AutoConfigureMockMvc(addFilters = false)
 public class OrderStatusControllerTest {
 
-    @Autowired private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
-    private ObjectMapper objectMapper = new ObjectMapper();
-    @MockitoBean private OrderStatusRepository repository;
+    @Autowired 
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean 
+    private JwtUtil jwtUtil;
+
+    @MockitoBean 
+    private OrderStatusRepository repository;
 
     @Test
     public void testGetAll() throws Exception {
@@ -49,7 +58,8 @@ public class OrderStatusControllerTest {
     @Test
     public void testCreate() throws Exception {
         OrderStatusDTO request = new OrderStatusDTO();
-        request.setName("En Camino"); 
+        // CAMBIO: setName -> setStatus
+        request.setStatus("En Camino"); 
 
         OrderStatus saved = new OrderStatus();
         saved.setId(2L);
@@ -67,7 +77,8 @@ public class OrderStatusControllerTest {
     @Test
     public void testUpdate() throws Exception {
         OrderStatusDTO request = new OrderStatusDTO();
-        request.setName("Entregado");
+        // CAMBIO: setName -> setStatus
+        request.setStatus("Entregado");
 
         OrderStatus existing = new OrderStatus();
         existing.setId(2L);

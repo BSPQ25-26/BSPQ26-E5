@@ -2,6 +2,9 @@ package com.justorder.backend.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.justorder.backend.dto.RestaurantDTO;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -21,7 +24,6 @@ public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
     private String description;
     private String phone;
@@ -34,6 +36,7 @@ public class Restaurant {
     private String fridayWorkingHours;
     private String saturdayWorkingHours;
     private String sundayWorkingHours;
+    private Double averageRating = 0.0;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Localization> localizations = new ArrayList<>();
@@ -49,8 +52,10 @@ public class Restaurant {
     )
     private List<CuisineCategory> cuisineCategories = new ArrayList<>();
 
-    public Restaurant() {
-    }
+    // --- Constructors ---
+
+    public Restaurant() {}
+
     public Restaurant(String name, String description, String phone, String email, String password,
                       String mondayWorkingHours, String tuesdayWorkingHours, String wednesdayWorkingHours,
                       String thursdayWorkingHours, String fridayWorkingHours, String saturdayWorkingHours,
@@ -68,8 +73,9 @@ public class Restaurant {
         this.saturdayWorkingHours = saturdayWorkingHours;
         this.sundayWorkingHours = sundayWorkingHours;
     }
-    
-    // Getters
+
+    // --- Getters ---
+
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getDescription() { return description; }
@@ -83,11 +89,13 @@ public class Restaurant {
     public String getFridayWorkingHours() { return fridayWorkingHours; }
     public String getSaturdayWorkingHours() { return saturdayWorkingHours; }
     public String getSundayWorkingHours() { return sundayWorkingHours; }
+    public Double getAverageRating() { return averageRating; }
     public List<Localization> getLocalizations() { return localizations; }
     public List<Dish> getDishes() { return dishes; }
     public List<CuisineCategory> getCuisineCategories() { return cuisineCategories; }
 
-    // Setters
+    // --- Setters ---
+
     public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setDescription(String description) { this.description = description; }
@@ -101,7 +109,32 @@ public class Restaurant {
     public void setFridayWorkingHours(String fridayWorkingHours) { this.fridayWorkingHours = fridayWorkingHours; }
     public void setSaturdayWorkingHours(String saturdayWorkingHours) { this.saturdayWorkingHours = saturdayWorkingHours; }
     public void setSundayWorkingHours(String sundayWorkingHours) { this.sundayWorkingHours = sundayWorkingHours; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
     public void setLocalizations(List<Localization> localizations) { this.localizations = localizations; }
     public void setDishes(List<Dish> dishes) { this.dishes = dishes; }
     public void setCuisineCategories(List<CuisineCategory> cuisineCategories) { this.cuisineCategories = cuisineCategories; }
+
+    // --- Conversion to DTO ---
+
+    public RestaurantDTO toDTO() {
+        RestaurantDTO dto = new RestaurantDTO(
+            this.id, this.name, this.description, this.phone, this.email, this.password,
+            this.mondayWorkingHours, this.tuesdayWorkingHours, this.wednesdayWorkingHours,
+            this.thursdayWorkingHours, this.fridayWorkingHours, this.saturdayWorkingHours,
+            this.sundayWorkingHours
+        );
+        dto.setAverageRating(this.averageRating);
+        
+        if (this.localizations != null) {
+            dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
+        }
+        if (this.dishes != null) {
+            dto.setDishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        }
+        if (this.cuisineCategories != null) {
+            dto.setCuisineCategoryNames(this.cuisineCategories.stream().map(CuisineCategory::getName).collect(Collectors.toList()));
+        }
+        
+        return dto;
+    }
 }

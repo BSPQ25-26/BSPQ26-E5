@@ -2,6 +2,9 @@ package com.justorder.backend.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.justorder.backend.dto.CustomerDTO;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -51,6 +54,7 @@ public class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Order> orders = new ArrayList<>();
 
+    // Constructors 
     public Customer() {
     }
 
@@ -61,7 +65,8 @@ public class Customer {
         Integer age, 
         String dni, 
         List<Localization> localizations,
-        List<CuisineCategory> preferences
+        List<CuisineCategory> preferences,
+        List<Alergen> alergens
     ) {
         this.name = name;
         this.email = email;
@@ -71,6 +76,7 @@ public class Customer {
         this.dni = dni;
         this.localizations = localizations;
         this.preferences = preferences;
+        this.alergens = alergens;
     }
 
     // Getters
@@ -98,4 +104,21 @@ public class Customer {
     public void setAlergens(List<Alergen> alergens) { this.alergens = alergens; }
     public void setPreferences(List<CuisineCategory> preferences) { this.preferences = preferences; }
     public void setOrders(List<Order> orders) { this.orders = orders; }
+
+    // toDTO
+    public CustomerDTO toDTO() {
+        CustomerDTO dto = new CustomerDTO(
+            this.id, this.name, this.email, this.phone, this.password, this.age, this.dni
+        );
+        if (this.localizations != null) {
+            dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
+        }
+        if (this.alergens != null) {
+            dto.setAlergenNames(this.alergens.stream().map(Alergen::getName).collect(Collectors.toList()));
+        }
+        if (this.preferences != null) {
+            dto.setPreferenceNames(this.preferences.stream().map(CuisineCategory::getName).collect(Collectors.toList()));
+        }
+        return dto;
+    }
 }

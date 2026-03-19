@@ -1,8 +1,11 @@
 package com.justorder.backend.security;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,11 +18,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
-
 /**
  * Main security configuration class for the application.
- * Manages the global security rules, including Cross-Origin Resource Sharing (CORS),
+ * Manages global security rules, including Cross-Origin Resource Sharing (CORS),
  * Cross-Site Request Forgery (CSRF) protection, stateless session management for JWT,
  * and endpoint authorization policies.
  * * @version 1.0
@@ -36,7 +37,7 @@ public class SecurityConfig {
      * Disables CSRF, enforces stateless sessions, and defines access control rules 
      * for different API endpoints.
      * * @param http the {@link HttpSecurity} object to be configured.
-     * @return the built {@link SecurityFilterChain} defining the application's security structure.
+     * @return the built {@link SecurityFilterChain} defining the security structure.
      * @throws Exception if an error occurs during configuration.
      */
     @Bean
@@ -46,14 +47,31 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Public routes (Login)
-                .requestMatchers("/api/auth/**").permitAll() 
-                // Protected routes (Only users with the ROLE_ADMIN role)
+                // Public routes and preflight checks
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/hello").permitAll()
+                
+                // Public registration and viewing routes
+                .requestMatchers("/api/restaurants/**").permitAll()
+                .requestMatchers("/api/customers/**").permitAll()
+                .requestMatchers("/api/riders/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/alergens").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
+                
+                // Management routes (Requires specific roles)
+                .requestMatchers(HttpMethod.POST, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
+                
+                // Protected admin-only routes
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Any other route will require generic authentication
+                
+                // Any other route requires generic authentication
                 .anyRequest().authenticated()
             )
-            // Add our custom JWT "gatekeeper" filter just before the standard Spring authentication filter
+            // Custom JWT filter before the standard authentication filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -61,9 +79,8 @@ public class SecurityConfig {
 
     /**
      * Configures the BCrypt password encoder bean.
-     * Used for securely hashing passwords before storing them in the database 
-     * and for verifying credentials during login.
-     * * @return a {@link PasswordEncoder} instance utilizing the BCrypt hashing algorithm.
+     * Used for securely hashing passwords and verifying credentials.
+     * * @return a {@link PasswordEncoder} instance utilizing BCrypt.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -72,9 +89,8 @@ public class SecurityConfig {
 
     /**
      * Configures the global CORS (Cross-Origin Resource Sharing) policy.
-     * Allows the frontend application (e.g., running on localhost:3000) to communicate 
-     * securely with this backend without running into browser security blocks.
-     * * @return a {@link CorsFilter} customized with the allowed origins, headers, and HTTP methods.
+     * Allows the frontend (localhost:3000) to communicate safely with the backend.
+     * * @return a {@link CorsFilter} customized with allowed origins, headers, and methods.
      */
     @Bean
     public CorsFilter corsFilter() {

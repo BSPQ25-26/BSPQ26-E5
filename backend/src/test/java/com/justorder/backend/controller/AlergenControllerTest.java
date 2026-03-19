@@ -1,65 +1,61 @@
 package com.justorder.backend.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Arrays;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.justorder.backend.dto.AlergenDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.justorder.backend.dto.AlergenDTO;
-import com.justorder.backend.model.Alergen;
-import com.justorder.backend.repository.AlergenRepository;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AlergenController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@Transactional
 public class AlergenControllerTest {
 
-    @Autowired private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
-    private ObjectMapper objectMapper = new ObjectMapper();
-    @MockitoBean private AlergenRepository alergenRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    /**
+     * Test that checks if all 6 default allergens are present.
+     * Logic from 'main' branch.
+     */
     @Test
     public void testGetAllAlergens() throws Exception {
-        Alergen a1 = new Alergen();
-        a1.setId(1L);
-        a1.setName("Gluten");
-        
-        when(alergenRepository.findAll()).thenReturn(Arrays.asList(a1));
-
-        mockMvc.perform(get("/api/alergens/all"))
-               .andExpect(status().isOk())
-
-               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Gluten")));
+        mockMvc.perform(get("/api/alergens"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(6)))
+                .andExpect(jsonPath("$[?(@.name=='Gluten')]", hasSize(1)))
+                .andExpect(jsonPath("$[?(@.name=='Lactose')]", hasSize(1)));
     }
 
+    /**
+     * Test for creating a new allergen.
+     * Logic from 'HEAD' branch adapted to integration test.
+     */
     @Test
     public void testCreateAlergen() throws Exception {
-        AlergenDTO request = new AlergenDTO();
-        request.setName("Lácteos");
-
-        Alergen guardado = new Alergen();
-        guardado.setId(2L);
-        guardado.setName("Lácteos");
-
-        when(alergenRepository.save(any(Alergen.class))).thenReturn(guardado);
+        AlergenDTO request = new AlergenDTO("Nueces", "Frutos de cáscara");
 
         mockMvc.perform(post("/api/alergens/create")
-               .contentType(MediaType.APPLICATION_JSON)
-               .content(objectMapper.writeValueAsString(request)))
-               .andExpect(status().isOk())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated()); // Standard 201 Created
 
-               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Lácteos")));
+        // Verify it was added
+        mockMvc.perform(get("/api/alergens"))
+                .andExpect(jsonPath("$", hasSize(7)))
+                .andExpect(jsonPath("$[?(@.name=='Nueces')]", hasSize(1)));
     }
 }

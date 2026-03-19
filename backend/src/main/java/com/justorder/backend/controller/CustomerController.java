@@ -1,109 +1,123 @@
 package com.justorder.backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.CustomerDTO;
+import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.model.Customer;
 import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.repository.OrderRepository;
+import com.justorder.backend.service.RegisterService;
 
 /**
  * REST controller for managing Customer entities.
- * Provides endpoints for performing CRUD (Create, Read, Update, Delete) 
- * operations on customers within the system.
- * * @version 1.0
+ * Provides endpoints for performing CRUD operations and managing customer orders.
  */
 @RestController
 @RequestMapping("/api/customers")
 public class CustomerController {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final RegisterService registerService;
+    private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
 
     /**
-     * Retrieves a list of all available customers in the database.
-     * To prevent JSON serialization issues (like infinite recursion) and reduce payload size, 
-     * the 'orders' list for each customer is explicitly set to null before returning.
-     * * @return a ResponseEntity containing a list of {@link Customer} objects and an HTTP 200 OK status.
+     * Constructor injection for better testability and following Spring recommendations.
      */
-    @GetMapping("/all")
-    public ResponseEntity<List<Customer>> getAllCustomers() {
-        List<Customer> customers = customerRepository.findAll();
-        
-        for (Customer customer : customers) {
-            customer.setOrders(null);
-        }
-        
+    public CustomerController(RegisterService registerService,
+                              CustomerRepository customerRepository,
+                              OrderRepository orderRepository) {
+        this.registerService = registerService;
+        this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
+    }
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello from JustOrder!";
+    }
+
+    /**
+     * Retrieves all customers. To avoid recursion issues, we return DTOs.
+     */
+    @GetMapping
+    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
+        List<CustomerDTO> customers = customerRepository.findAll().stream()
+                .map(Customer::toDTO)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(customers);
     }
 
     /**
-     * Creates a new customer and saves it to the database.
-     * * @param request the data transfer object containing the details of the customer to be created.
-     * @return a ResponseEntity containing the newly created {@link Customer} and an HTTP 200 OK status.
+     * Creates a new customer using the RegisterService.
      */
     @PostMapping("/create")
-    public ResponseEntity<Customer> createCustomer(@RequestBody CustomerDTO request) {
-        Customer newCustomer = new Customer();
-        newCustomer.setName(request.getName());
-        newCustomer.setAge(request.getAge());
-        newCustomer.setDni(request.getDni());
-        newCustomer.setPhone(request.getPhone());
-        newCustomer.setEmail(request.getEmail());
-        newCustomer.setPassword(request.getPassword());
-
-        Customer savedCustomer = customerRepository.save(newCustomer);
-
-        savedCustomer.setOrders(null);
-
-        return ResponseEntity.ok(savedCustomer);
+    public ResponseEntity<Void> createCustomer(@RequestBody CustomerDTO request) {
+        try {
+            this.registerService.registerCustomer(request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
-     * Updates an existing customer identified by their ID.
-     * If a new password is provided in the request, it will be updated; otherwise, 
-     * the existing password remains unchanged.
-     * * @param id the unique identifier of the customer to be updated.
-     * @param request the data transfer object containing the updated details.
-     * @return a ResponseEntity containing the updated {@link Customer} if found, 
-     * or an HTTP 404 Not Found status if the customer does not exist.
+     * Updates an existing customer.
      */
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody CustomerDTO request) {
-        return customerRepository.findById(id).map(existingCustomer -> {
-            existingCustomer.setName(request.getName());
-            existingCustomer.setAge(request.getAge());
-            existingCustomer.setDni(request.getDni());
-            existingCustomer.setPhone(request.getPhone());
-            existingCustomer.setEmail(request.getEmail());
+    @PutMapping("/{id}")
+    public ResponseEntity<CustomerDTO> updateCustomer(@PathVariable Long id, @RequestBody CustomerDTO request) {
+        return customerRepository.findById(id).map(existing -> {
+            existing.setName(request.getName());
+            existing.setAge(request.getAge());
+            existing.setDni(request.getDni());
+            existing.setPhone(request.getPhone());
+            existing.setEmail(request.getEmail());
             
             if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-                existingCustomer.setPassword(request.getPassword());
+                existing.setPassword(request.getPassword());
             }
 
-            Customer updatedCustomer = customerRepository.save(existingCustomer);
-
-            updatedCustomer.setOrders(null);
-
-            return ResponseEntity.ok(updatedCustomer);
+            Customer updated = customerRepository.save(existing);
+            return ResponseEntity.ok(updated.toDTO());
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * Deletes a specific customer by their ID.
-     * * @param id the unique identifier of the customer to be deleted.
-     * @return a ResponseEntity with an HTTP 200 OK status if the deletion was successful, 
-     * or an HTTP 404 Not Found status if the customer does not exist.
+     * Deletes a specific customer by ID.
      */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteCustomer(@PathVariable Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
         if (customerRepository.existsById(id)) {
             customerRepository.deleteById(id);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    /**
+     * Deletes all customers and their orders from the database.
+     */
+    @DeleteMapping
+    public ResponseEntity<HttpStatus> deleteAllCustomers() {
+        orderRepository.deleteAll(); 
+        customerRepository.deleteAll();
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    // --- Placeholder endpoints from main ---
+
+    @PostMapping("/order")
+    public ResponseEntity<HttpStatus> createOrder(@RequestBody OrderDTO request) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @GetMapping("/{customerId}/orders")
+    public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }

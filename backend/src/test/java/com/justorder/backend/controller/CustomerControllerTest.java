@@ -1,40 +1,51 @@
 package com.justorder.backend.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Arrays;
-import java.util.Optional;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.model.Customer;
 import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.security.JwtUtil;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-@WebMvcTest(CustomerController.class)
+import java.util.Arrays;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-public class CustomerControllerTest {
+@Transactional
+class CustomerControllerTest {
 
-    @Autowired private MockMvc mockMvc; @org.springframework.test.context.bean.override.mockito.MockitoBean private com.justorder.backend.security.JwtUtil jwtUtil;
-    private ObjectMapper objectMapper = new ObjectMapper();
-    @MockitoBean private CustomerRepository repository;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
+
+    @MockitoBean
+    private CustomerRepository repository;
+
+    // ==========================================
+    // TESTS DE LA RAMA 'HEAD' (CRUD BÁSICO)
+    // ==========================================
 
     @Test
-    public void testGetAll() throws Exception {
+    void testGetAll() throws Exception {
         Customer c = new Customer();
         c.setId(1L);
         c.setName("Juan Perez");
@@ -47,25 +58,7 @@ public class CustomerControllerTest {
     }
 
     @Test
-    public void testCreate() throws Exception {
-        CustomerDTO request = new CustomerDTO();
-        request.setName("Ana Gomez");
-
-        Customer saved = new Customer();
-        saved.setId(2L);
-        saved.setName("Ana Gomez");
-
-        when(repository.save(any(Customer.class))).thenReturn(saved);
-
-        mockMvc.perform(post("/api/customers/create")
-               .contentType(MediaType.APPLICATION_JSON)
-               .content(objectMapper.writeValueAsString(request)))
-               .andExpect(status().isOk())
-               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Ana Gomez")));
-    }
-
-    @Test
-    public void testUpdate() throws Exception {
+    void testUpdate() throws Exception {
         CustomerDTO request = new CustomerDTO();
         request.setName("Ana Modificada");
 
@@ -88,9 +81,222 @@ public class CustomerControllerTest {
     }
 
     @Test
-    public void testDelete() throws Exception {
+    void testDelete() throws Exception {
         when(repository.existsById(1L)).thenReturn(true);
         mockMvc.perform(delete("/api/customers/delete/1"))
                .andExpect(status().isOk());
+    }
+
+    // ==========================================
+    // TESTS DE LA RAMA 'MAIN' (VALIDACIONES EXHAUSTIVAS)
+    // ==========================================
+
+    @Test
+    void testRegisterCustomer() throws Exception {
+        Customer saved = new Customer();
+        saved.setId(1L);
+        saved.setName("John Doe Test");
+        when(repository.save(any(Customer.class))).thenReturn(saved);
+
+        String requestBody = """
+            {
+                "name": "John Doe Test",
+                "email": "johndoTeste@example.com",
+                "phone": "600123456",
+                "password": "supersecurepassword123",
+                "age": 30,
+                "dni": "12345678ATest",
+                "localizations": [
+                    {
+                        "city": "Bilbao",
+                        "province": "Bizkaia",
+                        "country": "Spain",
+                        "postalCode": "48001",
+                        "number": "5",
+                        "longitude": -2.9253,
+                        "latitude": 43.2630
+                    }
+                ],
+                "alergenNames": ["Gluten", "Lactose"],
+                "preferenceNames": ["Italian", "Japanese"]
+            }
+            """;
+        mockMvc.perform(post("/api/customers/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void testRegisterHomelessCustomer() throws Exception {
+        String requestBody = """
+            {
+                "name": "Homeless John Doe",
+                "email": "johndoe@example.com",
+                "phone": "600123456",
+                "password": "supersecurepassword123",
+                "age": 30,
+                "dni": "12345678A",
+                "localizations": [
+                ],
+                "alergenNames": ["Gluten", "Lactose"],
+                "preferenceNames": ["Italian", "Japanese"]
+            }
+            """;
+        // Asumiendo que el controlador o el servicio lanzan error si no hay localizaciones
+        mockMvc.perform(post("/api/customers/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testRegisterFalseEmailCustomer() throws Exception {
+        String requestBody = """
+            {
+                "name": "John Doe",
+                "email": "johndoeexample.com",
+                "phone": "600123456",
+                "password": "supersecurepassword123",
+                "age": 30,
+                "dni": "12345678A",
+                "localizations": [
+                    {
+                        "city": "Bilbao",
+                        "province": "Bizkaia",
+                        "country": "Spain",
+                        "postalCode": "48001",
+                        "number": "5",
+                        "longitude": -2.9253,
+                        "latitude": 43.2630
+                    }
+                ],
+                "alergenNames": ["Gluten", "Lactose"],
+                "preferenceNames": ["Italian", "Japanese"]
+            }
+            """;
+        mockMvc.perform(post("/api/customers/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testRegisterShortPasswordCustomer() throws Exception {
+        String requestBody = """
+            {
+                "name": "John Doe",
+                "email": "johndoeexample.com",
+                "phone": "600123456",
+                "password": "suword123",
+                "age": 30,
+                "dni": "12345678A",
+                "localizations": [
+                    {
+                        "city": "Bilbao",
+                        "province": "Bizkaia",
+                        "country": "Spain",
+                        "postalCode": "48001",
+                        "number": "5",
+                        "longitude": -2.9253,
+                        "latitude": 43.2630
+                    }
+                ],
+                "alergenNames": ["Gluten", "Lactose"],
+                "preferenceNames": ["Italian", "Japanese"]
+            }
+            """;
+        mockMvc.perform(post("/api/customers/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testRegisterVoidCustomer() throws Exception {
+        String requestBody = """
+            {
+            }
+            """;
+        mockMvc.perform(post("/api/customers/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testRegisterNoAlergenCustomer() throws Exception {
+        Customer saved = new Customer();
+        saved.setId(2L);
+        when(repository.save(any(Customer.class))).thenReturn(saved);
+
+        String requestBody = """
+            {
+                "name": "John Doe Non Alergen",
+                "email": "olik@example.com",
+                "phone": "600123456",
+                "password": "supersecurepassword123",
+                "age": 30,
+                "dni": "12345asd678A",
+                "localizations": [
+                    {
+                        "city": "Bilbao",
+                        "province": "Bizkaia",
+                        "country": "Spain",
+                        "postalCode": "48001",
+                        "number": "5",
+                        "longitude": -2.9253,
+                        "latitude": 43.2630
+                    }
+                ],
+                "alergenNames": [],
+                "preferenceNames": ["Italian", "Japanese"]
+            }
+            """;
+        mockMvc.perform(post("/api/customers/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk());
+    }
+    
+    @Test
+    void testRegisterNoPreferenceCustomer() throws Exception {
+        Customer saved = new Customer();
+        saved.setId(3L);
+        when(repository.save(any(Customer.class))).thenReturn(saved);
+
+        String requestBody = """
+            {
+                "name": "John Doe No Preference",
+                "email": "johnadgdoe@example.com",
+                "phone": "600123456",
+                "password": "supersecurepassword123",
+                "age": 30,
+                "dni": "12345kiik678A",
+                "localizations": [
+                    {
+                        "city": "Bilbao",
+                        "province": "Bizkaia",
+                        "country": "Spain",
+                        "postalCode": "48001",
+                        "number": "5",
+                        "longitude": -2.9253,
+                        "latitude": 43.2630
+                    }
+                ],
+                "alergenNames": ["Gluten", "Lactose"],
+                "preferenceNames": []
+            }
+            """;
+        mockMvc.perform(post("/api/customers/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteAllCustomer() throws Exception {
+        mockMvc.perform(delete("/api/customers"))
+            .andExpect(status().isOk());
     }
 }

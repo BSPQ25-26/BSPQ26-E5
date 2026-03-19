@@ -1,113 +1,148 @@
 package com.justorder.backend.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RiderDTO;
+import com.justorder.backend.model.Rider;
+import com.justorder.backend.repository.RiderRepository;
+import com.justorder.backend.service.RegisterService;
+import com.justorder.backend.service.RiderService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.justorder.backend.dto.RiderDTO;
-import com.justorder.backend.model.Rider;
-import com.justorder.backend.model.Localization;
-import com.justorder.backend.repository.RiderRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing Rider (delivery driver) entities.
- * Provides endpoints for performing CRUD (Create, Read, Update, Delete) 
- * operations on riders within the system.
- * * @version 1.0
+ * Handles administrative operations, registration, and order management for riders.
  */
 @RestController
 @RequestMapping("/api/riders")
 public class RiderController {
-    
-    @Autowired
-    private RiderRepository riderRepository;
+
+    private final RegisterService registerService;
+    private final RiderRepository riderRepository;
+    private final RiderService riderService;
 
     /**
-     * Retrieves a list of all available riders in the database.
-     * To prevent JSON serialization issues (like infinite recursion), the 'orders' 
-     * list for each associated rider is explicitly set to null before returning.
-     * * @return a ResponseEntity containing a list of {@link Rider} objects and an HTTP 200 OK status.
+     * Constructor injection for improved testability and architecture.
      */
-    @GetMapping("/all")
-    public ResponseEntity<List<Rider>> getAllRiders() {
-        List<Rider> riders = riderRepository.findAll();
-        
-        for (Rider rider : riders) {
-            rider.setOrders(null);
-        }
-        
+    public RiderController(RegisterService registerService,
+                           RiderRepository riderRepository,
+                           RiderService riderService) {
+        this.registerService = registerService;
+        this.riderRepository = riderRepository;
+        this.riderService = riderService;
+    }
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello from JustOrder!";
+    }
+
+    /**
+     * Retrieves all riders converted to DTOs.
+     * Replacing the manual "nullification" of orders with clean DTO mapping.
+     */
+    @GetMapping
+    public ResponseEntity<List<RiderDTO>> getAllRiders() {
+        List<RiderDTO> riders = riderRepository.findAll().stream()
+                .map(Rider::toDTO)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(riders);
     }
 
     /**
-     * Creates a new rider and saves it to the database.
-     * Automatically assigns a default starting point (Localization) to the newly created rider.
-     * * @param request the data transfer object containing the details of the rider to be created.
-     * @return a ResponseEntity containing the newly created {@link Rider} and an HTTP 200 OK status.
+     * Registers a new rider using the specialized RegisterService.
      */
     @PostMapping("/create")
-    public ResponseEntity<Rider> createRider(@RequestBody RiderDTO request) {
-        Rider newRider = new Rider();
-        newRider.setName(request.getName());
-        newRider.setEmail(request.getEmail());
-        newRider.setPhoneNumber(request.getPhoneNumber());
-        newRider.setPassword(request.getPassword());
-        
-        Localization starter = new Localization();
-        starter.setCity("Punto de inicio por defecto");
-        newRider.setStarterPoint(starter);
-
-        Rider savedRider = riderRepository.save(newRider);
-
-        savedRider.setOrders(null);
-        
-        return ResponseEntity.ok(savedRider);
+    public ResponseEntity<Void> createRider(@RequestBody RiderDTO request) {
+        try {
+            this.registerService.registerRider(request);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
-     * Updates an existing rider identified by their ID.
-     * The password field is only updated if a new, non-empty value is provided in the request.
-     * * @param id the unique identifier of the rider to be updated.
-     * @param request the data transfer object containing the updated details.
-     * @return a ResponseEntity containing the updated {@link Rider} if found, 
-     * or an HTTP 404 Not Found status if the rider does not exist.
+     * Updates an existing rider's profile.
      */
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Rider> updateRider(@PathVariable Long id, @RequestBody RiderDTO request) {
-        return riderRepository.findById(id)
-            .map(existingRider -> {
-                existingRider.setName(request.getName());
-                existingRider.setEmail(request.getEmail());
-                existingRider.setPhoneNumber(request.getPhoneNumber());
-                
-                if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-                    existingRider.setPassword(request.getPassword());
-                }
-                
-                Rider updatedRider = riderRepository.save(existingRider);
-                
-                updatedRider.setOrders(null);
-                
-                return ResponseEntity.ok(updatedRider);
-            })
-            .orElseGet(() -> ResponseEntity.notFound().build());
+    @PutMapping("/{id}")
+    public ResponseEntity<RiderDTO> updateRider(@PathVariable Long id, @RequestBody RiderDTO request) {
+        return riderRepository.findById(id).map(existing -> {
+            existing.setName(request.getName());
+            existing.setEmail(request.getEmail());
+            existing.setPhoneNumber(request.getPhoneNumber());
+
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                existing.setPassword(request.getPassword());
+            }
+
+            Rider updated = riderRepository.save(existing);
+            return ResponseEntity.ok(updated.toDTO());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
-     * Deletes a specific rider by their ID.
-     * * @param id the unique identifier of the rider to be deleted.
-     * @return a ResponseEntity with an HTTP 200 OK status if the deletion was successful, 
-     * or an HTTP 404 Not Found status if the rider does not exist.
+     * Deletes a specific rider by ID.
      */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteRider(@PathVariable Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRider(@PathVariable Long id) {
         if (riderRepository.existsById(id)) {
             riderRepository.deleteById(id);
             return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
+     * Retrieves orders assigned to a specific rider.
+     */
+    @GetMapping("/{riderId}/orders")
+    public ResponseEntity<List<OrderDTO>> getRiderOrders(@PathVariable Long riderId) {
+        try {
+            List<OrderDTO> orders = riderService.getRiderOrders(riderId);
+            return ResponseEntity.ok(orders);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Logic for a rider to reject an assigned order with a reason.
+     */
+    @PostMapping("/{riderId}/orders/{orderId}/reject")
+    public ResponseEntity<OrderDTO> rejectOrder(
+            @PathVariable Long riderId,
+            @PathVariable Long orderId,
+            @RequestBody Map<String, String> body) {
+
+        String reason = body.get("reason");
+        if (reason == null || reason.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            OrderDTO updatedOrder = riderService.rejectOrder(riderId, orderId, reason);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Bulk deletion of all riders (Admin/Testing utility).
+     */
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAllRiders() {
+        riderRepository.deleteAll();
+        return ResponseEntity.ok().build();
     }
 }

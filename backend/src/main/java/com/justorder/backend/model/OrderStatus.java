@@ -1,5 +1,7 @@
 package com.justorder.backend.model;
 
+import com.justorder.backend.dto.OrderStatusDTO;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +22,7 @@ public class OrderStatus {
 
     public OrderStatus() {
     }
-    
+
     public OrderStatus(String status) {
         this.status = status;
     }
@@ -33,4 +35,8 @@ public class OrderStatus {
     public void setId(Long id) { this.id = id; }
     public void setStatus(String status) { this.status = status; }
 
+    // toDTO
+    public OrderStatusDTO toDTO() {
+        return new OrderStatusDTO(this.status);
+    }
 }
