@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.justorder.backend.model.Admin;
-import com.justorder.backend.model.Alergen;
+import com.justorder.backend.model.Allergen;
 import com.justorder.backend.model.CuisineCategory;
 import com.justorder.backend.model.Customer;
 import com.justorder.backend.model.Dish;
@@ -19,7 +19,7 @@ import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.model.Rider;
 import com.justorder.backend.repository.AdminRepository;
-import com.justorder.backend.repository.AlergenRepository;
+import com.justorder.backend.repository.AllergenRepository;
 import com.justorder.backend.repository.CuisineCategoryRepository;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.DishRepository;
@@ -47,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
     private CuisineCategoryRepository cuisineCategoryRepository;
 
     @Autowired
-    private AlergenRepository alergenRepository;
+    private AllergenRepository allergenRepository;
 
     @Autowired
     private RestaurantRepository restaurantRepository;
@@ -81,13 +81,13 @@ public class DataInitializer implements CommandLineRunner {
             cuisineCategoryRepository.save(new CuisineCategory("Mediterranean"));
         }
 
-        if (alergenRepository.count() == 0) {
-            alergenRepository.save(new Alergen("Gluten", "Cereals containing gluten"));
-            alergenRepository.save(new Alergen("Lactose", "Milk and dairy products"));
-            alergenRepository.save(new Alergen("Peanuts", "Peanuts and peanut-based products"));
-            alergenRepository.save(new Alergen("Shellfish", "Crustaceans and shellfish products"));
-            alergenRepository.save(new Alergen("Soy", "Soybeans and soy-based products"));
-            alergenRepository.save(new Alergen("Eggs", "Eggs and egg-based products"));
+        if (allergenRepository.count() == 0) {
+            allergenRepository.save(new Allergen("Gluten", "Cereals containing gluten"));
+            allergenRepository.save(new Allergen("Lactose", "Milk and dairy products"));
+            allergenRepository.save(new Allergen("Peanuts", "Peanuts and peanut-based products"));
+            allergenRepository.save(new Allergen("Shellfish", "Crustaceans and shellfish products"));
+            allergenRepository.save(new Allergen("Soy", "Soybeans and soy-based products"));
+            allergenRepository.save(new Allergen("Eggs", "Eggs and egg-based products"));
         }
 
         if (orderStatusRepository.count() == 0) {
@@ -120,18 +120,18 @@ public class DataInitializer implements CommandLineRunner {
             restaurant2 = restaurantRepository.save(restaurant2);
 
             if (dishRepository.count() == 0) {
-                Alergen gluten  = alergenRepository.findByName("Gluten").orElseThrow();
-                Alergen lactose = alergenRepository.findByName("Lactose").orElseThrow();
-                Alergen soy     = alergenRepository.findByName("Soy").orElseThrow();
-                Alergen eggs    = alergenRepository.findByName("Eggs").orElseThrow();
-                Alergen peanuts = alergenRepository.findByName("Peanuts").orElseThrow();
+                Allergen gluten  = allergenRepository.findByName("Gluten").orElseThrow();
+                Allergen lactose = allergenRepository.findByName("Lactose").orElseThrow();
+                Allergen soy     = allergenRepository.findByName("Soy").orElseThrow();
+                Allergen eggs    = allergenRepository.findByName("Eggs").orElseThrow();
+                Allergen peanuts = allergenRepository.findByName("Peanuts").orElseThrow();
 
                 Dish dish1 = new Dish("Four Cheese Pizza", "Stone-baked pizza with four cheeses", 23.0, restaurant1);
-                dish1.setAlergens(Arrays.asList(gluten, lactose));
+                dish1.setAllergens(Arrays.asList(gluten, lactose));
                 Dish dish2 = new Dish("Grilled Salmon", "Grilled salmon fillet with herbs", 25.0, restaurant1);
-                dish2.setAlergens(List.of());
+                dish2.setAllergens(List.of());
                 Dish dish3 = new Dish("Thai Tofu Bowl", "Tofu bowl with peanut sauce and scrambled egg", 19.5, restaurant2);
-                dish3.setAlergens(Arrays.asList(soy, eggs, peanuts));
+                dish3.setAllergens(Arrays.asList(soy, eggs, peanuts));
 
                 dishRepository.save(dish1);
                 dishRepository.save(dish2);
