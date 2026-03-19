@@ -180,7 +180,7 @@ function MenuEditor() {
         </div>
 
         <div className="menu-editor-grid">
-          <form className="menu-editor-form" onSubmit={onSubmit}>
+          <form className="menu-editor-form" onSubmit={onSubmit} noValidate>
             <h2>{isEditing ? "Edit dish" : "New dish"}</h2>
 
             <label htmlFor="dish-name">Name</label>
