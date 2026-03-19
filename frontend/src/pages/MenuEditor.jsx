@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   getAllergens, 
@@ -65,14 +65,6 @@ function MenuEditor() {
   }, []);
 
   const isEditing = editingDishId !== null;
-
-  const nextDishId = useMemo(() => {
-    if (dishes.length === 0) {
-      return 1;
-    }
-
-    return Math.max(...dishes.map((dish) => dish.id)) + 1;
-  }, [dishes]);
 
   const onFieldChange = (event) => {
     const { name, value } = event.target;
