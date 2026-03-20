@@ -120,6 +120,13 @@ body {
   font-weight: 700;
 }
 
+.menu-editor-button {
+  margin-left: 12px;
+  border-radius: 999px;
+  border: 1px solid #202020;
+  font-weight: 700;
+}
+
 .cart-link {
   display: inline-flex;
   align-items: center;
@@ -235,6 +242,10 @@ body {
   .signup-button {
     margin-left: 0;
     padding: 10px 18px;
+  }
+
+  .menu-editor-button {
+    margin-left: 0;
   }
 
   .cart-link {
