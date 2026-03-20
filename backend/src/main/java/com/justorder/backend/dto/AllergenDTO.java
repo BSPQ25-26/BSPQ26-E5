@@ -1,14 +1,14 @@
 package com.justorder.backend.dto;
 
-public class AlergenDTO {
+public class AllergenDTO {
 
     private String name;
     private String description;
 
-    public AlergenDTO() {
+    public AllergenDTO() {
     }
 
-    public AlergenDTO(String name, String description) {
+    public AllergenDTO(String name, String description) {
         this.name = name;
         this.description = description;
     }

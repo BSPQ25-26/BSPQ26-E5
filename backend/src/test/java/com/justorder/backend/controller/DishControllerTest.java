@@ -3,7 +3,7 @@ package com.justorder.backend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.model.Dish;
-import com.justorder.backend.repository.AlergenRepository;
+import com.justorder.backend.repository.AllergenRepository;
 import com.justorder.backend.repository.DishRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
@@ -48,7 +48,7 @@ public class DishControllerTest {
     private RestaurantRepository restaurantRepository;
 
     @MockitoBean
-    private AlergenRepository alergenRepository;
+    private AllergenRepository allergenRepository;
 
     // ==========================================
     // TESTS FROM 'HEAD' BRANCH (BASIC CRUD)
@@ -130,9 +130,9 @@ public class DishControllerTest {
         when(dishRepository.findById(99L)).thenReturn(Optional.of(mockSavedDish));
 
         DishDTO newDish = new DishDTO(null, "Test Dish", "Test Description", 10.5, 1L, null);
-        ArrayList<String> alergenNames = new ArrayList<>();
-        alergenNames.add("Gluten");
-        newDish.setAlergenNames(alergenNames);
+        ArrayList<String> allergenNames = new ArrayList<>();
+        allergenNames.add("Gluten");
+        newDish.setAllergenNames(allergenNames);
 
         // Simulate creation
         MvcResult result = mockMvc.perform(post("/api/dishes/1")
@@ -147,14 +147,14 @@ public class DishControllerTest {
         Long dishId = createdDish.getId();
 
         createdDish.setPrice(12.5);
-        alergenNames = new ArrayList<>();
-        if(createdDish.getAlergenNames() != null) {
-                for (String alergenName : createdDish.getAlergenNames()) {
-                        alergenNames.add(alergenName);
+        allergenNames = new ArrayList<>();
+        if(createdDish.getAllergenNames() != null) {
+                for (String allergenName : createdDish.getAllergenNames()) {
+                        allergenNames.add(allergenName);
                 }
         }
-        alergenNames.add("Lactose");
-        createdDish.setAlergenNames(alergenNames);
+        allergenNames.add("Lactose");
+        createdDish.setAllergenNames(allergenNames);
         createdDish.setDescription("Updated Description");
         
         mockMvc.perform(put("/api/dishes/" + dishId)
@@ -164,5 +164,94 @@ public class DishControllerTest {
 
         mockMvc.perform(delete("/api/dishes/" + dishId))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testCreateDishWithMismatchedRestaurantId() throws Exception {
+        DishDTO newDish = new DishDTO(null, "Test Dish", "Test", 10.0, 2L, null);
+
+        mockMvc.perform(post("/api/dishes/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newDish)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCreateDishWithInvalidData() throws Exception {
+        DishDTO badDishMissingName = new DishDTO(null, "", "Description", 10.5, 1L, null);
+        mockMvc.perform(post("/api/dishes/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(badDishMissingName)))
+                .andExpect(status().isBadRequest());
+        
+        DishDTO badDishMissingdesc = new DishDTO(null, "Name", "", 10.5, 1L, null);
+        mockMvc.perform(post("/api/dishes/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(badDishMissingdesc)))
+                .andExpect(status().isBadRequest());
+
+        DishDTO badDishNegativePrice = new DishDTO(null, "Name", "Description", -5.0, 1L, null);
+        mockMvc.perform(post("/api/dishes/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(badDishNegativePrice)))
+                .andExpect(status().isBadRequest());
+
+        DishDTO badDishUnknownAllergen = new DishDTO(null, "Name", "Desc", 10.0, 1L, null);
+        badDishUnknownAllergen.setAllergenNames(Arrays.asList("NonExistentAllergen"));
+        mockMvc.perform(post("/api/dishes/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(badDishUnknownAllergen)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCreateDishRestaurantNotFound() throws Exception {
+        DishDTO newDish = new DishDTO(null, "Test Dish", "Desc", 10.0, 9999L, null);
+
+        mockMvc.perform(post("/api/dishes/9999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newDish)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUpdateDishNotFound() throws Exception {
+        DishDTO updateDish = new DishDTO(null, "Test Dish", "Desc", 10.0, 1L, null);
+
+        mockMvc.perform(put("/api/dishes/99999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDish)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUpdateDishWithInvalidData() throws Exception {
+        DishDTO newDish = new DishDTO(null, "Initial Name", "Initial Desc", 10.0, 1L, null);
+        MvcResult result = mockMvc.perform(post("/api/dishes/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newDish)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        DishDTO createdDish = objectMapper.readValue(result.getResponse().getContentAsString(), DishDTO.class);
+
+        createdDish.setDescription("");
+        mockMvc.perform(put("/api/dishes/" + createdDish.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createdDish)))
+                .andExpect(status().isBadRequest());
+
+        createdDish.setDescription("Updated");
+        createdDish.setAllergenNames(Arrays.asList("UnknownAllergen"));
+        mockMvc.perform(put("/api/dishes/" + createdDish.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createdDish)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testDeleteDishNotFound() throws Exception {
+        mockMvc.perform(delete("/api/dishes/99999"))
+                .andExpect(status().isNotFound());
     }
 }

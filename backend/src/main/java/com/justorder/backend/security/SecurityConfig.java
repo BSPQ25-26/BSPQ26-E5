@@ -23,7 +23,7 @@ import org.springframework.web.filter.CorsFilter;
  * Manages global security rules, including Cross-Origin Resource Sharing (CORS),
  * Cross-Site Request Forgery (CSRF) protection, stateless session management for JWT,
  * and endpoint authorization policies.
- * * @version 1.0
+ * @version 1.0
  */
 @Configuration
 @EnableWebSecurity
@@ -36,7 +36,7 @@ public class SecurityConfig {
      * Configures the main security filter chain for the application.
      * Disables CSRF, enforces stateless sessions, and defines access control rules 
      * for different API endpoints.
-     * * @param http the {@link HttpSecurity} object to be configured.
+     * @param http the {@link HttpSecurity} object to be configured.
      * @return the built {@link SecurityFilterChain} defining the security structure.
      * @throws Exception if an error occurs during configuration.
      */
@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/customers/**").permitAll()
                 .requestMatchers("/api/riders/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/alergens").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/api/allergens").permitAll() 
                 .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
                 
                 // Management routes (Requires specific roles)
@@ -80,7 +80,7 @@ public class SecurityConfig {
     /**
      * Configures the BCrypt password encoder bean.
      * Used for securely hashing passwords and verifying credentials.
-     * * @return a {@link PasswordEncoder} instance utilizing BCrypt.
+     * @return a {@link PasswordEncoder} instance utilizing BCrypt.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -90,7 +90,7 @@ public class SecurityConfig {
     /**
      * Configures the global CORS (Cross-Origin Resource Sharing) policy.
      * Allows the frontend (localhost:3000) to communicate safely with the backend.
-     * * @return a {@link CorsFilter} customized with allowed origins, headers, and methods.
+     * @return a {@link CorsFilter} customized with allowed origins, headers, and methods.
      */
     @Bean
     public CorsFilter corsFilter() {

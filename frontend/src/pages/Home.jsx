@@ -27,6 +27,9 @@ function Home() {
                             <Link to="/register-customer" className="nav-link signup-button">
                                 Sign up
                             </Link>
+                            <Link to="/restaurants/1/menu-editor" className="nav-link menu-editor-button">
+                                Edit menu
+                            </Link>
                         </nav>
 
                         <Link to="/checkout" className="cart-link" aria-label="Go to cart">

@@ -12,7 +12,7 @@ public class CustomerDTO {
     private Integer age;
     private String dni;
     private List<LocalizationDTO> localizations;
-    private List<String> alergenNames;
+    private List<String> allergenNames;
     private List<String> preferenceNames;
 
     public CustomerDTO() {
@@ -37,7 +37,7 @@ public class CustomerDTO {
     public Integer getAge() { return age; }
     public String getDni() { return dni; }
     public List<LocalizationDTO> getLocalizations() { return localizations; }
-    public List<String> getAlergenNames() { return alergenNames; }
+    public List<String> getAllergenNames() { return allergenNames; }
     public List<String> getPreferenceNames() { return preferenceNames; }
 
     // Setters
@@ -49,6 +49,6 @@ public class CustomerDTO {
     public void setAge(Integer age) { this.age = age; }
     public void setDni(String dni) { this.dni = dni; }
     public void setLocalizations(List<LocalizationDTO> localizations) { this.localizations = localizations; }
-    public void setAlergenNames(List<String> alergenNames) { this.alergenNames = alergenNames; }
+    public void setAllergenNames(List<String> allergenNames) { this.allergenNames = allergenNames; }
     public void setPreferenceNames(List<String> preferenceNames) { this.preferenceNames = preferenceNames; }
 }

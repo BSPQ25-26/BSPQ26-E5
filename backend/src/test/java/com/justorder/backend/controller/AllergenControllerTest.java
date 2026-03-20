@@ -1,7 +1,7 @@
 package com.justorder.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.justorder.backend.dto.AlergenDTO;
+import com.justorder.backend.dto.AllergenDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @Transactional
-public class AlergenControllerTest {
+public class AllergenControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -32,8 +32,9 @@ public class AlergenControllerTest {
      * Logic from 'main' branch.
      */
     @Test
-    public void testGetAllAlergens() throws Exception {
-        mockMvc.perform(get("/api/alergens"))
+    public void testGetAllAllergens() throws Exception {
+        
+        mockMvc.perform(get("/api/allergens"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(6)))
                 .andExpect(jsonPath("$[?(@.name=='Gluten')]", hasSize(1)))
@@ -45,16 +46,16 @@ public class AlergenControllerTest {
      * Logic from 'HEAD' branch adapted to integration test.
      */
     @Test
-    public void testCreateAlergen() throws Exception {
-        AlergenDTO request = new AlergenDTO("Nueces", "Frutos de cáscara");
+    public void testCreateAllergen() throws Exception {
+        AllergenDTO request = new AllergenDTO("Nueces", "Frutos de cáscara");
 
-        mockMvc.perform(post("/api/alergens/create")
+        mockMvc.perform(post("/api/allergens/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated()); // Standard 201 Created
 
         // Verify it was added
-        mockMvc.perform(get("/api/alergens"))
+        mockMvc.perform(get("/api/allergens"))
                 .andExpect(jsonPath("$", hasSize(7)))
                 .andExpect(jsonPath("$[?(@.name=='Nueces')]", hasSize(1)));
     }

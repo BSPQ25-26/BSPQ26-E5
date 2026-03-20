@@ -11,8 +11,8 @@ public class DishDTO {
     private String image;
     private Long restaurantId;
     private String restaurantName;
-    private List<String> alergenNames;
-    private List<Long> alergenIds;
+    private List<String> allergenNames;
+    private List<Long> allergenIds;
     private List<Long> categoryIds;
 
     public DishDTO() {
@@ -35,8 +35,8 @@ public class DishDTO {
     public String getImage() { return image; }
     public Long getRestaurantId() { return restaurantId; }
     public String getRestaurantName() { return restaurantName; }
-    public List<String> getAlergenNames() { return alergenNames; }
-    public List<Long> getAlergenIds() { return alergenIds; }
+    public List<String> getAllergenNames() { return allergenNames; }
+    public List<Long> getAllergenIds() { return allergenIds; }
     public List<Long> getCategoryIds() { return categoryIds; }
 
     // Setters
@@ -47,7 +47,7 @@ public class DishDTO {
     public void setImage(String image) { this.image = image; }
     public void setRestaurantId(Long restaurantId) { this.restaurantId = restaurantId; }
     public void setRestaurantName(String restaurantName) { this.restaurantName = restaurantName; }
-    public void setAlergenNames(List<String> alergenNames) { this.alergenNames = alergenNames; }
-    public void setAlergenIds(List<Long> alergenIds) { this.alergenIds = alergenIds; }
+    public void setAllergenNames(List<String> allergenNames) { this.allergenNames = allergenNames; }
+    public void setAllergenIds(List<Long> allergenIds) { this.allergenIds = allergenIds; }
     public void setCategoryIds(List<Long> categoryIds) { this.categoryIds = categoryIds; }
 }

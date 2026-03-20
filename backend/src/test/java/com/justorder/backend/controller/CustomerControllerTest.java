@@ -117,7 +117,7 @@ class CustomerControllerTest {
                         "latitude": 43.2630
                     }
                 ],
-                "alergenNames": ["Gluten", "Lactose"],
+                "allergenNames": ["Gluten", "Lactose"],
                 "preferenceNames": ["Italian", "Japanese"]
             }
             """;
@@ -139,7 +139,7 @@ class CustomerControllerTest {
                 "dni": "12345678A",
                 "localizations": [
                 ],
-                "alergenNames": ["Gluten", "Lactose"],
+                "allergenNames": ["Gluten", "Lactose"],
                 "preferenceNames": ["Italian", "Japanese"]
             }
             """;
@@ -171,7 +171,7 @@ class CustomerControllerTest {
                         "latitude": 43.2630
                     }
                 ],
-                "alergenNames": ["Gluten", "Lactose"],
+                "allergenNames": ["Gluten", "Lactose"],
                 "preferenceNames": ["Italian", "Japanese"]
             }
             """;
@@ -202,7 +202,7 @@ class CustomerControllerTest {
                         "latitude": 43.2630
                     }
                 ],
-                "alergenNames": ["Gluten", "Lactose"],
+                "allergenNames": ["Gluten", "Lactose"],
                 "preferenceNames": ["Italian", "Japanese"]
             }
             """;
@@ -225,14 +225,14 @@ class CustomerControllerTest {
     }
 
     @Test
-    void testRegisterNoAlergenCustomer() throws Exception {
+    void testRegisterNoAllergenCustomer() throws Exception {
         Customer saved = new Customer();
         saved.setId(2L);
         when(repository.save(any(Customer.class))).thenReturn(saved);
 
         String requestBody = """
             {
-                "name": "John Doe Non Alergen",
+                "name": "John Doe Non Allergen",
                 "email": "olik@example.com",
                 "phone": "600123456",
                 "password": "supersecurepassword123",
@@ -249,7 +249,7 @@ class CustomerControllerTest {
                         "latitude": 43.2630
                     }
                 ],
-                "alergenNames": [],
+                "allergenNames": [],
                 "preferenceNames": ["Italian", "Japanese"]
             }
             """;
@@ -284,7 +284,7 @@ class CustomerControllerTest {
                         "latitude": 43.2630
                     }
                 ],
-                "alergenNames": ["Gluten", "Lactose"],
+                "allergenNames": ["Gluten", "Lactose"],
                 "preferenceNames": []
             }
             """;

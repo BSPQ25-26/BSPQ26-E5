@@ -37,11 +37,11 @@ public class Customer {
 
     @ManyToMany
     @JoinTable(
-        name = "customer_alergens",
+        name = "customer_allergens",
         joinColumns = @JoinColumn(name = "customer_id"),
-        inverseJoinColumns = @JoinColumn(name = "alergen_id")
+        inverseJoinColumns = @JoinColumn(name = "allergen_id")
     )
-    private List<Alergen> alergens = new ArrayList<>();
+    private List<Allergen> allergens = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -66,7 +66,7 @@ public class Customer {
         String dni, 
         List<Localization> localizations,
         List<CuisineCategory> preferences,
-        List<Alergen> alergens
+        List<Allergen> allergens
     ) {
         this.name = name;
         this.email = email;
@@ -76,7 +76,7 @@ public class Customer {
         this.dni = dni;
         this.localizations = localizations;
         this.preferences = preferences;
-        this.alergens = alergens;
+        this.allergens = allergens;
     }
 
     // Getters
@@ -88,7 +88,7 @@ public class Customer {
     public Integer getAge() { return age; }
     public String getDni() { return dni; }
     public List<Localization> getLocalizations() { return localizations; }
-    public List<Alergen> getAlergens() { return alergens; }
+    public List<Allergen> getAllergens() { return allergens; }
     public List<CuisineCategory> getPreferences() { return preferences; }
     public List<Order> getOrders() { return orders; }
 
@@ -101,7 +101,7 @@ public class Customer {
     public void setAge(Integer age) { this.age = age; }
     public void setDni(String dni) { this.dni = dni; }
     public void setLocalizations(List<Localization> localizations) { this.localizations = localizations; }
-    public void setAlergens(List<Alergen> alergens) { this.alergens = alergens; }
+    public void setAllergens(List<Allergen> allergens) { this.allergens = allergens; }
     public void setPreferences(List<CuisineCategory> preferences) { this.preferences = preferences; }
     public void setOrders(List<Order> orders) { this.orders = orders; }
 
@@ -113,8 +113,8 @@ public class Customer {
         if (this.localizations != null) {
             dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
         }
-        if (this.alergens != null) {
-            dto.setAlergenNames(this.alergens.stream().map(Alergen::getName).collect(Collectors.toList()));
+        if (this.allergens != null) {
+            dto.setAllergenNames(this.allergens.stream().map(Allergen::getName).collect(Collectors.toList()));
         }
         if (this.preferences != null) {
             dto.setPreferenceNames(this.preferences.stream().map(CuisineCategory::getName).collect(Collectors.toList()));

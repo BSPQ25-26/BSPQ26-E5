@@ -12,10 +12,10 @@ import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.exception.DishConflictException;
 import com.justorder.backend.exception.InvalidDishDataException;
 import com.justorder.backend.exception.ResourceNotFoundException;
-import com.justorder.backend.model.Alergen;
+import com.justorder.backend.model.Allergen;
 import com.justorder.backend.model.Dish;
 import com.justorder.backend.model.Restaurant;
-import com.justorder.backend.repository.AlergenRepository;
+import com.justorder.backend.repository.AllergenRepository;
 import com.justorder.backend.repository.DishRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 
@@ -29,7 +29,7 @@ public class MenuService {
     private RestaurantRepository restaurantRepository;
 
     @Autowired
-    private AlergenRepository alergenRepository;
+    private AllergenRepository allergenRepository;
 
     /**
      * Retrieves all dishes for the admin view.
@@ -62,9 +62,9 @@ public class MenuService {
 
         Dish dish = new Dish(dishDTO.getName(), dishDTO.getDescription(), dishDTO.getPrice(), restaurant);
 
-        if (dishDTO.getAlergenNames() != null) {
-            List<Alergen> alergens = resolveExistingAlergens(dishDTO.getAlergenNames());
-            dish.setAlergens(alergens);
+        if (dishDTO.getAllergenNames() != null) {
+            List<Allergen> allergens = resolveExistingAllergens(dishDTO.getAllergenNames());
+            dish.setAllergens(allergens);
         }
 
         try {
@@ -88,9 +88,9 @@ public class MenuService {
         dish.setDescription(dishDTO.getDescription());
         dish.setPrice(dishDTO.getPrice());
 
-        if (dishDTO.getAlergenNames() != null) {
-            List<Alergen> alergens = resolveExistingAlergens(dishDTO.getAlergenNames());
-            dish.setAlergens(alergens);
+        if (dishDTO.getAllergenNames() != null) {
+            List<Allergen> allergens = resolveExistingAllergens(dishDTO.getAllergenNames());
+            dish.setAllergens(allergens);
         }
 
         try {
@@ -128,10 +128,11 @@ public class MenuService {
         }
     }
 
-    private List<Alergen> resolveExistingAlergens(List<String> alergenNames) {
-        return alergenNames.stream()
-                .map(name -> alergenRepository.findByName(name)
-                        .orElseThrow(() -> new InvalidDishDataException("Alergen not found: " + name)))
+    // Resolves the list of allergen names to a list of existing Allergen entities
+    private List<Allergen> resolveExistingAllergens(List<String> allergenNames) {
+        return allergenNames.stream()
+                .map(name -> allergenRepository.findByName(name)
+                        .orElseThrow(() -> new InvalidDishDataException("Allergen not found: " + name)))
                 .collect(Collectors.toList());
     }
 }
