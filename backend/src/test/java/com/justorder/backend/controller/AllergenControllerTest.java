@@ -47,7 +47,7 @@ public class AllergenControllerTest {
      */
     @Test
     public void testCreateAllergen() throws Exception {
-        AllergenDTO request = new AllergenDTO("Nueces", "Frutos de cáscara");
+        AllergenDTO request = new AllergenDTO(null, "Nueces", "Frutos de cáscara");
 
         mockMvc.perform(post("/api/allergens/create")
                 .contentType(MediaType.APPLICATION_JSON)
