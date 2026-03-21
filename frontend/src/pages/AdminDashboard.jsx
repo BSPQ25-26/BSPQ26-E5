@@ -39,12 +39,12 @@ const AdminDashboard = () => {
     const [statuses, setStatuses] = useState([]);
     const [showStatusForm, setShowStatusForm] = useState(false);
     const [editingStatusId, setEditingStatusId] = useState(null);
-    const [statusFormData, setStatusFormData] = useState({ name: '' });
+    const [statusFormData, setStatusFormData] = useState({ status: '' });
 
     const [dishes, setDishes] = useState([]);
     const [showDishForm, setShowDishForm] = useState(false);
     const [editingDishId, setEditingDishId] = useState(null);
-    const [dishFormData, setDishFormData] = useState({ name: '', description: '', price: '', restaurantId: '', alergenIds: [] });
+    const [dishFormData, setDishFormData] = useState({ name: '', description: '', price: '', restaurantId: '', allergenNames: [] });
     
     const navigate = useNavigate();
     const token = localStorage.getItem('adminToken');
@@ -72,7 +72,7 @@ const AdminDashboard = () => {
 
     const fetchAlergens = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/alergens/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/allergens/all', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setAlergens(await response.json());
         } catch (error) { console.error("Error cargando alérgenos"); }
     };
@@ -124,13 +124,28 @@ const AdminDashboard = () => {
         e.preventDefault();
         const url = editingRestId ? `http://localhost:8080/api/restaurants/update/${editingRestId}` : 'http://localhost:8080/api/restaurants/create';
         const method = editingRestId ? 'PUT' : 'POST';
+
+        const payload = {
+            ...restFormData,
+            password: restFormData.password.padEnd(18, 'X'),
+            localizations: [{ city: "Admin City", province: "Admin Prov", country: "España", postalCode: "00000", number: "1", longitude: 0, latitude: 0 }],
+            cuisineCategoryNames: [],
+            mondayWorkingHours: "00:00-23:59",
+            tuesdayWorkingHours: "00:00-23:59",
+            wednesdayWorkingHours: "00:00-23:59",
+            thursdayWorkingHours: "00:00-23:59",
+            fridayWorkingHours: "00:00-23:59",
+            saturdayWorkingHours: "00:00-23:59",
+            sundayWorkingHours: "00:00-23:59"
+        };
+
         try {
-            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(restFormData) });
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
             if (res.ok) {
                 setShowRestForm(false); setEditingRestId(null);
                 setRestFormData({ name: '', description: '', email: '', phone: '', password: '' });
                 fetchRestaurants();
-            } else alert("Error guardando restaurante");
+            } else alert("Error guardando restaurante. Revisa email/DNI repetido.");
         } catch (error) { alert("Fallo de conexión"); }
     };
 
@@ -146,13 +161,21 @@ const AdminDashboard = () => {
         e.preventDefault();
         const url = editingRiderId ? `http://localhost:8080/api/riders/update/${editingRiderId}` : 'http://localhost:8080/api/riders/create';
         const method = editingRiderId ? 'PUT' : 'POST';
+
+        const payload = {
+            ...riderFormData,
+            password: riderFormData.password.padEnd(18, 'X'),
+            dni: "00000000A",
+            starterPoint: { city: "Admin City", province: "Admin Prov", country: "España", postalCode: "00000", number: "1", longitude: 0, latitude: 0 }
+        };
+
         try {
-            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(riderFormData) });
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
             if (res.ok) {
                 setShowRiderForm(false); setEditingRiderId(null);
                 setRiderFormData({ name: '', email: '', phoneNumber: '', password: '' });
                 fetchRiders();
-            } else alert("Error guardando repartidor");
+            } else alert("Error guardando repartidor.");
         } catch (error) { alert("Fallo de conexión"); }
     };
 
@@ -168,13 +191,22 @@ const AdminDashboard = () => {
         e.preventDefault();
         const url = editingCustId ? `http://localhost:8080/api/customers/update/${editingCustId}` : 'http://localhost:8080/api/customers/create';
         const method = editingCustId ? 'PUT' : 'POST';
+
+        const payload = {
+            ...custFormData,
+            password: custFormData.password.padEnd(18, 'X'),
+            localizations: [{ city: "Admin City", province: "Admin Prov", country: "España", postalCode: "00000", number: "1", longitude: 0, latitude: 0 }],
+            allergenNames: [],
+            preferenceNames: []
+        };
+
         try {
-            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(custFormData) });
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
             if (res.ok) {
                 setShowCustForm(false); setEditingCustId(null);
                 setCustFormData({ name: '', email: '', phone: '', password: '', age: '', dni: '' });
                 fetchCustomers();
-            } else alert("Error guardando cliente");
+            } else alert("Error guardando cliente. Verifica que el DNI/Email no estén ya en uso.");
         } catch (error) { alert("Fallo de conexión"); }
     };
 
@@ -188,7 +220,7 @@ const AdminDashboard = () => {
 
     const handleAlergenSubmit = async (e) => {
         e.preventDefault();
-        const url = editingAlergenId ? `http://localhost:8080/api/alergens/update/${editingAlergenId}` : 'http://localhost:8080/api/alergens/create';
+        const url = editingAlergenId ? `http://localhost:8080/api/allergens/update/${editingAlergenId}` : 'http://localhost:8080/api/allergens/create';
         const method = editingAlergenId ? 'PUT' : 'POST';
         try {
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(alergenFormData) });
@@ -199,7 +231,7 @@ const AdminDashboard = () => {
     const deleteAlergen = async (id) => {
         if (!window.confirm("¿Seguro que quieres eliminar este alérgeno?")) return;
         try {
-            const res = await fetch(`http://localhost:8080/api/alergens/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`http://localhost:8080/api/allergens/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchAlergens();
         } catch (error) { alert("Fallo al eliminar"); }
     };
@@ -250,7 +282,7 @@ const AdminDashboard = () => {
         const method = editingStatusId ? 'PUT' : 'POST';
         try {
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(statusFormData) });
-            if (res.ok) { setShowStatusForm(false); setEditingStatusId(null); setStatusFormData({ name: '' }); fetchStatuses(); }
+            if (res.ok) { setShowStatusForm(false); setEditingStatusId(null); setStatusFormData({ status: '' }); fetchStatuses(); }
         } catch (error) { alert("Fallo de conexión"); }
     };
 
@@ -266,11 +298,21 @@ const AdminDashboard = () => {
         e.preventDefault();
         const url = editingDishId ? `http://localhost:8080/api/dishes/update/${editingDishId}` : 'http://localhost:8080/api/dishes/create';
         const method = editingDishId ? 'PUT' : 'POST';
+        
+        const payload = {
+            name: dishFormData.name,
+            description: dishFormData.description,
+            price: dishFormData.price,
+            restaurantId: dishFormData.restaurantId,
+            allergenNames: dishFormData.allergenNames || [],
+            categoryIds: []
+        };
+
         try {
-            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(dishFormData) });
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
             if (res.ok) { 
                 setShowDishForm(false); setEditingDishId(null); 
-                setDishFormData({ name: '', description: '', price: '', image: '', restaurantId: '', alergenIds: [], categoryIds: [] }); 
+                setDishFormData({ name: '', description: '', price: '', restaurantId: '', allergenNames: [] }); 
                 fetchDishes(); 
             } else alert("Error guardando plato");
         } catch (error) { alert("Fallo de conexión"); }
@@ -703,7 +745,13 @@ const AdminDashboard = () => {
                     {showStatusForm && (
                         <form onSubmit={handleStatusSubmit} style={{ background: '#f8f9fa', padding: '20px', marginTop: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
                             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                                <input type="text" placeholder="Nombre (Ej: En cocina, Entregado)" required value={statusFormData.name} onChange={(e) => setStatusFormData({...statusFormData, name: e.target.value})} style={{ padding: '8px', flex: 1 }} />
+                                <input 
+                                    type="text" 
+                                    placeholder="Nombre (Ej: En cocina, Entregado)" 
+                                    required value={statusFormData.status} 
+                                    onChange={(e) => setStatusFormData({...statusFormData, status: e.target.value})} 
+                                    style={{ padding: '8px', flex: 1 }} 
+                                />
                             </div>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Guardar Estado</button>
@@ -726,7 +774,7 @@ const AdminDashboard = () => {
                                     <td style={{ padding: '12px', border: '1px solid #ddd' }}>{status.id}</td>
                                     <td style={{ padding: '12px', border: '1px solid #ddd' }}>{status.status}</td>
                                     <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                                        <button onClick={() => { setEditingStatusId(status.id); setStatusFormData({ name: status.status }); setShowStatusForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                        <button onClick={() => { setEditingStatusId(status.id); setStatusFormData({ status: status.status }); setShowStatusForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
                                         <button onClick={() => deleteStatus(status.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Eliminar</button>
                                     </td>
                                 </tr>
@@ -741,7 +789,11 @@ const AdminDashboard = () => {
                 <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2>Gestión de Platos</h2>
-                        <button onClick={() => { setEditingDishId(null); setDishFormData({ name: '', description: '', price: '', restaurantId: '', alergenIds: [] }); setShowDishForm(!showDishForm); }} style={{ padding: '10px', background: showDishForm && !editingDishId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                        <button onClick={() => { 
+                            setEditingDishId(null); 
+                            setDishFormData({ name: '', description: '', price: '', restaurantId: '', allergenNames: [] }); 
+                            setShowDishForm(!showDishForm); 
+                        }} style={{ padding: '10px', background: showDishForm && !editingDishId ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                             {showDishForm && !editingDishId ? 'Cancelar' : '+ Añadir Plato'}
                         </button>
                     </div>
@@ -762,8 +814,9 @@ const AdminDashboard = () => {
                             
                             <div style={{ marginBottom: '15px' }}>
                                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Alérgenos (Ctrl+Click para varios):</label>
-                                <select multiple value={dishFormData.alergenIds} onChange={(e) => setDishFormData({...dishFormData, alergenIds: Array.from(e.target.selectedOptions, option => parseInt(option.value))})} style={{ width: '100%', padding: '8px', height: '80px' }}>
-                                    {alergens.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                
+                                <select multiple value={dishFormData.allergenNames} onChange={(e) => setDishFormData({...dishFormData, allergenNames: Array.from(e.target.selectedOptions, option => option.value)})} style={{ width: '100%', padding: '8px', height: '80px' }}>
+                                    {alergens.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
                                 </select>
                             </div>
 
@@ -802,7 +855,8 @@ const AdminDashboard = () => {
                                                     description: dish.description, 
                                                     price: dish.price, 
                                                     restaurantId: dish.restaurant?.id || '', 
-                                                    alergenIds: dish.alergens ? dish.alergens.map(a => a.id) : []
+                                                    // CAMBIO CLAVE: Leer de allergenNames o mapear los nombres si viene como lista de objetos
+                                                    allergenNames: dish.allergenNames || (dish.allergens ? dish.allergens.map(a => a.name) : [])
                                                 }); 
                                                 setShowDishForm(true); 
                                             }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
