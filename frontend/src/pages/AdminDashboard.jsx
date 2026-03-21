@@ -79,7 +79,7 @@ const AdminDashboard = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/categories', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/categories/all', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setCategories(await response.json());
         } catch (error) { console.error("Error cargando categorías"); }
     };
@@ -93,7 +93,7 @@ const AdminDashboard = () => {
 
     const fetchStatuses = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/order-statuses', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/order-statuses/all', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setStatuses(await response.json());
         } catch (error) { console.error("Error cargando estados de pedido"); }
     };
@@ -715,13 +715,41 @@ const AdminDashboard = () => {
                                 orders.map((order, index) => (
                                     <tr key={order.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>#{order.id}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.customer ? order.customer.name : 'N/A'}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.rider ? order.rider.name : 'Sin asignar'}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.status ? order.status.status : 'Desconocido'}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{order.dishes ? order.dishes.length + ' platos' : 'Ninguno'}</td>
+                                        
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>
+                                            {customers.find(c => c.id === order.customerId)?.name || 'N/A'}
+                                        </td>
+                                        
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>
+                                            {riders.find(r => r.id === order.riderId)?.name || 'Sin asignar'}
+                                        </td>
+                                        
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>
+                                            <span style={{ padding: '4px 8px', borderRadius: '4px', backgroundColor: order.status === 'PREPARING' ? '#ffc107' : order.status === 'DELIVERED' ? '#28a745' : '#17a2b8', color: 'white', fontSize: '12px', fontWeight: 'bold' }}>
+                                                {order.status || 'Desconocido'}
+                                            </span>
+                                        </td>
+                                        
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>
+                                            {order.dishIds ? order.dishIds.length + ' platos' : 'Ninguno'}
+                                        </td>
+                                        
                                         <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{order.totalPrice} €</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                                            <button onClick={() => { setEditingOrderId(order.id); setOrderFormData({ customerId: order.customer?.id || '', riderId: order.rider?.id || '', statusId: order.status?.id || '', totalPrice: order.totalPrice, secretCode: order.secretCode, dishIds: order.dishes ? order.dishes.map(d => d.id) : [] }); setShowOrderForm(true); }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                            <button onClick={() => { 
+                                                const matchedStatus = statuses.find(s => s.status === order.status);
+                                                setEditingOrderId(order.id); 
+                                                setOrderFormData({ 
+                                                    customerId: order.customerId || '', 
+                                                    riderId: order.riderId || '', 
+                                                    statusId: matchedStatus?.id || '', 
+                                                    totalPrice: order.totalPrice, 
+                                                    secretCode: order.secretCode, 
+                                                    dishIds: order.dishIds || []
+                                                }); 
+                                                setShowOrderForm(true); 
+                                            }} style={{ padding: '6px 12px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>Editar</button>
+                                            
                                             <button onClick={() => deleteOrder(order.id)} style={{ padding: '6px 12px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>
                                         </td>
                                     </tr>
@@ -844,9 +872,8 @@ const AdminDashboard = () => {
                                 dishes.map((dish, index) => (
                                     <tr key={dish.id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
                                         <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.id}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.name}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.restaurant ? dish.restaurant.name : 'N/A'}</td>
-                                        <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{dish.price} €</td>
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.name}</td>  
+                                        <td style={{ padding: '12px', border: '1px solid #ddd' }}>{dish.restaurantName || 'N/A'}</td>                                        <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{dish.price} €</td>
                                         <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
                                             <button onClick={() => { 
                                                 setEditingDishId(dish.id); 
@@ -854,8 +881,7 @@ const AdminDashboard = () => {
                                                     name: dish.name, 
                                                     description: dish.description, 
                                                     price: dish.price, 
-                                                    restaurantId: dish.restaurant?.id || '', 
-                                                    // CAMBIO CLAVE: Leer de allergenNames o mapear los nombres si viene como lista de objetos
+                                                    restaurantId: dish.restaurantId || dish.restaurant?.id || '', 
                                                     allergenNames: dish.allergenNames || (dish.allergens ? dish.allergens.map(a => a.name) : [])
                                                 }); 
                                                 setShowDishForm(true); 
