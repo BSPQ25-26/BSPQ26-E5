@@ -51,56 +51,56 @@ const AdminDashboard = () => {
 
     const fetchRestaurants = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/restaurants/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/restaurants', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setRestaurants(await response.json());
         } catch (error) { console.error("Error cargando restaurantes"); }
     };
 
     const fetchRiders = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/riders/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/riders', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setRiders(await response.json());
         } catch (error) { console.error("Error cargando riders"); }
     };
 
     const fetchCustomers = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/customers/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/customers', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setCustomers(await response.json());
         } catch (error) { console.error("Error cargando clientes"); }
     };
 
     const fetchAlergens = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/allergens/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/allergens', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setAlergens(await response.json());
         } catch (error) { console.error("Error cargando alérgenos"); }
     };
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/categories/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/categories', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setCategories(await response.json());
         } catch (error) { console.error("Error cargando categorías"); }
     };
 
     const fetchOrders = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/orders/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/orders', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setOrders(await response.json());
         } catch (error) { console.error("Error cargando pedidos"); }
     };
 
     const fetchStatuses = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/order-statuses/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/order-statuses', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setStatuses(await response.json());
         } catch (error) { console.error("Error cargando estados de pedido"); }
     };
 
     const fetchDishes = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/dishes/all', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch('http://localhost:8080/api/dishes', { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) setDishes(await response.json());
         } catch (error) { console.error("Error cargando platos"); }
     };
@@ -122,7 +122,7 @@ const AdminDashboard = () => {
 
     const handleRestSubmit = async (e) => {
         e.preventDefault();
-        const url = editingRestId ? `http://localhost:8080/api/restaurants/update/${editingRestId}` : 'http://localhost:8080/api/restaurants/create';
+        const url = editingRestId ? `http://localhost:8080/api/restaurants/${editingRestId}` : 'http://localhost:8080/api/restaurants/create';
         const method = editingRestId ? 'PUT' : 'POST';
 
         const payload = {
@@ -152,14 +152,14 @@ const AdminDashboard = () => {
     const deleteRestaurant = async (id) => {
         if (!window.confirm("¿Seguro que quieres eliminar este restaurante?")) return;
         try {
-            const res = await fetch(`http://localhost:8080/api/restaurants/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`http://localhost:8080/api/restaurants/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchRestaurants();
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
     const handleRiderSubmit = async (e) => {
         e.preventDefault();
-        const url = editingRiderId ? `http://localhost:8080/api/riders/update/${editingRiderId}` : 'http://localhost:8080/api/riders/create';
+        const url = editingRiderId ? `http://localhost:8080/api/riders/${editingRiderId}` : 'http://localhost:8080/api/riders/create';
         const method = editingRiderId ? 'PUT' : 'POST';
 
         const payload = {
@@ -182,14 +182,14 @@ const AdminDashboard = () => {
     const deleteRider = async (id) => {
         if (!window.confirm("¿Seguro que quieres despedir a este repartidor?")) return;
         try {
-            const res = await fetch(`http://localhost:8080/api/riders/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`http://localhost:8080/api/riders/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchRiders();
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
     const handleCustSubmit = async (e) => {
         e.preventDefault();
-        const url = editingCustId ? `http://localhost:8080/api/customers/update/${editingCustId}` : 'http://localhost:8080/api/customers/create';
+        const url = editingCustId ? `http://localhost:8080/api/customers/${editingCustId}` : 'http://localhost:8080/api/customers/create';
         const method = editingCustId ? 'PUT' : 'POST';
 
         const payload = {
@@ -213,14 +213,14 @@ const AdminDashboard = () => {
     const deleteCustomer = async (id) => {
         if (!window.confirm("¿Seguro que quieres eliminar este cliente?")) return;
         try {
-            const res = await fetch(`http://localhost:8080/api/customers/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`http://localhost:8080/api/customers/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchCustomers();
         } catch (error) { alert("Fallo al eliminar"); }
     };
 
     const handleAlergenSubmit = async (e) => {
         e.preventDefault();
-        const url = editingAlergenId ? `http://localhost:8080/api/allergens/update/${editingAlergenId}` : 'http://localhost:8080/api/allergens/create';
+        const url = editingAlergenId ? `http://localhost:8080/api/allergens/${editingAlergenId}` : 'http://localhost:8080/api/allergens/create';
         const method = editingAlergenId ? 'PUT' : 'POST';
         try {
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(alergenFormData) });
@@ -231,7 +231,7 @@ const AdminDashboard = () => {
     const deleteAlergen = async (id) => {
         if (!window.confirm("¿Seguro que quieres eliminar este alérgeno?")) return;
         try {
-            const res = await fetch(`http://localhost:8080/api/allergens/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`http://localhost:8080/api/allergens/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchAlergens();
         } catch (error) { alert("Fallo al eliminar"); }
     };
@@ -256,7 +256,7 @@ const AdminDashboard = () => {
 
     const handleOrderSubmit = async (e) => {
         e.preventDefault();
-        const url = editingOrderId ? `http://localhost:8080/api/orders/update/${editingOrderId}` : 'http://localhost:8080/api/orders/create';
+        const url = editingOrderId ? `http://localhost:8080/api/orders/${editingOrderId}` : 'http://localhost:8080/api/orders/create';
         const method = editingOrderId ? 'PUT' : 'POST';
         try {
             const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(orderFormData) });
@@ -271,7 +271,7 @@ const AdminDashboard = () => {
     const deleteOrder = async (id) => {
         if (!window.confirm("¿Seguro que quieres cancelar y eliminar este pedido del sistema?")) return;
         try {
-            const res = await fetch(`http://localhost:8080/api/orders/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`http://localhost:8080/api/orders/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchOrders();
         } catch (error) { alert("Fallo al eliminar pedido"); }
     };
@@ -296,7 +296,7 @@ const AdminDashboard = () => {
 
     const handleDishSubmit = async (e) => {
         e.preventDefault();
-        const url = editingDishId ? `http://localhost:8080/api/dishes/update/${editingDishId}` : 'http://localhost:8080/api/dishes/create';
+        const url = editingDishId ? `http://localhost:8080/api/dishes/${editingDishId}` : `http://localhost:8080/api/dishes/${dishFormData.restaurantId}`;
         const method = editingDishId ? 'PUT' : 'POST';
         
         const payload = {
@@ -321,7 +321,7 @@ const AdminDashboard = () => {
     const deleteDish = async (id) => {
         if (!window.confirm("¿Seguro que quieres eliminar este plato?")) return;
         try {
-            const res = await fetch(`http://localhost:8080/api/dishes/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`http://localhost:8080/api/dishes/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) fetchDishes();
         } catch (error) { alert("Fallo al eliminar plato"); }
     };
