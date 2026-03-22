@@ -10,7 +10,7 @@ public class DishDTO {
     private double price;
     private Long restaurantId;
     private String restaurantName;
-    private List<String> alergenNames;
+    private List<String> allergenNames;
 
     public DishDTO() {
     }
@@ -31,7 +31,7 @@ public class DishDTO {
     public double getPrice() { return price; }
     public Long getRestaurantId() { return restaurantId; }
     public String getRestaurantName() { return restaurantName; }
-    public List<String> getAlergenNames() { return alergenNames; }
+    public List<String> getAllergenNames() { return allergenNames; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -40,5 +40,5 @@ public class DishDTO {
     public void setPrice(double price) { this.price = price; }
     public void setRestaurantId(Long restaurantId) { this.restaurantId = restaurantId; }
     public void setRestaurantName(String restaurantName) { this.restaurantName = restaurantName; }
-    public void setAlergenNames(List<String> alergenNames) { this.alergenNames = alergenNames; }
+    public void setAllergenNames(List<String> allergenNames) { this.allergenNames = allergenNames; }
 }

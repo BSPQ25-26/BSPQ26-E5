@@ -16,13 +16,13 @@ import com.justorder.backend.model.Localization;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.model.Rider;
 import com.justorder.backend.repository.AdminRepository;
-import com.justorder.backend.repository.AlergenRepository;
+import com.justorder.backend.repository.AllergenRepository;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.repository.LocalizationRepository;
 import com.justorder.backend.repository.CuisineCategoryRepository;
-import com.justorder.backend.model.Alergen;
+import com.justorder.backend.model.Allergen;
 import com.justorder.backend.model.CuisineCategory;
 
 @Service
@@ -33,7 +33,7 @@ public class RegisterService {
 	private final RestaurantRepository restaurantRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final CuisineCategoryRepository cuisineCategoryRepository;
-	private final AlergenRepository alergenRepository;
+	private final AllergenRepository allergenRepository;
 
 	public RegisterService(
 		CustomerRepository customerRepository,
@@ -42,7 +42,7 @@ public class RegisterService {
 		AdminRepository adminRepository,
 		PasswordEncoder passwordEncoder,
 		CuisineCategoryRepository cuisineCategoryRepository,
-		AlergenRepository alergenRepository,
+		AllergenRepository allergenRepository,
 		LocalizationRepository localizationRepository
 	) {
 		this.customerRepository = customerRepository;
@@ -50,7 +50,7 @@ public class RegisterService {
 		this.restaurantRepository = restaurantRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.cuisineCategoryRepository = cuisineCategoryRepository;
-		this.alergenRepository = alergenRepository;
+		this.allergenRepository = allergenRepository;
 	}
 	
 	@Transactional
@@ -69,7 +69,7 @@ public class RegisterService {
 			request.getDni(),
 			this.toLocalizationEntities(request.getLocalizations()),
 			this.toCuisineCategoryEntities(request.getPreferenceNames()),
-			this.toAlergenEntities(request.getAlergenNames())
+			this.toAllergenEntities(request.getAllergenNames())
 		);
 		Customer savedCustomer = customerRepository.save(customer);
 		return savedCustomer;
@@ -185,13 +185,13 @@ public class RegisterService {
             .toList();
 	}
 
-	private List<Alergen> toAlergenEntities(List<String> alergenNames) {
-        if (alergenNames == null) {
-            throw new IllegalArgumentException("Alergen names are required");
+	private List<Allergen> toAllergenEntities(List<String> allergenNames) {
+        if (allergenNames == null) {
+            throw new IllegalArgumentException("Allergen names are required");
         }
-		return alergenNames.stream()
-			.map(name -> alergenRepository.findByName(name)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown alergen: " + name)))
+		return allergenNames.stream()
+			.map(name -> allergenRepository.findByName(name)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown allergen: " + name)))
 			.toList();
 	}
 

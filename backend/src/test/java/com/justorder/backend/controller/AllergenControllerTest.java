@@ -15,15 +15,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @Transactional
-public class AlergenControllerTest {
+public class AllergenControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
     
     @Test
-    public void testGetAllAlergens() throws Exception {
+    public void testGetAllAllergens() throws Exception {
         
-        mockMvc.perform(get("/api/alergens"))
+        mockMvc.perform(get("/api/allergens"))
                 .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(6)))
             .andExpect(jsonPath("$[?(@.name=='Gluten' && @.description=='Cereals containing gluten')]", hasSize(1)))
