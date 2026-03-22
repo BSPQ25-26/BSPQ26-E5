@@ -7,6 +7,7 @@ import RegisterRider from "./pages/RegisterRider";
 import CheckoutPage from "./pages/CheckoutPage";
 import MenuEditor from "./pages/MenuEditor";
 import RiderDashboard from "./pages/RiderDashboard";
+import CustomerMarketplace from "./pages/CustomerMarketplace";
 import { CartProvider } from "./store/CartContext";
 import "./assets/css/Home.css";
 import "./assets/css/Register.css";
@@ -23,6 +24,7 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/restaurants/:restaurantId/menu-editor" element={<MenuEditor />} />
           <Route path="/rider-dashboard" element={<RiderDashboard />} />
+          <Route path="/customer-marketplace" element={<CustomerMarketplace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
