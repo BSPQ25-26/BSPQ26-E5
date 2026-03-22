@@ -13,7 +13,7 @@
     z-index: 1000;
   }
   
-  .modal-content {
+.modal-content {
     background: #ffffff;
     padding: 24px;
     border-radius: 12px;
@@ -26,27 +26,27 @@
     font-family: Arial, sans-serif;
   }
   
-  .modal-content h3 {
+.modal-content h3 {
     margin-top: 0;
     margin-bottom: 5px;
     color: #1a1a1a;
     font-size: 1.25rem;
   }
   
-  .modal-subtitle {
+.modal-subtitle {
     color: #666;
     font-size: 0.9rem;
     margin-top: 0;
     margin-bottom: 10px;
   }
   
-  .reason-list {
+.reason-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
   
-  .reason-option {
+.reason-option {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -57,21 +57,21 @@
     transition: all 0.2s ease;
   }
   
-  .reason-option:hover {
+.reason-option:hover {
     background: #f5f5f5;
   }
   
-  .reason-option.selected {
+.reason-option.selected {
     border-color: #007bff;
     background: #f0f7ff;
   }
   
-  .reason-option input[type="radio"] {
+.reason-option input[type="radio"] {
     margin: 0;
     cursor: pointer;
   }
   
-  .custom-reason-input {
+.custom-reason-input {
     width: 100%;
     padding: 12px;
     border-radius: 8px;
@@ -82,19 +82,19 @@
     resize: vertical;
   }
   
-  .custom-reason-input:focus {
+.custom-reason-input:focus {
     outline: none;
     border-color: #007bff;
   }
   
-  .modal-actions {
+.modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     margin-top: 15px;
   }
   
-  .btn-cancel {
+.btn-cancel {
     background: #f0f0f0;
     color: #333;
     border: none;
@@ -105,11 +105,11 @@
     transition: background 0.2s;
   }
   
-  .btn-cancel:hover {
+.btn-cancel:hover {
     background: #e4e4e4;
   }
   
-  .btn-reject {
+.btn-reject {
     background: #dc3545;
     color: white;
     border: none;
@@ -120,11 +120,11 @@
     transition: background 0.2s;
   }
   
-  .btn-reject:hover:not(:disabled) {
+.btn-reject:hover:not(:disabled) {
     background: #c82333;
   }
   
-  .btn-reject:disabled {
+.btn-reject:disabled {
     background: #f5a8b0;
     cursor: not-allowed;
   }
