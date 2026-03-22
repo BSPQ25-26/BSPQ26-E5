@@ -9,9 +9,7 @@ import java.util.List;
 
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
-    /**
-     * Checks whether a restaurant with the given email already exists in the database.
-     */
+
     boolean existsByEmail(String email);
 
 

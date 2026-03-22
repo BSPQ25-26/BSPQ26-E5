@@ -1,6 +1,7 @@
 package com.justorder.backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +40,7 @@ public class CustomerController {
         return "Hello from JustOrder!";
     }
 
+
     @PostMapping("/create")
     public ResponseEntity<HttpStatus> createOrUpdateCustomer(@RequestBody CustomerDTO request) {
         try {
@@ -49,11 +51,13 @@ public class CustomerController {
         }
     }
 
+
     @PostMapping("/order")
     public ResponseEntity<HttpStatus> createOrUpdateOrder(@RequestBody OrderDTO request) {
-        // TODO: implement (CO1 — Order Creation)
+        // TODO: implement (rder Creation)
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
+
 
     @GetMapping("/{customerId}")
     public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long customerId) {
@@ -61,20 +65,23 @@ public class CustomerController {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
+
     @GetMapping("/{customerId}/orders")
     public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
-        // TODO: implement
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        if (!customerRepository.existsById(customerId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        List<OrderDTO> orders = orderRepository.findByCustomerId(customerId)
+                .stream()
+                .map(order -> order.toDTO())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(orders);
     }
 
-    /**
-     * Deletes all customers from the database.
-     *
-     * @return {@code 200 OK} after all customers and their orders are deleted.
-     */
+
     @DeleteMapping()
     public ResponseEntity<HttpStatus> deleteAllCustomers() {
-        orderRepository.deleteAll(); 
+        orderRepository.deleteAll();
         customerRepository.deleteAll();
         return ResponseEntity.ok(HttpStatus.OK);
     }
