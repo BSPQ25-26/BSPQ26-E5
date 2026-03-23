@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.justorder.backend.dto.OrderDTO;
-
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
