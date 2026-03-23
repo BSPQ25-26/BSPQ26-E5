@@ -6,7 +6,6 @@
     margin: 0 auto;
   }
   
-  /* --- Barra de Búsqueda y Filtros --- */
 .search-filter-section {
     margin-bottom: 32px;
   }
@@ -30,10 +29,9 @@
     display: flex;
     gap: 12px;
     overflow-x: auto;
-    padding-bottom: 8px; /* Para la barra de scroll en móviles */
+    padding-bottom: 8px;
 }
   
-  /* Ocultar barra de scroll para que quede más limpio */
 .category-filters::-webkit-scrollbar {
     display: none;
   }
@@ -54,16 +52,13 @@
     background: #f0f0f0;
   }
   
-  /* Usamos el verde característico de JustOrder para el chip seleccionado */
 .filter-chip.active {
     background: var(--accent-green);
     border-color: var(--accent-green);
   }
   
-  /* --- Cuadrícula de Restaurantes --- */
 .restaurant-grid {
     display: grid;
-    /* La magia del responsive: crea columnas de mínimo 300px, y si sobra espacio, añade más */
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
   }
@@ -141,7 +136,6 @@
     margin-top: 8px;
   }
   
-  /* --- Estilo para el botón de perfil circular en el Header --- */
 .profile-avatar-btn {
     width: 44px;
     height: 44px;
@@ -159,17 +153,15 @@
     object-fit: cover;
   }
 
-/* --- Contenedor Relativo para anclar el menú --- */
 .profile-menu-container {
     position: relative;
     display: inline-block;
   }
   
-  /* --- El Menú Desplegable (Dropdown) --- */
 .profile-dropdown {
     position: absolute;
-    top: 60px; /* Lo bajamos para que quede justo debajo del avatar */
-    right: 0; /* Lo alineamos a la derecha */
+    top: 60px;
+    right: 0;
     background-color: var(--panel-white);
     min-width: 200px;
     border-radius: 12px;
@@ -180,7 +172,6 @@
     overflow: hidden;
     z-index: 200;
     
-    /* Animación suave de aparición */
     opacity: 0;
     transform: translateY(-10px);
     animation: slideDown 0.2s forwards;
@@ -213,10 +204,9 @@
     background-color: #f5f5f5;
   }
   
-  /* Para diferenciar el botón de salir de los demás */
 .dropdown-item.sign-out {
     border-top: 1px solid var(--soft-border);
-    color: #dc3545; /* Rojo para denotar acción destructiva */
+    color: #dc3545;
   }
   
 .dropdown-item.sign-out:hover {

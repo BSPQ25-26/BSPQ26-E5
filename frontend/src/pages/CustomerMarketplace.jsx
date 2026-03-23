@@ -28,21 +28,19 @@ function CustomerMarketplace() {
         const uniqueCategories = [...new Set(allCategoriesFromDB)];
         setCategories(["All", ...uniqueCategories]);
       })
-      .catch(error => console.error("Error al cargar datos:", error));
+      .catch(error => console.error("Error loading:", error));
   }, []);
 
   const handleSignOut = () => {
-    alert("Cerrando sesión y destruyendo el token JWT...");
+    alert("Closing sesion y erasing el token JWT...");
     setIsProfileMenuOpen(false);
     navigate("/"); 
   };
 
   const filteredRestaurants = restaurants.filter((rest) => {
-    // Filtro por texto
     const restName = rest.name?.toLowerCase() || "";
     const matchesSearch = restName.includes(searchTerm.toLowerCase());
     
-    // Filtro por categoría: comprobamos si el array incluye la categoría activa
     const matchesCategory = activeCategory === "All" || 
       (rest.cuisineCategoryNames && rest.cuisineCategoryNames.includes(activeCategory));
     
@@ -132,7 +130,6 @@ function CustomerMarketplace() {
                       <h3 className="card-title">{restaurant.name}</h3>
                       <span className="card-rating">★ {restaurant.averageRating || "N/A"}</span>
                     </div>
-                    {/* Renderizamos las categorías unidas por coma */}
                     <p className="card-tags">
                       {(restaurant.cuisineCategoryNames && restaurant.cuisineCategoryNames.length > 0) 
                         ? restaurant.cuisineCategoryNames.join(', ') 
