@@ -8,6 +8,9 @@ import CheckoutPage from "./pages/CheckoutPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import MenuEditor from "./pages/MenuEditor";
+import RiderDashboard from "./pages/RiderDashboard";
+import CustomerMarketplace from "./pages/CustomerMarketplace";
+import RestaurantDetail from './pages/RestaurantDetail';
 import { CartProvider } from "./store/CartContext";
 import "./assets/css/Home.css";
 import "./assets/css/Register.css";
@@ -31,6 +34,11 @@ function App() {
 
           {/* Restaurant Routes */}
           <Route path="/restaurants/:restaurantId/menu-editor" element={<MenuEditor />} />
+          <Route path="/restaurants/:id" element={<RestaurantDetail />} />
+
+          {/* Rider and Customer Routes */}
+          <Route path="/rider-dashboard" element={<RiderDashboard />} />
+          <Route path="/customer-marketplace" element={<CustomerMarketplace />} />
 
           {/* Fallback: Redirect to home if the URL does not exist */}
           <Route path="*" element={<Navigate to="/" replace />} />

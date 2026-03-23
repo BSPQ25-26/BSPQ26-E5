@@ -1,0 +1,214 @@
+/* src/assets/css/CustomerMarketplace.css */
+
+.marketplace-content {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+.search-filter-section {
+    margin-bottom: 32px;
+  }
+.search-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid var(--soft-border);
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 16px;
+}
+  
+.search-input:focus {
+    border-color: var(--text-black);
+}
+  
+.category-filters {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+  
+.category-filters::-webkit-scrollbar {
+    display: none;
+  }
+  
+.filter-chip {
+    padding: 10px 20px;
+    border: 1px solid var(--text-black);
+    border-radius: 999px;
+    background: var(--panel-white);
+    color: var(--text-black);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  
+.filter-chip:hover {
+    background: #f0f0f0;
+  }
+  
+.filter-chip.active {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+  }
+  
+.restaurant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  
+.restaurant-card {
+    border: 1px solid var(--soft-border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--panel-white);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  
+.restaurant-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+  }
+  
+.card-image-wrapper {
+    height: 180px;
+    width: 100%;
+    background: #eee;
+    overflow: hidden;
+  }
+  
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+.card-info {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+.card-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  
+.card-rating {
+    background: var(--page-bg);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 1px solid var(--soft-border);
+  }
+  
+.card-tags {
+    color: #666;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+  
+.card-delivery {
+    display: flex;
+    gap: 16px;
+    font-size: 0.9rem;
+    color: var(--text-black);
+    font-weight: 600;
+    margin-top: 8px;
+  }
+  
+.profile-avatar-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--text-black);
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--accent-green);
+  }
+  
+.profile-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+.profile-menu-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+.profile-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: var(--panel-white);
+    min-width: 200px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    border: 1px solid var(--soft-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 200;
+    
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: slideDown 0.2s forwards;
+  }
+  
+  @keyframes slideDown {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+.dropdown-item {
+    padding: 14px 20px;
+    text-decoration: none;
+    color: var(--text-black);
+    font-weight: 600;
+    font-size: 1rem;
+    background: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+.dropdown-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+.dropdown-item.sign-out {
+    border-top: 1px solid var(--soft-border);
+    color: #dc3545;
+  }
+  
+.dropdown-item.sign-out:hover {
+    background-color: #fff0f1;
+  }

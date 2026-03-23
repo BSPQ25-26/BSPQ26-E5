@@ -243,13 +243,14 @@ public class DataInitializer implements CommandLineRunner {
             Rider rider1        = riderRepository.findAll().get(0);
             Customer customer1  = customerRepository.findAll().get(0);
             OrderStatus pending = orderStatusRepository.findByStatus("Pending").orElseThrow();
+            Dish dish1 = dishRepository.findAll().get(0);
 
             // Order 1 — for testing rejection + reassignment to Rider 2
-            Order order1 = new Order(customer1, List.of(), pending, rider1, 23.0, "1234");
+            Order order1 = new Order(customer1, List.of(dish1), pending, rider1, 23.0, "1234");
             orderRepository.save(order1);
 
             // Order 2 — for testing rejection + cancellation
-            Order order2 = new Order(customer1, List.of(), pending, rider1, 14.0, "5678");
+            Order order2 = new Order(customer1, List.of(dish1), pending, rider1, 14.0, "5678");
             orderRepository.save(order2);
         }
     }
