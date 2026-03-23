@@ -13,7 +13,7 @@ function RestaurantDetail() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // 1. Fetch restaurant details (using search as a workaround for NOT_IMPLEMENTED)
+   
     fetch('http://localhost:8080/api/restaurants/search')
       .then(res => res.json())
       .then(data => {
@@ -22,7 +22,6 @@ function RestaurantDetail() {
       })
       .catch(err => console.error("Error fetching restaurant details:", err));
 
-    // 2. Fetch the specific menu for this restaurant
     fetch(`http://localhost:8080/api/restaurants/${id}/menu`)
       .then(res => res.json())
       .then(data => {
@@ -38,7 +37,7 @@ function RestaurantDetail() {
     navigate("/"); 
   };
 
-  // Loading state UI
+
   if (!restaurant) {
     return (
       <div style={{ padding: '100px', textAlign: 'center' }}>
@@ -84,10 +83,10 @@ function RestaurantDetail() {
           </div>
         </header>
 
-        {/* --- RESTAURANT SPECIFIC CONTENT --- */}
+
         <div className="marketplace-content" style={{ padding: '0 20px' }}>
           
-          {/* Restaurant Info Banner */}
+
           <div style={{ padding: '30px 0', borderBottom: '1px solid #eaeaea', marginBottom: '30px' }}>
             <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{restaurant.name}</h1>
             <p style={{ fontSize: '1.1rem', color: '#666', marginBottom: '15px' }}>{restaurant.description}</p>
@@ -99,7 +98,7 @@ function RestaurantDetail() {
 
           <h2 style={{ marginBottom: '20px' }}>Menu</h2>
           
-          {/* Dishes Grid */}
+
           <section className="restaurant-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
             {menu.length > 0 ? (
               menu.map(dish => (
