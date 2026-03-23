@@ -46,7 +46,7 @@ const RegisterCustomer = () => {
                 },
             ],
             preferenceNames: [],
-            alergenNames: [],
+            allergenNames: [],
         };
 
         try {

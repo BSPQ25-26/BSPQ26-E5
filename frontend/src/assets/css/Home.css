@@ -1,0 +1,268 @@
+:root {
+  --accent-green: #8bed8f;
+  --page-bg: #ffffff;
+  --panel-white: #ffffff;
+  --text-black: #111111;
+  --soft-border: #d9d9d9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text-black);
+  font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+}
+
+.home-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0;
+}
+
+.home-shell {
+  width: 100%;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--panel-white);
+}
+
+.home-navbar {
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--soft-border);
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.menu-button {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.menu-button span {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background: #101010;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: clamp(24px, 2.8vw, 41px);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  font-weight: 700;
+}
+
+.home-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.home-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-black);
+  font-weight: 600;
+  font-size: clamp(14px, 1.5vw, 28px);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 12px 18px;
+}
+
+.nav-link-button {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.home-nav-links .nav-link:first-child,
+.home-nav-links .nav-link:nth-child(2) {
+  border-right: 1px solid #202020;
+}
+
+.signup-button {
+  margin-left: 12px;
+  min-width: 132px;
+  border-radius: 999px;
+  background: var(--accent-green);
+  font-weight: 700;
+}
+
+.menu-editor-button {
+  margin-left: 12px;
+  border-radius: 999px;
+  border: 1px solid #202020;
+  font-weight: 700;
+}
+
+.cart-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  text-decoration: none;
+}
+
+.cart-icon {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
+.hero-panel {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: stretch;
+  min-height: 332px;
+  border-bottom: 1px solid var(--soft-border);
+}
+
+.hero-image-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.hero-image {
+  width: 100%;
+  max-width: 560px;
+  object-fit: contain;
+}
+
+.hero-copy {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.hero-copy h2 {
+  margin: 0;
+  text-align: center;
+  font-weight: 900;
+  font-size: clamp(36px, 4.2vw, 76px);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+}
+
+.hero-copy h2 span,
+.hero-copy h2 strong {
+  display: block;
+}
+
+.hero-copy h2 span {
+  font-weight: 400;
+}
+
+.hero-copy h2 strong {
+  font-weight: 400;
+}
+
+.featured-section {
+  background: var(--accent-green);
+  min-height: 420px;
+  padding: 22px;
+}
+
+.featured-section h3 {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(24px, 2.6vw, 52px);
+  line-height: 1;
+  font-weight: 700;
+}
+
+.featured-content {
+  min-height: 300px;
+}
+
+@media (max-width: 900px) {
+  .home-navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .home-nav-links {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .home-header-right {
+    width: 100%;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .home-nav-links .nav-link:first-child,
+  .home-nav-links .nav-link:nth-child(2) {
+    border-right: 0;
+  }
+
+  .nav-link {
+    padding: 10px 0;
+  }
+
+  .signup-button {
+    margin-left: 0;
+    padding: 10px 18px;
+  }
+
+  .menu-editor-button {
+    margin-left: 0;
+  }
+
+  .cart-link {
+    width: 42px;
+    height: 42px;
+  }
+
+  .cart-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .hero-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy {
+    padding: 10px 20px 30px;
+  }
+}
