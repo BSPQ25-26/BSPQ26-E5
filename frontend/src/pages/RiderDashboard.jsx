@@ -14,8 +14,6 @@ function RiderDashboard() {
 
   const [newOrders, setNewOrders] = useState([]);
   const [assignedOrders, setAssignedOrders] = useState([]);
-
-  // TEMPORARY BYPASS: Hardcoding Rider ID
   const RIDER_ID = 1;
 
   useEffect(() => {
@@ -76,7 +74,6 @@ function RiderDashboard() {
     }
   };
 
-  // --- DEFINIMOS ESTILOS COMUNES PARA EL DROPDOWN PARA EVITAR REPETICIÓN ---
   const dropdownItemStyle = {
     display: 'block',
     width: '100%',
@@ -88,7 +85,7 @@ function RiderDashboard() {
     whiteSpace: 'nowrap',
     backgroundColor: 'transparent',
     border: '0',
-    textDecoration: 'none', // Quita el subrayado feo
+    textDecoration: 'none',
     fontSize: '0.95rem',
     cursor: 'pointer',
     boxSizing: 'border-box'
@@ -97,17 +94,14 @@ function RiderDashboard() {
   return (
     <main className="home-page">
       <section className="home-shell">
-        
-        {/* --- HEADER RESTAURADO Y PULIDO (Copid from correct Home.jsx structure) --- */}
         <header className="home-navbar">
           <div className="brand-group" aria-label="JustOrder home">
             <h1 className="brand-title">JustOrder</h1>
           </div>
 
-          <div className="home-header-right" style={{ position: 'relative' }}> {/* Importante: relative para el posicionamiento absoluto del menú */}
+          <div className="home-header-right" style={{ position: 'relative' }}> 
             <nav className="home-nav-links" aria-label="Main navigation">
               <div className="profile-menu-container">
-                {/* Botón de Avatar Pulido (Circle with Border) */}
                 <button 
                   className="profile-avatar-btn" 
                   aria-label="User profile"
@@ -120,7 +114,7 @@ function RiderDashboard() {
                     display: 'flex', 
                     justifyContent: 'center', 
                     alignItems: 'center',
-                    border: '2px solid #eaeaea', // Borde fino como en la segunda foto
+                    border: '2px solid #eaeaea', 
                     padding: '0',
                     background: 'none',
                     cursor: 'pointer',
@@ -134,25 +128,22 @@ function RiderDashboard() {
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </button>
-
-                {/* --- MENÚ DESPLEGABLE RE-ESTILIZADO (Estilo Premium) --- */}
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown" style={{
                     position: 'absolute',
-                    top: '55px', // Justo debajo del botón
+                    top: '55px', 
                     right: '0',
                     width: '180px',
                     backgroundColor: '#ffffff',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)', // Sombra suave como en la foto
-                    borderRadius: '12px', // Bordes redondeados
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    borderRadius: '12px',
                     padding: '8px 0',
                     zIndex: 1000,
                     border: '1px solid #eaeaea',
                     display: 'flex',
                     flexDirection: 'column',
-                    animation: 'dropdownFadeIn 0.2s ease-out' // Pequeña animación estética
+                    animation: 'dropdownFadeIn 0.2s ease-out' 
                   }}>
-                    {/* Estilo para la animación */}
                     <style>{`
                       @keyframes dropdownFadeIn {
                         from { opacity: 0; transform: translateY(-10px); }
@@ -160,30 +151,29 @@ function RiderDashboard() {
                       }
                     `}</style>
 
-                    {/* Elemento 1: Information (No My Orders) */}
                     <Link 
                       to="/rider/profile" 
                       className="dropdown-item" 
                       onClick={() => setIsProfileMenuOpen(false)}
                       style={dropdownItemStyle}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'} // Efecto hover nativo
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'} 
                       onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                     >
                       Information
                     </Link>
                     
-                    {/* Elemento 2: Sign out (ROJO) */}
+
                     <button 
                       className="dropdown-item sign-out" 
                       onClick={handleSignOut}
                       style={{ 
-                        ...dropdownItemStyle, // Copiamos el estilo base
-                        color: '#ff4d4d', // Color rojo brillante como en la segunda foto
-                        borderTop: '1px solid #eaeaea', // Línea separadora
+                        ...dropdownItemStyle, 
+                        color: '#ff4d4d', 
+                        borderTop: '1px solid #eaeaea',
                         marginTop: '5px',
                         paddingTop: '15px'
                       }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#fff5f5'} // Hover rojo suave
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#fff5f5'} 
                       onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                     >
                       Sign out
@@ -192,17 +182,12 @@ function RiderDashboard() {
                 )}
               </div>
             </nav>
-            {/* Div fantasma para mantener el Flexbox si no hay carrito */}
             <div style={{ width: '10px', marginLeft: '10px' }}></div>
           </div>
         </header>
-
-        {/* --- CONTENIDO PRINCIPAL CENTRADO Y ALINEADO --- */}
         <div className="marketplace-content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-            
-            {/* COLUMNA IZQUIERDA: NEW ORDERS */}
             <div>
               <h2 style={{ borderBottom: '2px solid #eaeaea', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.5rem' }}>New Order Requests</h2>
               
@@ -231,8 +216,6 @@ function RiderDashboard() {
                 <p style={{ color: '#666' }}>No new requests at the moment.</p>
               )}
             </div>
-
-            {/* COLUMNA DERECHA: ASSIGNED ORDERS */}
             <div>
               <h2 style={{ borderBottom: '2px solid #eaeaea', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.5rem' }}>My Assigned Orders</h2>
               
@@ -260,8 +243,6 @@ function RiderDashboard() {
 
           </div>
         </div>
-
-        {/* REJECTION MODAL */}
         {showRejectionModal && orderToReject && (
           <RiderRejectionModal 
             orderId={orderToReject} 
