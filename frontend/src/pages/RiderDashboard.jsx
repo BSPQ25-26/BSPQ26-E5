@@ -1,97 +1,267 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import RiderRejectionModal from '../components/RiderRejectionModal';
+import '../assets/css/Home.css'; 
+// import '../assets/css/CustomerMarketplace.css'; // Mantenemos esto borrado
 import '../assets/css/RiderDashboard.css';
 
 function RiderDashboard() {
+  const navigate = useNavigate();
+  
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [orderToReject, setOrderToReject] = useState(null);
 
-  const [activeOrders, setActiveOrders] = useState([
-    {
-      id: "9092",
-      restaurant: "McDonald's",
-      address: "Calle Falsa 123",
-    },
-    {
-      id: "9093",
-      restaurant: "McDonald's",
-      address: "Avenida Siempreviva 742",
-    }
-  ]);
+  const [newOrders, setNewOrders] = useState([]);
+  const [assignedOrders, setAssignedOrders] = useState([]);
+
+  // TEMPORARY BYPASS: Hardcoding Rider ID
+  const RIDER_ID = 1;
+
+  useEffect(() => {
+    fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders`)
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        console.log("🚀 Raw data from DB:", data);
+        
+        const formattedOrders = data.map((order, index) => ({
+          ...order,
+          id: order.id || index + 100, 
+          restaurantName: order.restaurantName || `Restaurant ID: ${order.customerId || 'N/A'}`,
+          deliveryAddress: order.deliveryAddress || "Pending delivery address..."
+        }));
+        
+        const pending = formattedOrders.filter(o => o.status === "Pending" || !o.status);
+        const accepted = formattedOrders.filter(o => o.status === "Accepted" || o.status === "In Progress");
+        
+        setNewOrders(pending); 
+        setAssignedOrders(accepted); 
+      })
+      .catch(error => {
+        console.error("Error loading orders:", error);
+      });
+  }, []);
+
+  const handleSignOut = () => {
+    setIsProfileMenuOpen(false);
+    navigate("/"); 
+  };
 
   const triggerRejection = (orderId) => {
     setOrderToReject(orderId);
     setShowRejectionModal(true);
   };
 
-  const handleRejectionSubmit = (orderId, reason) => {
-    alert(`[Simulated Backend Call]\nRejecting Order: ${orderId}\nReason: ${reason}`);
-    
-    setShowRejectionModal(false);
-    setOrderToReject(null);
+  const handleRejectionSubmit = async (orderId, reason) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders/${orderId}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason })
+      });
 
-    setActiveOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+      if (response.ok) {
+        setNewOrders(prev => prev.filter(o => o.id !== orderId));
+        setAssignedOrders(prev => prev.filter(o => o.id !== orderId));
+        setShowRejectionModal(false);
+        setOrderToReject(null);
+      } else {
+        alert("Failed to reject order on the server.");
+      }
+    } catch (error) {
+      console.error("Connection error:", error);
+    }
+  };
+
+  // --- DEFINIMOS ESTILOS COMUNES PARA EL DROPDOWN PARA EVITAR REPETICIÓN ---
+  const dropdownItemStyle = {
+    display: 'block',
+    width: '100%',
+    padding: '12px 20px',
+    clear: 'both',
+    fontWeight: '500',
+    color: '#333',
+    textAlign: 'inherit',
+    whiteSpace: 'nowrap',
+    backgroundColor: 'transparent',
+    border: '0',
+    textDecoration: 'none', // Quita el subrayado feo
+    fontSize: '0.95rem',
+    cursor: 'pointer',
+    boxSizing: 'border-box'
   };
 
   return (
-    // Usamos React.Fragment (<>) para devolver dos elementos raíz (header y main)
-    <>
-      {/* --- NUEVO: Estructura del Header alineada con Home.jsx --- */}
-      <header className="rider-header">
-        <h1 className="header-brand">JustOrder</h1>
+    <main className="home-page">
+      <section className="home-shell">
         
-        {/* Botón de Perfil circular */}
-        <button className="profile-button">
-          {/* Imagen del avatar (el muñeco). He usado un placeholder estándar de internet */}
-          <img 
-            src="https://www.w3schools.com/howto/img_avatar.png" 
-            alt="User Profile" 
-            className="profile-icon" 
-          />
-        </button>
-      </header>
+        {/* --- HEADER RESTAURADO Y PULIDO (Copid from correct Home.jsx structure) --- */}
+        <header className="home-navbar">
+          <div className="brand-group" aria-label="JustOrder home">
+            <h1 className="brand-title">JustOrder</h1>
+          </div>
 
-      {/* Contenedor principal (con la clase antigua ajustada en CSS) */}
-      <main className="dashboard-container">
-        {/* Borramos el <h2>Dashboard</h2> antiguo, ya tenemos el header */}
-        
-        {activeOrders.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', alignItems: 'center' }}>
-            
-            {activeOrders.map(order => (
-              <div key={order.id} className="order-card">
-                <h3>Active Order: #{order.id}</h3>
-                
-                <div className="order-details">
-                  <p><strong>Restaurant:</strong> {order.restaurant}</p>
-                  <p><strong>Delivery Address:</strong> {order.address}</p>
-                </div>
-                
-                <div className="dashboard-actions">
-                  <button className="btn-accept">
-                    Accept & Start
-                  </button>
-                  
-                  <button 
-                    className="btn-reject-trigger"
-                    onClick={() => triggerRejection(order.id)}
-                  >
-                    Reject Order
-                  </button>
-                </div>
+          <div className="home-header-right" style={{ position: 'relative' }}> {/* Importante: relative para el posicionamiento absoluto del menú */}
+            <nav className="home-nav-links" aria-label="Main navigation">
+              <div className="profile-menu-container">
+                {/* Botón de Avatar Pulido (Circle with Border) */}
+                <button 
+                  className="profile-avatar-btn" 
+                  aria-label="User profile"
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  style={{ 
+                    width: '42px', 
+                    height: '42px', 
+                    borderRadius: '50%', 
+                    overflow: 'hidden', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    border: '2px solid #eaeaea', // Borde fino como en la segunda foto
+                    padding: '0',
+                    background: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <img 
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
+                    alt="Profile Avatar" 
+                    className="profile-avatar-img"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </button>
+
+                {/* --- MENÚ DESPLEGABLE RE-ESTILIZADO (Estilo Premium) --- */}
+                {isProfileMenuOpen && (
+                  <div className="profile-dropdown" style={{
+                    position: 'absolute',
+                    top: '55px', // Justo debajo del botón
+                    right: '0',
+                    width: '180px',
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)', // Sombra suave como en la foto
+                    borderRadius: '12px', // Bordes redondeados
+                    padding: '8px 0',
+                    zIndex: 1000,
+                    border: '1px solid #eaeaea',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    animation: 'dropdownFadeIn 0.2s ease-out' // Pequeña animación estética
+                  }}>
+                    {/* Estilo para la animación */}
+                    <style>{`
+                      @keyframes dropdownFadeIn {
+                        from { opacity: 0; transform: translateY(-10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                      }
+                    `}</style>
+
+                    {/* Elemento 1: Information (No My Orders) */}
+                    <Link 
+                      to="/rider/profile" 
+                      className="dropdown-item" 
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      style={dropdownItemStyle}
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'} // Efecto hover nativo
+                      onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      Information
+                    </Link>
+                    
+                    {/* Elemento 2: Sign out (ROJO) */}
+                    <button 
+                      className="dropdown-item sign-out" 
+                      onClick={handleSignOut}
+                      style={{ 
+                        ...dropdownItemStyle, // Copiamos el estilo base
+                        color: '#ff4d4d', // Color rojo brillante como en la segunda foto
+                        borderTop: '1px solid #eaeaea', // Línea separadora
+                        marginTop: '5px',
+                        paddingTop: '15px'
+                      }}
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#fff5f5'} // Hover rojo suave
+                      onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
               </div>
-            ))}
+            </nav>
+            {/* Div fantasma para mantener el Flexbox si no hay carrito */}
+            <div style={{ width: '10px', marginLeft: '10px' }}></div>
+          </div>
+        </header>
+
+        {/* --- CONTENIDO PRINCIPAL CENTRADO Y ALINEADO --- */}
+        <div className="marketplace-content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+            
+            {/* COLUMNA IZQUIERDA: NEW ORDERS */}
+            <div>
+              <h2 style={{ borderBottom: '2px solid #eaeaea', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.5rem' }}>New Order Requests</h2>
+              
+              {newOrders.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {newOrders.map(order => (
+                    <div key={order.id} className="order-card" style={{ border: '1px solid #00cc66', borderLeft: '5px solid #00cc66', padding: '15px', borderRadius: '8px', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                      <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Order #{order.id}</h3>
+                      <div className="order-details" style={{ fontSize: '0.95rem', color: '#666' }}>
+                        <p style={{ margin: '5px 0' }}><strong>Restaurant:</strong> {order.restaurantName}</p>
+                        <p style={{ margin: '5px 0' }}><strong>Address:</strong> {order.deliveryAddress}</p>
+                        <p style={{ margin: '5px 0', color: '#333' }}><strong>Payout:</strong> €{order.totalPrice}</p>
+                      </div>
+                      <div className="dashboard-actions" style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+                        <button className="btn-accept" style={{ backgroundColor: '#00cc66', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                          Accept Order
+                        </button>
+                        <button className="btn-reject-trigger" onClick={() => triggerRejection(order.id)} style={{ backgroundColor: '#ff4d4d', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: '#666' }}>No new requests at the moment.</p>
+              )}
+            </div>
+
+            {/* COLUMNA DERECHA: ASSIGNED ORDERS */}
+            <div>
+              <h2 style={{ borderBottom: '2px solid #eaeaea', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.5rem' }}>My Assigned Orders</h2>
+              
+              {assignedOrders.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {assignedOrders.map(order => (
+                    <div key={order.id} className="order-card" style={{ border: '1px solid #ccc', borderLeft: '5px solid #333', padding: '15px', borderRadius: '8px', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                      <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Order #{order.id}</h3>
+                      <div className="order-details" style={{ fontSize: '0.95rem', color: '#666' }}>
+                        <p style={{ margin: '5px 0' }}><strong>Restaurant:</strong> {order.restaurantName}</p>
+                        <p style={{ margin: '5px 0' }}><strong>Address:</strong> {order.deliveryAddress}</p>
+                      </div>
+                      <div className="dashboard-actions" style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button className="btn-reject-trigger" onClick={() => triggerRejection(order.id)} style={{ backgroundColor: '#ff4d4d', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
+                          Emergency Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: '#666' }}>You have no assigned orders.</p>
+              )}
+            </div>
 
           </div>
-        ) : (
-          <div className="order-card" style={{ textAlign: 'center', borderTopColor: '#aaa' }}>
-            <h3 style={{ borderBottom: 'none' }}>No active orders</h3>
-            <p>Waiting for new assignments...</p>
-            <div style={{ marginTop: '20px', width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #4CAF50', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
+        </div>
 
+        {/* REJECTION MODAL */}
         {showRejectionModal && orderToReject && (
           <RiderRejectionModal 
             orderId={orderToReject} 
@@ -102,8 +272,8 @@ function RiderDashboard() {
             onSubmit={handleRejectionSubmit} 
           />
         )}
-      </main>
-    </>
+      </section>
+    </main>
   );
 }
 
