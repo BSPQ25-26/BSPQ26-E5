@@ -34,15 +34,15 @@ function RiderDashboard() {
   };
 
   return (
-    // Usamos React.Fragment (<>) para devolver dos elementos raíz (header y main)
+
     <>
-      {/* --- NUEVO: Estructura del Header alineada con Home.jsx --- */}
+      
       <header className="rider-header">
         <h1 className="header-brand">JustOrder</h1>
         
-        {/* Botón de Perfil circular */}
+      
         <button className="profile-button">
-          {/* Imagen del avatar (el muñeco). He usado un placeholder estándar de internet */}
+         
           <img 
             src="https://www.w3schools.com/howto/img_avatar.png" 
             alt="User Profile" 
@@ -51,9 +51,9 @@ function RiderDashboard() {
         </button>
       </header>
 
-      {/* Contenedor principal (con la clase antigua ajustada en CSS) */}
+     
       <main className="dashboard-container">
-        {/* Borramos el <h2>Dashboard</h2> antiguo, ya tenemos el header */}
+      
         
         {activeOrders.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', alignItems: 'center' }}>

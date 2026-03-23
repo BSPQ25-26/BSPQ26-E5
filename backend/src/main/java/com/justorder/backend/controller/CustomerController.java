@@ -53,15 +53,13 @@ public class CustomerController {
 
 
     @PostMapping("/order")
-    public ResponseEntity<HttpStatus> createOrUpdateOrder(@RequestBody OrderDTO request) {
-        // TODO: implement (rder Creation)
+    public ResponseEntity<HttpStatus> createOrUpdateOrder(@RequestBody OrderDTO request) { 
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
 
     @GetMapping("/{customerId}")
     public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long customerId) {
-        // TODO: implement
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
@@ -76,6 +74,7 @@ public class CustomerController {
                 .map(order -> order.toDTO())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(orders);
+
     }
 
 

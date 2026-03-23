@@ -78,13 +78,11 @@ public class RestaurantController {
 
     @PostMapping("/menu")
     public ResponseEntity<HttpStatus> createOrUpdateMenu(@RequestBody List<DishDTO> request) {
-        // TODO: implement (CA1 — Restaurant Menu Management)
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     @GetMapping("/{restaurantId}")
     public ResponseEntity<RestaurantDTO> getRestaurant(@PathVariable String restaurantId) {
-        // TODO: implement
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
