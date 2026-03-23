@@ -1,0 +1,249 @@
+/* src/assets/css/OrderStatusPage.css */
+
+.orders-content {
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.orders-header {
+    margin-bottom: 28px;
+}
+
+.orders-header h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--text-black);
+}
+
+.orders-header p {
+    color: #666;
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* ID input section */
+.orders-id-section {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.orders-id-section input {
+    flex: 1;
+    padding: 14px 18px;
+    border: 2px solid var(--soft-border);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 160px;
+}
+
+.orders-id-section input:focus {
+    border-color: var(--text-black);
+}
+
+.orders-load-btn {
+    padding: 14px 24px;
+    background: var(--text-black);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+    font-family: inherit;
+}
+
+.orders-load-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.orders-load-btn:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+/* Error message */
+.orders-error {
+    color: #b42318;
+    font-weight: 700;
+    margin: 0 0 20px;
+    padding: 12px 16px;
+    background: #fff0f0;
+    border: 1px solid #ef9a9a;
+    border-radius: 10px;
+}
+
+/* Summary bar */
+.orders-summary {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.summary-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.summary-stat span:first-child {
+    font-size: 0.82rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.summary-stat span:last-child {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-black);
+}
+
+.summary-stat.refunded span:last-child {
+    color: #b71c1c;
+}
+
+/* Order card */
+.order-card {
+    border: 1px solid var(--soft-border);
+    border-radius: 16px;
+    background: var(--panel-white);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+}
+
+.order-card.cancelled {
+    border-color: #ef9a9a;
+    background: #fff8f8;
+}
+
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.order-id {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-black);
+}
+
+.order-date {
+    font-size: 0.85rem;
+    color: #888;
+    margin-left: 8px;
+}
+
+/* Status badge */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid;
+}
+
+.status-Pending         { background: #fff8e1; color: #92680a; border-color: #f5c842; }
+.status-Confirmed       { background: #e8f5e9; color: #2e7d32; border-color: #66bb6a; }
+.status-Preparing       { background: #e3f2fd; color: #1565c0; border-color: #42a5f5; }
+.status-OutForDelivery  { background: #ede7f6; color: #4527a0; border-color: #ab47bc; }
+.status-Delivered       { background: #e8f5e9; color: #1b5e20; border-color: #43a047; }
+.status-Cancelled       { background: #fce4ec; color: #b71c1c; border-color: #ef9a9a; }
+
+.order-card-body {
+    padding: 0 20px 18px;
+}
+
+.order-price {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-black);
+    margin: 0 0 10px;
+}
+
+.order-dishes {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.order-dish-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #555;
+    padding: 6px 10px;
+    background: var(--page-bg);
+    border-radius: 8px;
+}
+
+/* Refund notice */
+.refund-notice {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: #fce4ec;
+    border: 1px solid #ef9a9a;
+    border-radius: 12px;
+}
+
+.refund-notice-title {
+    margin: 0 0 6px;
+    font-weight: 700;
+    color: #b71c1c;
+    font-size: 0.95rem;
+}
+
+.refund-notice-body {
+    margin: 0;
+    color: #b71c1c;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.refund-notice-reason {
+    margin: 8px 0 0;
+    color: #7f1d1d;
+    font-size: 0.84rem;
+    font-style: italic;
+}
+
+/* Empty state */
+.orders-empty {
+    text-align: center;
+    padding: 48px 24px;
+    color: #888;
+}
+
+.orders-empty h3 {
+    font-size: 1.2rem;
+    margin: 0 0 8px;
+    color: var(--text-black);
+}
+
+.orders-empty a {
+    color: var(--text-black);
+    font-weight: 700;
+    text-decoration: underline;
+}

@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import cartImage from "../assets/images/Shopping cart.png";
 import { getCustomerOrders } from "../api/authApi";
+import "../assets/css/Home.css";
+import "../assets/css/CustomerMarketplace.css";
+import "../assets/css/OrderStatusPage.css";
 
-const STATUS_COLOURS = {
-    Pending:           { background: "#fff8e1", color: "#92680a", border: "#f5c842" },
-    Confirmed:         { background: "#e8f5e9", color: "#2e7d32", border: "#66bb6a" },
-    Preparing:         { background: "#e3f2fd", color: "#1565c0", border: "#42a5f5" },
-    "Out for Delivery":{ background: "#ede7f6", color: "#4527a0", border: "#ab47bc" },
-    Delivered:         { background: "#e8f5e9", color: "#1b5e20", border: "#43a047" },
-    Cancelled:         { background: "#fce4ec", color: "#b71c1c", border: "#ef9a9a" },
+
+const CUSTOMER_ID = 1;
+
+const STATUS_CLASS = {
+    "Pending":          "status-Pending",
+    "Confirmed":        "status-Confirmed",
+    "Preparing":        "status-Preparing",
+    "Out for Delivery": "status-OutForDelivery",
+    "Delivered":        "status-Delivered",
+    "Cancelled":        "status-Cancelled",
 };
 
-const formatPrice = (value) => `${Number(value).toFixed(2)} EUR`;
+const formatPrice = (value) => `${Number(value).toFixed(2)} €`;
 
 const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -23,177 +31,195 @@ const formatDate = (dateString) => {
     });
 };
 
-const StatusBadge = ({ status }) => {
-    const style = STATUS_COLOURS[status] || { background: "#f5f5f5", color: "#555", border: "#ccc" };
-    return (
-        <span
-            style={{
-                display: "inline-block",
-                padding: "3px 10px",
-                borderRadius: "20px",
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                background: style.background,
-                color: style.color,
-                border: `1px solid ${style.border}`,
-            }}
-        >
-            {status}
-        </span>
-    );
-};
-
 const OrderCard = ({ order }) => {
     const isCancelled = order.status === "Cancelled";
+    const statusClass = STATUS_CLASS[order.status] || "";
 
     return (
-        <article
-            style={{
-                border: isCancelled ? "1px solid #ef9a9a" : "1px solid #dbe7f5",
-                borderRadius: "14px",
-                padding: "18px 20px",
-                background: isCancelled ? "#fff8f8" : "#fff",
-                marginBottom: "14px",
-            }}
-        >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+        <article className={`order-card ${isCancelled ? "cancelled" : ""}`}>
+            <div className="order-card-header">
                 <div>
-                    <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1a2740" }}>
-                        Order #{order.id}
-                    </span>
-                    <span style={{ marginLeft: "10px", color: "#5d6b87", fontSize: "0.85rem" }}>
-                        {formatDate(order.createdAt)}
-                    </span>
+                    <span className="order-id">Order #{order.id}</span>
+                    <span className="order-date">{formatDate(order.createdAt)}</span>
                 </div>
-                <StatusBadge status={order.status} />
+                <span className={`status-badge ${statusClass}`}>{order.status}</span>
             </div>
 
-            <p style={{ margin: "10px 0 0", color: "#1a2740", fontWeight: 600 }}>
-                Total: {formatPrice(order.totalPrice)}
-            </p>
+            <div className="order-card-body">
+                <p className="order-price">{formatPrice(order.totalPrice)}</p>
 
-            {order.dishes && order.dishes.length > 0 && (
-                <ul style={{ margin: "8px 0 0", paddingLeft: "18px", color: "#5d6b87", fontSize: "0.9rem" }}>
-                    {order.dishes.map((dish) => (
-                        <li key={dish.id}>
-                            {dish.name} — {formatPrice(dish.price)}
-                        </li>
-                    ))}
-                </ul>
-            )}
+                {order.dishes && order.dishes.length > 0 && (
+                    <ul className="order-dishes">
+                        {order.dishes.map((dish) => (
+                            <li key={dish.id} className="order-dish-item">
+                                <span>{dish.name}</span>
+                                <span>{formatPrice(dish.price)}</span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
-            {isCancelled && (
-                <div
-                    role="alert"
-                    style={{
-                        marginTop: "14px",
-                        padding: "12px 16px",
-                        background: "#fce4ec",
-                        border: "1px solid #ef9a9a",
-                        borderRadius: "10px",
-                    }}
-                >
-                    <p style={{ margin: 0, fontWeight: 700, color: "#b71c1c", fontSize: "0.95rem" }}>
-                        ⚠️ Order cancelled — refund issued
-                    </p>
-                    <p style={{ margin: "4px 0 0", color: "#b71c1c", fontSize: "0.88rem" }}>
-                        No available rider could complete this delivery. A full refund of{" "}
-                        <strong>{formatPrice(order.totalPrice)}</strong> has been issued.
-                    </p>
-                    {order.rejectionReason && (
-                        <p style={{ margin: "6px 0 0", color: "#7f1d1d", fontSize: "0.85rem", fontStyle: "italic" }}>
-                            Reason: "{order.rejectionReason}"
+                {isCancelled && (
+                    <div className="refund-notice">
+                        <p className="refund-notice-title">⚠️ Order cancelled — refund issued</p>
+                        <p className="refund-notice-body">
+                            No rider was available to complete your delivery.
+                            A full refund of <strong>{formatPrice(order.totalPrice)}</strong> has
+                            been issued to your original payment method.
                         </p>
-                    )}
-                </div>
-            )}
+                        {order.rejectionReason && (
+                            <p className="refund-notice-reason">
+                                Rider note: "{order.rejectionReason}"
+                            </p>
+                        )}
+                    </div>
+                )}
+            </div>
         </article>
     );
 };
 
-const OrderStatusPage = () => {
+function OrderStatusPage() {
     const [orders, setOrders] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
+    const navigate = useNavigate();
+
+    // Auto-load orders on mount, no user input needed
     useEffect(() => {
-        const fetchOrders = async () => {
-            setIsLoading(true);
-            setErrorMessage("");
-
-            try {
-                const CUSTOMER_ID = 1; // 👈 hardcode
-
-                const data = await getCustomerOrders(CUSTOMER_ID);
-                setOrders(data);
-            } catch (err) {
-                setErrorMessage(err.message || "Could not fetch orders.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchOrders();
+        getCustomerOrders(CUSTOMER_ID)
+            .then((data) => setOrders(data))
+            .catch(() => setErrorMessage("Could not load your orders. Please try again later."))
+            .finally(() => setIsLoading(false));
     }, []);
 
+    const handleSignOut = () => {
+        setIsProfileMenuOpen(false);
+        navigate("/");
+    };
+
     const cancelledCount = orders.filter((o) => o.status === "Cancelled").length;
-    const activeCount = orders.length - cancelledCount;
 
     return (
-        <main className="home" style={{ maxWidth: "720px" }}>
-            <section className="home-hero">
-                <p className="home-kicker">My Orders</p>
-                <h1>Order Status</h1>
-                <p>Here are your recent orders and their current status.</p>
-            </section>
+        <main className="home-page">
+            <section className="home-shell">
 
-            <section style={{ marginTop: "18px" }}>
-                {isLoading ? (
-                    <p>Loading orders...</p>
-                ) : errorMessage ? (
-                    <p style={{ color: "#b42318", fontWeight: 700 }}>{errorMessage}</p>
-                ) : orders.length === 0 ? (
-                    <div className="card">
-                        <p style={{ color: "#5d6b87", margin: 0 }}>
-                            No orders found.
-                        </p>
+                {/* Navbar, same as CustomerMarketplace */}
+                <header className="home-navbar">
+                    <div className="brand-group" aria-label="JustOrder home">
+                        <button className="menu-button" type="button" aria-label="Open navigation menu">
+                            <span /><span /><span />
+                        </button>
+                        <h1 className="brand-title">JustOrder</h1>
                     </div>
-                ) : (
-                    <>
-                        <div
-                            className="card"
-                            style={{ marginBottom: "14px", display: "flex", gap: "24px", flexWrap: "wrap" }}
-                        >
-                            <div>
-                                <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Total orders</p>
-                                <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#1a2740" }}>
-                                    {orders.length}
-                                </p>
+
+                    <div className="home-header-right">
+                        <nav className="home-nav-links" aria-label="Main navigation">
+                            <div className="profile-menu-container">
+                                <button
+                                    className="profile-avatar-btn"
+                                    aria-label="User profile"
+                                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                >
+                                    <img
+                                        src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                                        alt="Profile Avatar"
+                                        className="profile-avatar-img"
+                                    />
+                                </button>
+
+                                {isProfileMenuOpen && (
+                                    <div className="profile-dropdown">
+                                        <Link
+                                            to="/orders"
+                                            className="dropdown-item"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                        >
+                                            My Orders
+                                        </Link>
+                                        <Link
+                                            to="/customer/profile"
+                                            className="dropdown-item"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                        >
+                                            Information
+                                        </Link>
+                                        <button className="dropdown-item sign-out" onClick={handleSignOut}>
+                                            Sign out
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <div>
-                                <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Active</p>
-                                <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#1565c0" }}>
-                                    {activeCount}
-                                </p>
-                            </div>
-                            {cancelledCount > 0 && (
-                                <div>
-                                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Refunded</p>
-                                    <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#b71c1c" }}>
-                                        {cancelledCount}
+                        </nav>
+
+                        <Link to="/checkout" className="cart-link" aria-label="Go to cart">
+                            <img src={cartImage} alt="Shopping cart" className="cart-icon" />
+                        </Link>
+                    </div>
+                </header>
+
+                {/* Page content */}
+                <div className="orders-content">
+
+                    <div className="orders-header">
+                        <h2>My Orders</h2>
+                        <p>Your order history and refund status for any cancelled orders.</p>
+                    </div>
+
+                    {/* Loading state */}
+                    {isLoading && (
+                        <p style={{ color: "#888" }}>Loading your orders...</p>
+                    )}
+
+                    {/* Error state */}
+                    {errorMessage && (
+                        <p className="orders-error">{errorMessage}</p>
+                    )}
+
+                    {/* Orders */}
+                    {!isLoading && !errorMessage && (
+                        <>
+                            {orders.length === 0 ? (
+                                <div className="orders-empty">
+                                    <h3>No orders yet</h3>
+                                    <p>
+                                        Head to the <Link to="/checkout">checkout</Link> to place your first order.
                                     </p>
                                 </div>
-                            )}
-                        </div>
+                            ) : (
+                                <>
+                                    {/* Summary */}
+                                    <div className="orders-summary">
+                                        <div className="summary-stat">
+                                            <span>Total orders</span>
+                                            <span>{orders.length}</span>
+                                        </div>
+                                        <div className="summary-stat">
+                                            <span>Active</span>
+                                            <span>{orders.length - cancelledCount}</span>
+                                        </div>
+                                        {cancelledCount > 0 && (
+                                            <div className="summary-stat refunded">
+                                                <span>Refunded</span>
+                                                <span>{cancelledCount}</span>
+                                            </div>
+                                        )}
+                                    </div>
 
-                        {orders.map((order) => (
-                            <OrderCard key={order.id} order={order} />
-                        ))}
-                    </>
-                )}
+                                    {/* Order cards */}
+                                    {orders.map((order) => (
+                                        <OrderCard key={order.id} order={order} />
+                                    ))}
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
             </section>
         </main>
     );
-};
+}
 
 export default OrderStatusPage;
