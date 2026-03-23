@@ -99,6 +99,22 @@ public class RiderController {
     }
 
     /**
+     * Updates status of orders (placeholder from main).
+     */
+    @PostMapping("/orders")
+    public ResponseEntity<HttpStatus> updateStatus(@RequestBody String request) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
+     * Retrieves a specific rider by ID (placeholder from main).
+     */
+    @GetMapping("/{riderId}")
+    public ResponseEntity<RiderDTO> getRider(@PathVariable String riderId) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
+    }
+
+    /**
      * Retrieves orders assigned to a specific rider.
      */
     @GetMapping("/{riderId}/orders")

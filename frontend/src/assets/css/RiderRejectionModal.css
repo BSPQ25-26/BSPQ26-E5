@@ -1,0 +1,130 @@
+/* src/assets/css/RiderRejectionModal.css */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+.modal-content {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: Arial, sans-serif;
+  }
+  
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    color: #1a1a1a;
+    font-size: 1.25rem;
+  }
+  
+.modal-subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+  
+.reason-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+.reason-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+.reason-option:hover {
+    background: #f5f5f5;
+  }
+  
+.reason-option.selected {
+    border-color: #007bff;
+    background: #f0f7ff;
+  }
+  
+.reason-option input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+  }
+  
+.custom-reason-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 5px;
+    box-sizing: border-box;
+    font-family: inherit;
+    resize: vertical;
+  }
+  
+.custom-reason-input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+  
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 15px;
+  }
+  
+.btn-cancel {
+    background: #f0f0f0;
+    color: #333;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  
+.btn-cancel:hover {
+    background: #e4e4e4;
+  }
+  
+.btn-reject {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+  
+.btn-reject:hover:not(:disabled) {
+    background: #c82333;
+  }
+  
+.btn-reject:disabled {
+    background: #f5a8b0;
+    cursor: not-allowed;
+  }

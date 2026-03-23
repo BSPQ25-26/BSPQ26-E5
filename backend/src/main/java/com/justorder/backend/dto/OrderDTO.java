@@ -41,9 +41,9 @@ public class OrderDTO {
     public List<DishDTO> getDishes() { return dishes; }
     public double getTotalPrice() { return totalPrice; }
     public String getSecretCode() { return secretCode; }
-    public String getRejectionReason() { return rejectionReason; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public String getRejectionReason() { return rejectionReason; }
 
     // --- Setters ---
     public void setId(Long id) { this.id = id; }

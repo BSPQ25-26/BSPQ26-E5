@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.justorder.backend.dto.OrderDTO;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -122,12 +121,13 @@ public class Order {
             this.totalPrice, 
             this.secretCode
         );
-        dto.setRejectionReason(this.rejectionReason);
+        
         if (this.dishes != null) {
             dto.setDishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
         }
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
+        dto.setRejectionReason(this.rejectionReason);
         return dto;
     }
 }

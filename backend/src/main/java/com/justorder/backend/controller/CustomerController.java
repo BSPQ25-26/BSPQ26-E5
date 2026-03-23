@@ -88,6 +88,30 @@ public class CustomerController {
     }
 
     /**
+     * Retrieves a specific customer by ID.
+     */
+    @GetMapping("/{customerId}")
+    public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long customerId) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
+     * Creates or updates an order for a customer.
+     */
+    @PostMapping("/order")
+    public ResponseEntity<HttpStatus> createOrUpdateOrder(@RequestBody OrderDTO request) { 
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
+     * Retrieves all orders for a specific customer.
+     */
+    @GetMapping("/{customerId}/orders")
+    public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
      * Deletes a specific customer by ID.
      */
     @DeleteMapping("/{id}")
@@ -107,17 +131,5 @@ public class CustomerController {
         orderRepository.deleteAll(); 
         customerRepository.deleteAll();
         return ResponseEntity.ok(HttpStatus.OK);
-    }
-
-    // --- Placeholder endpoints from main ---
-
-    @PostMapping("/order")
-    public ResponseEntity<HttpStatus> createOrder(@RequestBody OrderDTO request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
-
-    @GetMapping("/{customerId}/orders")
-    public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }

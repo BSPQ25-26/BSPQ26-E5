@@ -8,10 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.DishDTO;
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RejectionRequestDTO;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.service.MenuService;
+import com.justorder.backend.service.OrderService;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RestaurantService;
 
@@ -27,18 +30,21 @@ public class RestaurantController {
     private final RegisterService registerService;
     private final RestaurantRepository restaurantRepository;
     private final RestaurantService restaurantService;
+    private final OrderService orderService;
 
     /**
-     * Unified constructor for service and repository injection.
+     * Constructor injection of all dependencies.
      */
     public RestaurantController(MenuService menuService,
                                 RegisterService registerService,
                                 RestaurantRepository restaurantRepository,
-                                RestaurantService restaurantService) {
+                                RestaurantService restaurantService,
+                                OrderService orderService) {    
         this.menuService = menuService;
         this.registerService = registerService;
         this.restaurantRepository = restaurantRepository;
         this.restaurantService = restaurantService;
+        this.orderService = orderService;
     }
 
     @GetMapping("/hello")
@@ -91,6 +97,22 @@ public class RestaurantController {
     }
 
     /**
+     * Retrieves a specific restaurant by ID.
+     */
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantDTO> getRestaurant(@PathVariable String restaurantId) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
+     * Creates or updates a menu for a restaurant.
+     */
+    @PostMapping("/menu")
+    public ResponseEntity<HttpStatus> createOrUpdateMenu(@RequestBody List<DishDTO> request) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
      * Deletes a specific restaurant by ID.
      */
     @DeleteMapping("/{id}")
@@ -130,5 +152,18 @@ public class RestaurantController {
     public ResponseEntity<Void> deleteAllRestaurants() {
         restaurantRepository.deleteAll();
         return ResponseEntity.ok().build();
+    }
+    
+    /**
+     * Rejects an order for a specific restaurant.
+     */
+    @PostMapping("/{restaurantId}/orders/{orderId}/reject")
+    public ResponseEntity<OrderDTO> rejectOrder(
+            @PathVariable Long restaurantId,
+            @PathVariable Long orderId,
+            @RequestBody RejectionRequestDTO rejectionRequest) {
+        
+        OrderDTO updatedOrder = orderService.rejectOrder(restaurantId, orderId, rejectionRequest.getReason());
+        return ResponseEntity.ok(updatedOrder);
     }
 }
