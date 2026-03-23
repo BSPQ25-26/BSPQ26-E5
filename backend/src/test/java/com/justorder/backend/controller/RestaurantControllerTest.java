@@ -268,4 +268,44 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
+    // -------------------------------------------------------------------------
+    // CO2 — Restaurant Order Rejection Tests
+    // -------------------------------------------------------------------------
+
+    /**
+     * Test successful rejection of an existing order by its restaurant.
+     */
+    @Test
+    void testRejectOrderSuccess() throws Exception {
+        String requestBody = """
+        {
+            "reason": "Out of pizza dough"
+        }
+        """;
+
+        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("Cancelled"))
+                .andExpect(jsonPath("$.rejectionReason").value("Out of pizza dough"));
+    }
+
+    /**
+     * Test rejecting a non-existent order.
+     */
+    @Test
+    void testRejectOrderNotFound() throws Exception {
+        String requestBody = """
+        {
+            "reason": "This order does not exist"
+        }
+        """;
+
+        // El pedido 9999 no debería existir en la base de datos
+        mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+                .andExpect(status().isNotFound()); 
+    }
 }

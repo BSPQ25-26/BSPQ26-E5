@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { registerRestaurant } from "../api/authApi";
 
 const CUISINES = [
@@ -35,6 +36,7 @@ const RegisterRestaurant = () => {
     });
     
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
     const onFieldChange = (e) => {
         const { name, value } = e.target;
@@ -84,6 +86,9 @@ const RegisterRestaurant = () => {
         try {
             await registerRestaurant(payload);
             setMessage("Restaurant registered successfully");
+            setTimeout(() => {
+                navigate("/");
+            }, 1500);
         } catch (error) {
             setMessage(error.message || "Error registering restaurant");
         }

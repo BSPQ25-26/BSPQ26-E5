@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import { registerCustomer } from '../api/authApi';  
 
 const RegisterCustomer = () => {
@@ -18,6 +19,7 @@ const RegisterCustomer = () => {
         latitude: "",
     });
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
     const onFieldChange = (e) => {
         const { name, value } = e.target;
@@ -52,6 +54,9 @@ const RegisterCustomer = () => {
         try {
             await registerCustomer(payload);
             setMessage("Customer registered successfully");
+            setTimeout(() => {
+                navigate("/");
+            }, 1500);
         } catch (error) {
             setMessage(error.message || "Error registering customer");
         }
