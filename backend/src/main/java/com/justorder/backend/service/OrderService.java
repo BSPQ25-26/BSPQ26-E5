@@ -48,13 +48,7 @@ public class OrderService {
         this.riderRepository = riderRepository;
     }
 
-    /**
-     * Creates an order from checkout data after validating the payload,
-     * recalculating the total, and resolving the required related entities.
-     *
-     * Accepted payload: existing customerId, at least one existing dishId,
-     * non-negative clientTotal, and a non-blank paymentToken.
-     */
+   
     @Transactional
     public OrderDTO checkout(CheckoutOrderRequestDTO request) {
         validateCheckoutRequest(request);
@@ -88,14 +82,7 @@ public class OrderService {
         return orderRepository.save(order).toDTO();
     }
 
-    /**
-     * Rejects a specific order on behalf of a restaurant.
-     * Business rules applied:
-     * - Order must exist.
-     * - Verifies the order belongs to the restaurant rejecting it.
-     * - Changes order status to 'Cancelled'.
-     * - Saves the detailed rejection reason (Requirement CO2).
-     */
+
     @Transactional
     public OrderDTO rejectOrder(Long restaurantId, Long orderId, String reason) {
         Order order = orderRepository.findById(orderId)
@@ -116,11 +103,8 @@ public class OrderService {
     }
 
     /**
-        * Validates mandatory checkout fields and basic constraints.
-     *
-     * @param request checkout request payload
-        * @throws IllegalArgumentException when request is null, customerId is missing,
-        *         dishIds is empty/invalid, or clientTotal is negative
+     * @param request 
+        * @throws IllegalArgumentException 
      */
     private void validateCheckoutRequest(CheckoutOrderRequestDTO request) {
         if (request == null) {
@@ -139,11 +123,6 @@ public class OrderService {
             throw new IllegalArgumentException("clientTotal cannot be negative");
         }
     }
-
-    /**
-     * Performs the sprint payment check by ensuring the token is present and
-     * the client total matches the server-side recalculated total.
-     */
     private void validatePayment(String paymentToken, double clientTotal, double calculatedTotal) {
         if (paymentToken == null || paymentToken.isBlank()) {
             throw new IllegalArgumentException("Invalid payment token");
