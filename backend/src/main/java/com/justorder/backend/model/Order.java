@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.justorder.backend.dto.OrderDTO;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -72,8 +73,8 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime deliveredAt;
 
-
-    public Order() {}
+    public Order() {
+    }
 
 
     public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider,
@@ -129,6 +130,7 @@ public class Order {
         dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
+        dto.setRejectionReason(this.rejectionReason);
         return dto;
     }
 }

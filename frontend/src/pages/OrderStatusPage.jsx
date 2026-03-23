@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getCustomerOrders } from "../api/authApi";
 
 const STATUS_COLOURS = {
@@ -56,7 +56,6 @@ const OrderCard = ({ order }) => {
                 marginBottom: "14px",
             }}
         >
-            {/* Header row */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                 <div>
                     <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1a2740" }}>
@@ -69,21 +68,20 @@ const OrderCard = ({ order }) => {
                 <StatusBadge status={order.status} />
             </div>
 
-            {/* Price */}
             <p style={{ margin: "10px 0 0", color: "#1a2740", fontWeight: 600 }}>
                 Total: {formatPrice(order.totalPrice)}
             </p>
 
-            {/* Dishes */}
             {order.dishes && order.dishes.length > 0 && (
                 <ul style={{ margin: "8px 0 0", paddingLeft: "18px", color: "#5d6b87", fontSize: "0.9rem" }}>
                     {order.dishes.map((dish) => (
-                        <li key={dish.id}>{dish.name} — {formatPrice(dish.price)}</li>
+                        <li key={dish.id}>
+                            {dish.name} — {formatPrice(dish.price)}
+                        </li>
                     ))}
                 </ul>
             )}
 
-            {/* Refund notice — only shown when Cancelled due to rider rejection */}
             {isCancelled && (
                 <div
                     role="alert"
@@ -100,8 +98,7 @@ const OrderCard = ({ order }) => {
                     </p>
                     <p style={{ margin: "4px 0 0", color: "#b71c1c", fontSize: "0.88rem" }}>
                         No available rider could complete this delivery. A full refund of{" "}
-                        <strong>{formatPrice(order.totalPrice)}</strong> has been issued to your
-                        payment method.
+                        <strong>{formatPrice(order.totalPrice)}</strong> has been issued.
                     </p>
                     {order.rejectionReason && (
                         <p style={{ margin: "6px 0 0", color: "#7f1d1d", fontSize: "0.85rem", fontStyle: "italic" }}>
@@ -115,137 +112,86 @@ const OrderCard = ({ order }) => {
 };
 
 const OrderStatusPage = () => {
-    const [customerId, setCustomerId] = useState("");
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [hasSearched, setHasSearched] = useState(false);
 
-    const handleSearch = async () => {
-        setErrorMessage("");
-        setOrders([]);
-        setHasSearched(false);
+    useEffect(() => {
+        const fetchOrders = async () => {
+            setIsLoading(true);
+            setErrorMessage("");
 
-        const parsed = Number(customerId);
-        if (!parsed || parsed <= 0) {
-            setErrorMessage("Please enter a valid customer ID.");
-            return;
-        }
+            try {
+                const CUSTOMER_ID = 1; // 👈 hardcode
 
-        setIsLoading(true);
-        try {
-            const data = await getCustomerOrders(parsed);
-            setOrders(data);
-            setHasSearched(true);
-        } catch (err) {
-            setErrorMessage(err.message || "Could not fetch orders. Check the customer ID and try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+                const data = await getCustomerOrders(CUSTOMER_ID);
+                setOrders(data);
+            } catch (err) {
+                setErrorMessage(err.message || "Could not fetch orders.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter") handleSearch();
-    };
+        fetchOrders();
+    }, []);
 
     const cancelledCount = orders.filter((o) => o.status === "Cancelled").length;
     const activeCount = orders.length - cancelledCount;
 
     return (
         <main className="home" style={{ maxWidth: "720px" }}>
-            {/* Page header */}
             <section className="home-hero">
                 <p className="home-kicker">My Orders</p>
                 <h1>Order Status</h1>
-                <p>
-                    Enter your customer ID to view your order history and check if any
-                    orders were cancelled and refunded.
-                </p>
+                <p>Here are your recent orders and their current status.</p>
             </section>
 
-            {/* Search section */}
-            <section className="card" style={{ marginTop: "18px" }}>
-                <h2>Look up your orders</h2>
-                <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", flexWrap: "wrap" }}>
-                    <div style={{ flex: 1 }}>
-                        <label htmlFor="customerIdInput" style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}>
-                            Customer ID
-                        </label>
-                        <input
-                            id="customerIdInput"
-                            type="number"
-                            min="1"
-                            placeholder="e.g. 1"
-                            value={customerId}
-                            onChange={(e) => setCustomerId(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            style={{ width: "100%", boxSizing: "border-box" }}
-                        />
+            <section style={{ marginTop: "18px" }}>
+                {isLoading ? (
+                    <p>Loading orders...</p>
+                ) : errorMessage ? (
+                    <p style={{ color: "#b42318", fontWeight: 700 }}>{errorMessage}</p>
+                ) : orders.length === 0 ? (
+                    <div className="card">
+                        <p style={{ color: "#5d6b87", margin: 0 }}>
+                            No orders found.
+                        </p>
                     </div>
-                    <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={handleSearch}
-                        disabled={isLoading}
-                        style={{ whiteSpace: "nowrap" }}
-                    >
-                        {isLoading ? "Loading..." : "View orders"}
-                    </button>
-                </div>
+                ) : (
+                    <>
+                        <div
+                            className="card"
+                            style={{ marginBottom: "14px", display: "flex", gap: "24px", flexWrap: "wrap" }}
+                        >
+                            <div>
+                                <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Total orders</p>
+                                <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#1a2740" }}>
+                                    {orders.length}
+                                </p>
+                            </div>
+                            <div>
+                                <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Active</p>
+                                <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#1565c0" }}>
+                                    {activeCount}
+                                </p>
+                            </div>
+                            {cancelledCount > 0 && (
+                                <div>
+                                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Refunded</p>
+                                    <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#b71c1c" }}>
+                                        {cancelledCount}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
 
-                {errorMessage && (
-                    <p role="alert" style={{ marginTop: "12px", color: "#b42318", fontWeight: 700 }}>
-                        {errorMessage}
-                    </p>
+                        {orders.map((order) => (
+                            <OrderCard key={order.id} order={order} />
+                        ))}
+                    </>
                 )}
             </section>
-
-            {/* Results */}
-            {hasSearched && (
-                <section style={{ marginTop: "18px" }}>
-                    {orders.length === 0 ? (
-                        <div className="card">
-                            <p style={{ color: "#5d6b87", margin: 0 }}>
-                                No orders found for customer ID <strong>{customerId}</strong>.
-                            </p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Summary */}
-                            <div
-                                className="card"
-                                style={{ marginBottom: "14px", display: "flex", gap: "24px", flexWrap: "wrap" }}
-                            >
-                                <div>
-                                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Total orders</p>
-                                    <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#1a2740" }}>
-                                        {orders.length}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Active</p>
-                                    <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#1565c0" }}>
-                                        {activeCount}
-                                    </p>
-                                </div>
-                                {cancelledCount > 0 && (
-                                    <div>
-                                        <p style={{ margin: 0, fontSize: "0.85rem", color: "#5d6b87" }}>Refunded</p>
-                                        <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: "1.3rem", color: "#b71c1c" }}>
-                                            {cancelledCount}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Order cards */}
-                            {orders.map((order) => (
-                                <OrderCard key={order.id} order={order} />
-                            ))}
-                        </>
-                    )}
-                </section>
-            )}
         </main>
     );
 };
