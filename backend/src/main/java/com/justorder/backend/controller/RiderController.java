@@ -47,13 +47,11 @@ public class RiderController {
 
     @PostMapping("/orders")
     public ResponseEntity<HttpStatus> updateStatus(@RequestBody String request) {
-        // TODO: implement order status update
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     @GetMapping("/{riderId}")
     public ResponseEntity<RiderDTO> getRider(@PathVariable String riderId) {
-        // TODO: implement
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
     }
 
