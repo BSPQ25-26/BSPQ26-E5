@@ -107,3 +107,16 @@ export const deleteDish = async (dishId) => {
     if (!response.ok) throw new Error("Error deleting dish");
     return true;
 };
+
+export const getCustomerOrders = async (customerId) => {
+    const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching customer orders");
+    return text ? JSON.parse(text) : [];
+};
