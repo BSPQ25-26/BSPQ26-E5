@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import RiderRejectionModal from '../components/RiderRejectionModal';
 import '../assets/css/Home.css'; 
-// import '../assets/css/CustomerMarketplace.css'; // Mantenemos esto borrado
+import '../assets/css/CustomerMarketplace.css'; 
 import '../assets/css/RiderDashboard.css';
 
 function RiderDashboard() {
@@ -101,11 +101,15 @@ function RiderDashboard() {
 
           <div className="home-header-right" style={{ position: 'relative' }}> 
             <nav className="home-nav-links" aria-label="Main navigation">
-              <div className="profile-menu-container">
+              <div className="profile-menu-container" style={{ position: 'relative' }}>
                 <button 
                   className="profile-avatar-btn" 
                   aria-label="User profile"
-                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); 
+                    setIsProfileMenuOpen(!isProfileMenuOpen);
+                  }}
                   style={{ 
                     width: '42px', 
                     height: '42px', 
@@ -141,8 +145,7 @@ function RiderDashboard() {
                     zIndex: 1000,
                     border: '1px solid #eaeaea',
                     display: 'flex',
-                    flexDirection: 'column',
-                    animation: 'dropdownFadeIn 0.2s ease-out' 
+                    flexDirection: 'column'
                   }}>
                     <style>{`
                       @keyframes dropdownFadeIn {
