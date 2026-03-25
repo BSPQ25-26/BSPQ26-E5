@@ -133,6 +133,7 @@ export const loginUser = async (loginType, payload) => {
 
     const data = await response.json();
     return { isBypass: false, token: data.token };
+};
   
 export const getCustomerOrders = async (customerId) => {
     const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
