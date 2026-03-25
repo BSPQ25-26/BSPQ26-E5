@@ -1,5 +1,11 @@
 package com.justorder.backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.justorder.backend.dto.CustomerDTO;
+import com.justorder.backend.model.Customer;
+import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.security.JwtUtil;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,13 +13,16 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import com.justorder.backend.security.JwtUtil;
-
-import jakarta.transaction.Transactional;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -23,11 +32,72 @@ class CustomerControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+
     @MockitoBean
     private JwtUtil jwtUtil;
 
+    @MockitoBean
+    private CustomerRepository repository;
+
+    // ==========================================
+    // TESTS DE LA RAMA 'HEAD' (CRUD BÁSICO)
+    // ==========================================
+
+    @Test
+    void testGetAll() throws Exception {
+        Customer c = new Customer();
+        c.setId(1L);
+        c.setName("Juan Perez");
+        
+        when(repository.findAll()).thenReturn(Arrays.asList(c));
+
+        mockMvc.perform(get("/api/customers"))
+               .andExpect(status().isOk())
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Juan Perez")));
+    }
+
+    @Test
+    void testUpdate() throws Exception {
+        CustomerDTO request = new CustomerDTO();
+        request.setName("Ana Modificada");
+
+        Customer existing = new Customer();
+        existing.setId(2L);
+        existing.setName("Ana Gomez");
+
+        Customer updated = new Customer();
+        updated.setId(2L);
+        updated.setName("Ana Modificada");
+
+        when(repository.findById(2L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(Customer.class))).thenReturn(updated);
+
+        mockMvc.perform(put("/api/customers/2")
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isOk())
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Ana Modificada")));
+    }
+
+    @Test
+    void testDelete() throws Exception {
+        when(repository.existsById(1L)).thenReturn(true);
+        mockMvc.perform(delete("/api/customers/1"))
+               .andExpect(status().isOk());
+    }
+
+    // ==========================================
+    // TESTS DE LA RAMA 'MAIN' (VALIDACIONES EXHAUSTIVAS)
+    // ==========================================
+
     @Test
     void testRegisterCustomer() throws Exception {
+        Customer saved = new Customer();
+        saved.setId(1L);
+        saved.setName("John Doe Test");
+        when(repository.save(any(Customer.class))).thenReturn(saved);
+
         String requestBody = """
             {
                 "name": "John Doe Test",
@@ -143,7 +213,6 @@ class CustomerControllerTest {
 
     @Test
     void testRegisterVoidCustomer() throws Exception {
-
         String requestBody = """
             {
             }
@@ -156,6 +225,10 @@ class CustomerControllerTest {
 
     @Test
     void testRegisterNoAllergenCustomer() throws Exception {
+        Customer saved = new Customer();
+        saved.setId(2L);
+        when(repository.save(any(Customer.class))).thenReturn(saved);
+
         String requestBody = """
             {
                 "name": "John Doe Non Allergen",
@@ -187,6 +260,10 @@ class CustomerControllerTest {
     
     @Test
     void testRegisterNoPreferenceCustomer() throws Exception {
+        Customer saved = new Customer();
+        saved.setId(3L);
+        when(repository.save(any(Customer.class))).thenReturn(saved);
+
         String requestBody = """
             {
                 "name": "John Doe No Preference",

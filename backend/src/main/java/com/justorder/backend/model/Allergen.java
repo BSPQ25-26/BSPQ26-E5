@@ -47,6 +47,6 @@ public class Allergen {
 
     // toDTO
     public AllergenDTO toDTO() {
-        return new AllergenDTO(this.name, this.description);
+        return new AllergenDTO(this.id, this.name, this.description);
     }
 }

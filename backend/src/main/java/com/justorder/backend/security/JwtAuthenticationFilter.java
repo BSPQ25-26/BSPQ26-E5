@@ -15,41 +15,57 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * Custom security filter that intercepts every HTTP request to validate JWT tokens.
+ * Ensures that protected endpoints are only accessed by users providing a valid, 
+ * unexpired token with the appropriate roles.
+ * * @version 1.0
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * Performs the actual filtering logic for incoming requests.
+     * Extracts the JWT from the Authorization header, validates its signature and expiration,
+     * and populates the Spring SecurityContext if the token is valid.
+     * * @param request the incoming HTTP request.
+     * @param response the outgoing HTTP response.
+     * @param filterChain the chain of filters to pass the request and response to.
+     * @throws ServletException if a servlet-specific error occurs during filtering.
+     * @throws IOException if an I/O error occurs during filtering.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
-        // 1. Obtener la cabecera de Autorización
+        // 1. Retrieve the Authorization header
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
 
-        // Si no hay token o no empieza por "Bearer ", seguimos con el filtro normal (se bloqueará luego)
+        // If there is no token or it does not start with "Bearer ", proceed with the filter chain (security will block it later if required)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2. Extraer el token (quitando la palabra "Bearer ")
+        // 2. Extract the token (removing the "Bearer " prefix)
         jwt = authHeader.substring(7);
         userEmail = jwtUtil.extractEmail(jwt);
 
-        // 3. Si hay un email y aún no está autenticado en este contexto
+        // 3. If an email is present and the security context is not yet authenticated
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             
-            // Validamos que el token no haya caducado
+            // Validate that the token is valid and has not expired
             if (jwtUtil.isTokenValid(jwt, userEmail)) {
                 
-                // Extraemos el rol (ej. ROLE_ADMIN)
+                // Extract the role (e.g., ROLE_ADMIN)
                 String role = jwtUtil.extractRole(jwt);
                 
-                // Creamos la credencial temporal para Spring con su rol
+                // Create the authentication token for Spring containing the user's role
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userEmail, 
                         null, 
@@ -58,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 
-                // Le decimos a Spring: "Este usuario ya ha pasado el control"
+                // Inform Spring Security: "This user has successfully passed the authentication check"
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }

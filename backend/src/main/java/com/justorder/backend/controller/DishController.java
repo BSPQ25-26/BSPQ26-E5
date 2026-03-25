@@ -1,15 +1,9 @@
 package com.justorder.backend.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.exception.DishConflictException;
@@ -17,21 +11,47 @@ import com.justorder.backend.exception.InvalidDishDataException;
 import com.justorder.backend.exception.ResourceNotFoundException;
 import com.justorder.backend.service.MenuService;
 
+/**
+ * REST controller for managing Dish entities.
+ * Provides endpoints for performing CRUD operations on dishes, 
+ * leveraging the MenuService for business logic and exception handling.
+ */
 @RestController
 @RequestMapping("/api/dishes")
 public class DishController {
 
-    @Autowired
-    private MenuService menuService;
+    private final MenuService menuService;
 
-    // POST /api/dishes/{restaurantId} creates a new dish for the restaurant with the given id
+    /**
+     * Constructor injection (Best practice compared to @Autowired field injection).
+     */
+    public DishController(MenuService menuService) {
+        this.menuService = menuService;
+    }
+
+    /**
+     * Retrieves a list of all available dishes in the database.
+     * @return a ResponseEntity containing a list of {@link DishDTO} objects.
+     */
+    @GetMapping
+    public ResponseEntity<List<DishDTO>> getAllDishes() {
+        return ResponseEntity.ok(menuService.getAllDishes());
+    }
+
+    /**
+     * Creates a new dish for a specific restaurant.
+     * @param restaurantId the unique identifier of the restaurant.
+     * @param dishDTO the data transfer object containing dish details.
+     * @return the created {@link DishDTO} and HTTP 201 Created status.
+     */
     @PostMapping("/{restaurantId}")
-    public ResponseEntity<DishDTO> createDish(@PathVariable Long restaurantId,
-                                               @RequestBody DishDTO dishDTO) {
+    public ResponseEntity<DishDTO> createDish(@PathVariable Long restaurantId, @RequestBody DishDTO dishDTO) {
+        // Prevent inconsistent payloads where path ID and body ID mismatch
+        if (dishDTO.getRestaurantId() != null && !restaurantId.equals(dishDTO.getRestaurantId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
         try {
-            if (dishDTO.getRestaurantId() != null && !dishDTO.getRestaurantId().equals(restaurantId)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
             DishDTO created = menuService.createDish(restaurantId, dishDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (InvalidDishDataException e) {
@@ -45,10 +65,14 @@ public class DishController {
         }
     }
 
-    // PUT /api/dishes/{dishId} updates an existing dish
+    /**
+     * Updates an existing dish.
+     * @param dishId the unique identifier of the dish to be updated.
+     * @param dishDTO the updated details.
+     * @return the updated {@link DishDTO}.
+     */
     @PutMapping("/{dishId}")
-    public ResponseEntity<DishDTO> updateDish(@PathVariable Long dishId,
-                                               @RequestBody DishDTO dishDTO) {
+    public ResponseEntity<DishDTO> updateDish(@PathVariable Long dishId, @RequestBody DishDTO dishDTO) {
         try {
             DishDTO updated = menuService.updateDish(dishId, dishDTO);
             return ResponseEntity.ok(updated);
@@ -63,7 +87,11 @@ public class DishController {
         }
     }
 
-    // DELETE /api/dishes/{dishId} deletes the dish with the given id
+    /**
+     * Deletes a specific dish by its ID.
+     * @param dishId the unique identifier of the dish.
+     * @return HTTP 204 No Content if successful.
+     */
     @DeleteMapping("/{dishId}")
     public ResponseEntity<Void> deleteDish(@PathVariable Long dishId) {
         try {

@@ -20,7 +20,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -43,7 +42,6 @@ public class Order {
 
     /**
      * The current status of the order (e.g. Pending, Confirmed, Cancelled).
-     * Updated throughout the order lifecycle by restaurant, rider, and system.
      */
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
@@ -65,7 +63,7 @@ public class Order {
     private String secretCode;
 
     /**
-     * <p>Null if the order has not been rejected by a rider.</p>
+     * Null if the order has not been rejected by a rider.
      */
     private String rejectionReason;
 
@@ -73,9 +71,9 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime deliveredAt;
 
-    public Order() {
-    }
+    // --- Constructors ---
 
+    public Order() {}
 
     public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider,
                  double totalPrice, String secretCode) {
@@ -87,9 +85,7 @@ public class Order {
         this.secretCode = secretCode;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters
-    // -------------------------------------------------------------------------
+    // --- Getters ---
 
     public Long getId() { return id; }
     public Customer getCustomer() { return customer; }
@@ -102,9 +98,7 @@ public class Order {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
 
-    // -------------------------------------------------------------------------
-    // Setters
-    // -------------------------------------------------------------------------
+    // --- Setters ---
 
     public void setId(Long id) { this.id = id; }
     public void setCustomer(Customer customer) { this.customer = customer; }
@@ -117,17 +111,22 @@ public class Order {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
 
-    // -------------------------------------------------------------------------
-    // Conversion
-    // -------------------------------------------------------------------------
+    // --- Conversion ---
 
     public OrderDTO toDTO() {
+        // We use IDs in the DTO to avoid recursion and reduce payload size
         OrderDTO dto = new OrderDTO(
-            this.id, this.customer.getId(), this.status.getStatus(),
-            this.rider.getId(), this.totalPrice, this.secretCode
+            this.id, 
+            this.customer != null ? this.customer.getId() : null, 
+            this.status != null ? this.status.getStatus() : null,
+            this.rider != null ? this.rider.getId() : null, 
+            this.totalPrice, 
+            this.secretCode
         );
-        dto.setRejectionReason(this.rejectionReason);
-        dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        
+        if (this.dishes != null) {
+            dto.setDishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        }
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
         dto.setRejectionReason(this.rejectionReason);

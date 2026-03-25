@@ -110,9 +110,15 @@ public class Customer {
         CustomerDTO dto = new CustomerDTO(
             this.id, this.name, this.email, this.phone, this.password, this.age, this.dni
         );
-        dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
-        dto.setAllergenNames(this.allergens.stream().map(Allergen::getName).collect(Collectors.toList()));
-        dto.setPreferenceNames(this.preferences.stream().map(CuisineCategory::getName).collect(Collectors.toList()));
+        if (this.localizations != null) {
+            dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
+        }
+        if (this.allergens != null) {
+            dto.setAllergenNames(this.allergens.stream().map(Allergen::getName).collect(Collectors.toList()));
+        }
+        if (this.preferences != null) {
+            dto.setPreferenceNames(this.preferences.stream().map(CuisineCategory::getName).collect(Collectors.toList()));
+        }
         return dto;
     }
 }

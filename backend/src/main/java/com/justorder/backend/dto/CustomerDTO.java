@@ -28,27 +28,83 @@ public class CustomerDTO {
         this.dni = dni;
     }
 
-    // Getters
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getPhone() { return phone; }
-    public String getPassword() { return password; }
-    public Integer getAge() { return age; }
-    public String getDni() { return dni; }
-    public List<LocalizationDTO> getLocalizations() { return localizations; }
-    public List<String> getAllergenNames() { return allergenNames; }
-    public List<String> getPreferenceNames() { return preferenceNames; }
+    public Long getId() {
+        return id;
+    }
 
-    // Setters
-    public void setId(Long id) { this.id = id; }
-    public void setName(String name) { this.name = name; }
-    public void setEmail(String email) { this.email = email; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public void setPassword(String password) { this.password = password; }
-    public void setAge(Integer age) { this.age = age; }
-    public void setDni(String dni) { this.dni = dni; }
-    public void setLocalizations(List<LocalizationDTO> localizations) { this.localizations = localizations; }
-    public void setAllergenNames(List<String> allergenNames) { this.allergenNames = allergenNames; }
-    public void setPreferenceNames(List<String> preferenceNames) { this.preferenceNames = preferenceNames; }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getDni() {
+        return dni;
+    }
+
+    public void setDni(String dni) {
+        this.dni = dni;
+    }
+
+    public List<LocalizationDTO> getLocalizations() {
+        return localizations;
+    }
+
+    public void setLocalizations(List<LocalizationDTO> localizations) {
+        this.localizations = localizations;
+    }
+
+    public List<String> getAllergenNames() {
+        return allergenNames;
+    }
+
+    public void setAllergenNames(List<String> allergenNames) {
+        this.allergenNames = allergenNames;
+    }
+
+    public List<String> getPreferenceNames() {
+        return preferenceNames;
+    }
+
+    public void setPreferenceNames(List<String> preferenceNames) {
+        this.preferenceNames = preferenceNames;
+    }
 }

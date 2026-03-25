@@ -1,21 +1,7 @@
 package com.justorder.backend.controller;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.model.Customer;
 import com.justorder.backend.model.Localization;
 import com.justorder.backend.model.Order;
@@ -26,7 +12,21 @@ import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.security.JwtUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -35,6 +35,8 @@ class RiderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Autowired
     private OrderRepository orderRepository;
@@ -105,6 +107,50 @@ class RiderControllerTest {
         }
     }
 
+    // ==========================================
+    // TESTS DE LA RAMA 'HEAD' (ADAPTADOS A DB)
+    // ==========================================
+
+    @Test
+    void testGetAll() throws Exception {
+        Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
+        Rider r = new Rider("Carlos Moto", "12345678X", "+34 600000000", "carlos@moto.com", "pass123", loc);
+        riderRepository.save(r);
+
+        mockMvc.perform(get("/api/riders"))
+               .andExpect(status().isOk())
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Carlos Moto")));
+    }
+
+    @Test
+    void testUpdate() throws Exception {
+        Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
+        Rider existing = new Rider("Luis Bici", "12345678Y", "+34 600000001", "luis@bici.com", "pass123", loc);
+        existing = riderRepository.save(existing);
+
+        RiderDTO request = new RiderDTO();
+        request.setName("Luis Modificado");
+
+        mockMvc.perform(put("/api/riders/" + existing.getId())
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteById() throws Exception {
+        Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
+        Rider existing = new Rider("To Delete", "12345678Z", "+34 600000002", "del@rider.com", "pass123", loc);
+        existing = riderRepository.save(existing);
+
+        mockMvc.perform(delete("/api/riders/" + existing.getId()))
+               .andExpect(status().isOk());
+    }
+
+    // ==========================================
+    // TESTS DE LA RAMA 'MAIN' (VALIDACIONES Y LÓGICA DE RECHAZO)
+    // ==========================================
+
     @Test
     void testCreateRider() throws Exception {
         String requestBody = """
@@ -128,7 +174,7 @@ class RiderControllerTest {
         mockMvc.perform(post("/api/riders/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-               .andExpect(status().isOk());
+               .andExpect(status().isCreated());
     }
 
     @Test
@@ -166,10 +212,6 @@ class RiderControllerTest {
                .andExpect(status().isOk());
     }
 
-    /**
-     * GET /api/riders/{riderId}/orders → 200 OK with rider's orders.
-     * Verifies that a rider can retrieve their assigned orders.
-     */
     @Test
     void testGetRiderOrders() throws Exception {
         mockMvc.perform(get("/api/riders/1/orders"))
@@ -177,18 +219,12 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$").isArray());
     }
 
-    /**
-     * GET /api/riders/999/orders → 404 when rider does not exist.
-     */
     @Test
     void testGetRiderOrdersRiderNotFound() throws Exception {
         mockMvc.perform(get("/api/riders/999/orders"))
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * First rejection of an order → 200 OK, order reassigned to Rider 2.
-     */
     @Test
     void testRejectOrderReassignsToAnotherRider() throws Exception {
         ensureOrdersLoaded();
@@ -206,11 +242,6 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$.riderId").value(2));
     }
 
-    /**
-     * Second rejection of the same order → 200 OK, order cancelled.
-     * Verifies that when the reassigned rider also rejects, the order
-     * is cancelled (automatic refund) rather than reassigned again.
-     */
     @Test
     void testSecondRejectionCancelsOrder() throws Exception {
         ensureOrdersLoaded();
@@ -237,10 +268,6 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$.rejectionReason").value("Also unreachable"));
     }
 
-    /**
-     * Rider tries to reject an order belonging to a different rider → 403 Forbidden.
-     * Verifies the ownership check prevents unauthorized rejection.
-     */
     @Test
     void testRejectOrderWrongRiderReturnsForbidden() throws Exception {
         ensureOrdersLoaded();
@@ -255,9 +282,6 @@ class RiderControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * Rider tries to reject an order that does not exist → 404 Not Found.
-     */
     @Test
     void testRejectOrderNotFoundReturns404() throws Exception {
         String requestBody = """
@@ -271,10 +295,6 @@ class RiderControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * Rider sends rejection with empty reason → 400 Bad Request.
-     * Verifies that an empty reason is rejected before any business logic runs.
-     */
     @Test
     void testRejectOrderWithEmptyReasonReturnsBadRequest() throws Exception {
         ensureOrdersLoaded();

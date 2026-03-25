@@ -13,6 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+/**
+ * REST controller responsible for authentication and security.
+ * Manages the login process by validating credentials against the database
+ * and generates a signed JWT token to securely maintain active sessions.
+ * * @version 1.0
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -26,22 +32,29 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * Authenticates an administrator based on the provided credentials.
+     * * @param request the data transfer object containing the administrator's email and password.
+     * @return a ResponseEntity containing an {@link AuthResponse} with the generated JWT token 
+     * and an HTTP 200 OK status if successful; otherwise, returns an HTTP 401 Unauthorized 
+     * status with an error message if the credentials are invalid.
+     */
     @PostMapping("/admin/login")
     public ResponseEntity<?> loginAdmin(@RequestBody LoginRequest request) {
-        // 1. Buscamos al admin por su email
+        // 1. Find the admin by email
         Optional<Admin> adminOptional = adminRepository.findByEmail(request.getEmail());
 
         if (adminOptional.isPresent()) {
             Admin admin = adminOptional.get();
-            // 2. Comparamos la contraseña encriptada
+            // 2. Compare the provided password with the encrypted one in the database
             if (passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
-                // 3. Si es correcta, generamos el token con el rol ROLE_ADMIN
+                // 3. If valid, generate the token with the ROLE_ADMIN role
                 String token = jwtUtil.generateToken(admin.getEmail(), "ROLE_ADMIN");
                 return ResponseEntity.ok(new AuthResponse(token));
             }
         }
         
-        // Si falla el email o la contraseña, devolvemos error 401 (No autorizado)
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales incorrectas");
+        // If email or password validation fails, return a 401 Unauthorized error
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect credentials");
     }
 }

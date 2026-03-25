@@ -40,9 +40,9 @@ public class Dish {
     )
     private List<Allergen> allergens = new ArrayList<>();
 
-    // Constructors
     public Dish() {
     }
+    
     public Dish(String name, String description, double price, Restaurant restaurant) {
         this.name = name;
         this.description = description;

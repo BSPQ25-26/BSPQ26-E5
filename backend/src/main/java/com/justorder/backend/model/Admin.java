@@ -23,7 +23,6 @@ public class Admin {
 
     private String name;
 
-    // Constructores
     public Admin() {
     }
 
