@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../api/authApi"; 
 import sushiImage from "../assets/images/delicioso-rollo-sushi-california-aguacate-anguila-pepino_1125744-1587.jpg";
 
 function Home() {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isSignUpOpen, setIsSignUpOpen] = useState(false);
     const [loginType, setLoginType] = useState("customer");
     
     const [identifier, setIdentifier] = useState("");
@@ -14,55 +16,30 @@ function Home() {
     const handleLogin = async (e) => {
         e.preventDefault();
         
-        let endpoint = "";
         let payload = {};
-
-        if (loginType === "customer") {
-            endpoint = "http://localhost:8080/sessions/users";
-            payload = { email: identifier, password: password };
-        } else if (loginType === "rider") {
-            endpoint = "http://localhost:8080/sessions/riders";
-            payload = { dni: identifier, password: password };
-        } else if (loginType === "restaurant") {
-            endpoint = "http://localhost:8080/sessions/restaurants";
-            payload = { email: identifier, password: password };
-        } 
+        if (loginType === "customer") payload = { email: identifier, password };
+        else if (loginType === "rider") payload = { dni: identifier, password };
+        else if (loginType === "restaurant") payload = { email: identifier, password };
 
         try {
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.status === 501 || response.status === 403) {
+            const result = await loginUser(loginType, payload);
+            
+            if (result.isBypass) {
                 alert("Backend endpoint is NOT IMPLEMENTED yet. Bypassing for UI testing.");
-                localStorage.setItem("token", "dummy-dev-token");
-                
-                if (loginType === "customer") {
-                    navigate("/customer-marketplace");
-                } else if (loginType === "rider") {
-                    navigate("/rider-dashboard");
-                } else {
-                    alert("Restaurant dashboard coming soon!");
-                }
-                return;
             }
+            
+            localStorage.setItem("token", result.token);
+            
+            if (loginType === "customer") navigate("/customer-marketplace");
+            else if (loginType === "rider") navigate("/rider-dashboard");
+            else alert("Restaurant dashboard coming soon!");
 
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem("token", data.token);
-                
-                if (loginType === "customer") navigate("/customer-marketplace");
-                else if (loginType === "rider") navigate("/rider-dashboard");
-                else alert("Restaurant dashboard coming soon!");
-            } else {
-                alert("Login failed. Please check your credentials.");
-            }
         } catch (error) {
-            alert("Could not connect to the server. Is Spring Boot running?");
+            if (error.message === "Failed to fetch" || error.message.includes("NetworkError")) {
+                alert("Could not connect to the server. Is Spring Boot running?");
+            } else {
+                alert(error.message);
+            }
         }
     };
 
@@ -81,7 +58,7 @@ function Home() {
                     </div>
 
                     <div className="home-header-right">
-                        <nav className="home-nav-links" aria-label="Main navigation" style={{ position: 'relative' }}>
+                        <nav className="home-nav-links" aria-label="Main navigation">
                             <Link to="/register-restaurant" className="nav-link">
                                 Register your restaurant
                             </Link>
@@ -89,55 +66,72 @@ function Home() {
                             <button 
                                 className="nav-link nav-link-button" 
                                 type="button" 
-                                onClick={() => setIsLoginOpen(!isLoginOpen)}
-                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                    setIsLoginOpen(!isLoginOpen);
+                                    setIsSignUpOpen(false);
+                                }}
                             >
                                 Log in
                             </button>
 
-                            <Link to="/register-customer" className="nav-link signup-button">
+                            <button
+                                className="nav-link nav-link-button signup-button"
+                                type="button"
+                                onClick={() => {
+                                    setIsSignUpOpen(!isSignUpOpen);
+                                    setIsLoginOpen(false);
+                                }}
+                            >
                                 Sign up
-                            </Link>
+                            </button>
+
+                            {isSignUpOpen && (
+                                <div className="home-dropdown home-signup-dropdown">
+                                    <Link
+                                        to="/register-customer"
+                                        className="dropdown-link"
+                                        onClick={() => setIsSignUpOpen(false)}
+                                    >
+                                        Sign up as customer
+                                    </Link>
+                                    <Link
+                                        to="/register-rider"
+                                        className="dropdown-link"
+                                        onClick={() => setIsSignUpOpen(false)}
+                                    >
+                                        Sign up as rider
+                                    </Link>
+                                </div>
+                            )}
                             <Link to="/restaurants/1/menu-editor" className="nav-link menu-editor-button">
                                 Edit menu
                             </Link>
 
                             {isLoginOpen && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '40px',
-                                    right: '100px',
-                                    width: '300px',
-                                    backgroundColor: '#ffffff',
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                                    borderRadius: '12px',
-                                    padding: '20px',
-                                    zIndex: 1000,
-                                    border: '1px solid #eaeaea'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f0f0f0', marginBottom: '15px' }}>
+                                <div className="home-dropdown home-login-dropdown">
+                                    <div className="login-tabs">
                                         <button 
                                             onClick={() => handleTabSwitch('customer')}
-                                            style={{ flex: 1, padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold', color: loginType === 'customer' ? '#00cc66' : '#999', borderBottom: loginType === 'customer' ? '2px solid #00cc66' : 'none', marginBottom: '-2px' }}
+                                            className={`login-tab ${loginType === 'customer' ? 'active' : ''}`}
                                         >Customer</button>
                                         <button 
                                             onClick={() => handleTabSwitch('rider')}
-                                            style={{ flex: 1, padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold', color: loginType === 'rider' ? '#00cc66' : '#999', borderBottom: loginType === 'rider' ? '2px solid #00cc66' : 'none', marginBottom: '-2px' }}
+                                            className={`login-tab ${loginType === 'rider' ? 'active' : ''}`}
                                         >Rider</button>
                                         <button 
                                             onClick={() => handleTabSwitch('restaurant')}
-                                            style={{ flex: 1, padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold', color: loginType === 'restaurant' ? '#00cc66' : '#999', borderBottom: loginType === 'restaurant' ? '2px solid #00cc66' : 'none', marginBottom: '-2px' }}
+                                            className={`login-tab ${loginType === 'restaurant' ? 'active' : ''}`}
                                         >Restaurant</button>
                                     </div>
 
-                                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <form onSubmit={handleLogin} className="login-form">
                                         <input 
                                             type={loginType === 'rider' ? "text" : "email"} 
                                             placeholder={loginType === 'rider' ? "Enter your DNI" : "Enter your Email"}
                                             value={identifier}
                                             onChange={(e) => setIdentifier(e.target.value)}
                                             required
-                                            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                                            className="login-input"
                                         />
                                         <input 
                                             type="password" 
@@ -145,11 +139,11 @@ function Home() {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
-                                            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                                            className="login-input"
                                         />
                                         <button 
                                             type="submit"
-                                            style={{ padding: '12px', backgroundColor: '#00cc66', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginTop: '5px' }}
+                                            className="login-submit"
                                         >
                                             Log In
                                         </button>

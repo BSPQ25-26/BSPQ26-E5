@@ -5,12 +5,13 @@ import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.model.Customer;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.security.JwtUtil;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,7 +143,6 @@ class CustomerControllerTest {
                 "preferenceNames": ["Italian", "Japanese"]
             }
             """;
-        // Asumiendo que el controlador o el servicio lanzan error si no hay localizaciones
         mockMvc.perform(post("/api/customers/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))

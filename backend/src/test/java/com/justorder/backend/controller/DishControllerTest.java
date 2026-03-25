@@ -44,14 +44,13 @@ public class DishControllerTest {
 
     @MockitoBean
     private DishRepository dishRepository;
+    
     @MockitoBean
     private RestaurantRepository restaurantRepository;
+    
     @MockitoBean
     private AllergenRepository allergenRepository;
 
-    /**
-     * @throws Exception
-     */
     @Test
     public void testGetAll() throws Exception {
 
