@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../api/authApi"; 
 import sushiImage from "../assets/images/delicioso-rollo-sushi-california-aguacate-anguila-pepino_1125744-1587.jpg";
 
 function Home() {
@@ -14,55 +15,30 @@ function Home() {
     const handleLogin = async (e) => {
         e.preventDefault();
         
-        let endpoint = "";
         let payload = {};
-
-        if (loginType === "customer") {
-            endpoint = "http://localhost:8080/sessions/users";
-            payload = { email: identifier, password: password };
-        } else if (loginType === "rider") {
-            endpoint = "http://localhost:8080/sessions/riders";
-            payload = { dni: identifier, password: password };
-        } else if (loginType === "restaurant") {
-            endpoint = "http://localhost:8080/sessions/restaurants";
-            payload = { email: identifier, password: password };
-        } 
+        if (loginType === "customer") payload = { email: identifier, password };
+        else if (loginType === "rider") payload = { dni: identifier, password };
+        else if (loginType === "restaurant") payload = { email: identifier, password };
 
         try {
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.status === 501 || response.status === 403) {
+            const result = await loginUser(loginType, payload);
+            
+            if (result.isBypass) {
                 alert("Backend endpoint is NOT IMPLEMENTED yet. Bypassing for UI testing.");
-                localStorage.setItem("token", "dummy-dev-token");
-                
-                if (loginType === "customer") {
-                    navigate("/customer-marketplace");
-                } else if (loginType === "rider") {
-                    navigate("/rider-dashboard");
-                } else {
-                    alert("Restaurant dashboard coming soon!");
-                }
-                return;
             }
+            
+            localStorage.setItem("token", result.token);
+            
+            if (loginType === "customer") navigate("/customer-marketplace");
+            else if (loginType === "rider") navigate("/rider-dashboard");
+            else alert("Restaurant dashboard coming soon!");
 
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem("token", data.token);
-                
-                if (loginType === "customer") navigate("/customer-marketplace");
-                else if (loginType === "rider") navigate("/rider-dashboard");
-                else alert("Restaurant dashboard coming soon!");
-            } else {
-                alert("Login failed. Please check your credentials.");
-            }
         } catch (error) {
-            alert("Could not connect to the server. Is Spring Boot running?");
+            if (error.message === "Failed to fetch" || error.message.includes("NetworkError")) {
+                alert("Could not connect to the server. Is Spring Boot running?");
+            } else {
+                alert(error.message);
+            }
         }
     };
 

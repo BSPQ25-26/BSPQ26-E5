@@ -108,6 +108,32 @@ export const deleteDish = async (dishId) => {
     return true;
 };
 
+export const loginUser = async (loginType, payload) => {
+    
+    const BASE_URL = "http://localhost:8080";
+    let endpoint = "";
+
+    if (loginType === "customer") endpoint = `${BASE_URL}/sessions/users`;
+    else if (loginType === "rider") endpoint = `${BASE_URL}/sessions/riders`;
+    else if (loginType === "restaurant") endpoint = `${BASE_URL}/sessions/restaurants`;
+
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    if (response.status === 501 || response.status === 403) {
+        return { isBypass: true, token: "dummy-dev-token" };
+    }
+
+    if (!response.ok) {
+        throw new Error("Login failed. Please check your credentials.");
+    }
+
+    const data = await response.json();
+    return { isBypass: false, token: data.token };
+  
 export const getCustomerOrders = async (customerId) => {
     const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
         method: "GET",
