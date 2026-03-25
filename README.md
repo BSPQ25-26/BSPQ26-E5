@@ -64,6 +64,39 @@ npm start
 
 The app will be available at `http://localhost:3000`
 
+## Enforce Tests Before Commit and Merge
+
+### 1) Enforce tests before local commit/push
+
+Set up repository-managed Git hooks (one time):
+
+```bash
+./scripts/setup-git-hooks.sh
+```
+
+After this, every commit and push runs:
+
+- Backend tests: `backend/./mvnw -B test`
+- Frontend tests: `frontend/CI=true npm test -- --watchAll=false`
+
+If any test fails, commit/push is blocked.
+
+### 2) Enforce tests before merge (GitHub)
+
+This repo now includes CI at `.github/workflows/ci.yml` with two checks:
+
+- `backend-tests`
+- `frontend-tests`
+
+In GitHub: **Settings → Branches → Branch protection rules → main**:
+
+1. Enable **Require a pull request before merging**
+2. Enable **Require status checks to pass before merging**
+3. Select `backend-tests` and `frontend-tests` as required checks
+4. (Recommended) Enable **Restrict who can push to matching branches**
+
+With this setup, PRs cannot be merged unless both test jobs pass.
+
 ## Project Structure
 
 ### Backend (`/backend`)
