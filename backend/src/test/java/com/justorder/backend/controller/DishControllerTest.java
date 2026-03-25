@@ -1,23 +1,28 @@
 package com.justorder.backend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.justorder.backend.dto.DishDTO;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.justorder.backend.dto.DishDTO;
+
+import jakarta.transaction.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@Transactional
 public class DishControllerTest {
 
         private final ObjectMapper objectMapper = new ObjectMapper();

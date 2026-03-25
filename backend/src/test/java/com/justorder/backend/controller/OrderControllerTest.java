@@ -1,8 +1,5 @@
 package com.justorder.backend.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -11,6 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,11 +21,12 @@ import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.model.Rider;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.DishRepository;
-import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.repository.RiderRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@Transactional
 public class OrderControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
