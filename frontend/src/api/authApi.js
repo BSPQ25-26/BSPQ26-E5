@@ -37,7 +37,7 @@ export const registerRider = async (riderData) => {
     });
 
     const text = await response.text();
-    if (!response.ok) throw new Error(text || "Error registrating rider");
+    if (!response.ok) throw new Error(text || "Error registering rider");
     return text ? JSON.parse(text) : null;
 };
 
