@@ -2,11 +2,20 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import RegisterRestaurant from '../../pages/RegisterRestaurant';
 import { registerRestaurant } from '../../api/authApi';
+import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('../../api/authApi', () => ({
     registerRestaurant: jest.fn(),
 }));
 
+const renderWithRouter = (ui) =>
+  render(
+    <MemoryRouter
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      {ui}
+    </MemoryRouter>
+  );
 const fillRequiredFields = () => {
     fireEvent.change(screen.getByPlaceholderText(/Restaurant Name/i), { target: { value: 'Pizza House' } });
 
@@ -43,12 +52,12 @@ describe('RegisterRestaurant', () => {
     });
 
     test('renders restaurant registration title', () => {
-        render(<RegisterRestaurant />);
+        renderWithRouter(<RegisterRestaurant />);;
         expect(screen.getByRole("heading", { name: /Register Restaurant/i, level: 2 })).toBeInTheDocument();
     });
 
     test('allows typing in inputs', () => {
-        render(<RegisterRestaurant />);
+        renderWithRouter(<RegisterRestaurant />);
         const nameInput = screen.getByPlaceholderText(/Restaurant Name/i);
         fireEvent.change(nameInput, { target: { value: 'Sushi Tokyo' } });
         expect(nameInput.value).toBe('Sushi Tokyo');
@@ -57,7 +66,7 @@ describe('RegisterRestaurant', () => {
     test('submits payload and shows success message', async () => {
         registerRestaurant.mockResolvedValueOnce(null);
 
-        render(<RegisterRestaurant />);
+        renderWithRouter(<RegisterRestaurant />);
         fillRequiredFields();
 
         fireEvent.click(screen.getByRole('button', { name: /Register restaurant/i }));
@@ -105,7 +114,7 @@ describe('RegisterRestaurant', () => {
 
     test('shows error message when API fails', async () => {
         registerRestaurant.mockRejectedValueOnce(new Error('Backend error'));
-        render(<RegisterRestaurant />);
+        renderWithRouter(<RegisterRestaurant />);
         fillRequiredFields();
 
         fireEvent.click(screen.getByRole('button', { name: /Register restaurant/i }));
