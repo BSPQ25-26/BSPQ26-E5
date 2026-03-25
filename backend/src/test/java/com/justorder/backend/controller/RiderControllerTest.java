@@ -36,8 +36,7 @@ class RiderControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Autowired
     private OrderRepository orderRepository;
@@ -118,7 +117,7 @@ class RiderControllerTest {
         Rider r = new Rider("Carlos Moto", "12345678X", "+34 600000000", "carlos@moto.com", "pass123", loc);
         riderRepository.save(r);
 
-        mockMvc.perform(get("/api/riders/all"))
+        mockMvc.perform(get("/api/riders"))
                .andExpect(status().isOk())
                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Carlos Moto")));
     }
@@ -132,7 +131,7 @@ class RiderControllerTest {
         RiderDTO request = new RiderDTO();
         request.setName("Luis Modificado");
 
-        mockMvc.perform(put("/api/riders/update/" + existing.getId())
+        mockMvc.perform(put("/api/riders/" + existing.getId())
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk());
@@ -144,7 +143,7 @@ class RiderControllerTest {
         Rider existing = new Rider("To Delete", "12345678Z", "+34 600000002", "del@rider.com", "pass123", loc);
         existing = riderRepository.save(existing);
 
-        mockMvc.perform(delete("/api/riders/delete/" + existing.getId()))
+        mockMvc.perform(delete("/api/riders/" + existing.getId()))
                .andExpect(status().isOk());
     }
 
@@ -175,7 +174,7 @@ class RiderControllerTest {
         mockMvc.perform(post("/api/riders/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-               .andExpect(status().isOk());
+               .andExpect(status().isCreated());
     }
 
     @Test

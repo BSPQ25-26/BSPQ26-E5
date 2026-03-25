@@ -34,3 +34,4 @@ build/
 
 #local
 .env
+application-dev.properties

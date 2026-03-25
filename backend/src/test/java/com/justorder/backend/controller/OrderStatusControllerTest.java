@@ -33,8 +33,7 @@ public class OrderStatusControllerTest {
     @Autowired 
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @MockitoBean 
     private JwtUtil jwtUtil;

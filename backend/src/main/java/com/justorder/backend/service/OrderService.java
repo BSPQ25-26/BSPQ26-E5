@@ -2,8 +2,11 @@ package com.justorder.backend.service;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,7 +101,7 @@ public class OrderService {
     }
 
     /**
-     * Logic for Checkout (from main)
+     * Logic for Checkout
      */
     @Transactional
     public OrderDTO checkout(CheckoutOrderRequestDTO request) {
@@ -115,8 +118,12 @@ public class OrderService {
         OrderStatus status = orderStatusRepository.findByStatusIgnoreCase(DEFAULT_ORDER_STATUS)
             .orElseThrow(() -> new ResourceNotFoundException("Order status not found: " + DEFAULT_ORDER_STATUS));
 
-        Rider assignedRider = riderRepository.findAll().stream().findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException("No riders available"));
+        // Refactor: Efficiently find a single rider from the DB instead of loading ALL of them.
+        Page<Rider> riderPage = riderRepository.findAll(PageRequest.of(0, 1));
+        if (!riderPage.hasContent()) {
+             throw new ResourceNotFoundException("No riders available");
+        }
+        Rider assignedRider = riderPage.getContent().get(0);
 
         Order order = new Order();
         order.setCustomer(customer);
@@ -131,11 +138,6 @@ public class OrderService {
 
     /**
      * Rejects a specific order on behalf of a restaurant.
-     * Business rules applied:
-     * - Order must exist.
-     * - Verifies the order belongs to the restaurant rejecting it.
-     * - Changes order status to 'Cancelled'.
-     * - Saves the detailed rejection reason (Requirement CO2).
      */
     @Transactional
     public OrderDTO rejectOrder(Long restaurantId, Long orderId, String reason) {
@@ -160,30 +162,46 @@ public class OrderService {
 
     private void linkOrderEntities(Order order, OrderDTO dto) {
         if (dto.getCustomerId() != null) {
-            customerRepository.findById(dto.getCustomerId()).ifPresent(order::setCustomer);
+            Customer customer = customerRepository.findById(dto.getCustomerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + dto.getCustomerId()));
+            order.setCustomer(customer);
         }
         if (dto.getRiderId() != null) {
-            riderRepository.findById(dto.getRiderId()).ifPresent(order::setRider);
+            Rider rider = riderRepository.findById(dto.getRiderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Rider not found: " + dto.getRiderId()));
+            order.setRider(rider);
         }
         if (dto.getStatusId() != null) {
-            orderStatusRepository.findById(dto.getStatusId()).ifPresent(order::setStatus);
+            OrderStatus status = orderStatusRepository.findById(dto.getStatusId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Order status not found: " + dto.getStatusId()));
+            order.setStatus(status);
         }
         if (dto.getDishIds() != null && !dto.getDishIds().isEmpty()) {
-            order.setDishes(dishRepository.findAllById(dto.getDishIds()));
+            List<Dish> dishes = dishRepository.findAllById(dto.getDishIds());
+            if (dishes.size() != dto.getDishIds().size()) {
+                throw new ResourceNotFoundException("One or more dishes from the provided IDs were not found");
+            }
+            order.setDishes(dishes);
         }
     }
 
     /**
      * Validates mandatory checkout fields and basic constraints.
-     *
-     * @param request checkout request payload
-     * @throws IllegalArgumentException when request is null, customerId is missing,
-     * dishIds is empty/invalid, or clientTotal is negative
      */
     private void validateCheckoutRequest(CheckoutOrderRequestDTO request) {
         if (request == null) throw new IllegalArgumentException("Payload required");
         if (request.getCustomerId() == null) throw new IllegalArgumentException("customerId required");
-        if (request.getDishIds() == null || request.getDishIds().isEmpty()) throw new IllegalArgumentException("dishIds required");
+        if (request.getDishIds() == null || request.getDishIds().isEmpty()) {
+            throw new IllegalArgumentException("dishIds required");
+        }
+        
+        // Ensure no null or invalid IDs were passed inside the array
+        for (Long dishId : request.getDishIds()) {
+            if (dishId == null || dishId <= 0) {
+                throw new IllegalArgumentException("Invalid dish ID: must be non-null and greater than 0");
+            }
+        }
+        
         if (request.getClientTotal() < 0) throw new IllegalArgumentException("Total cannot be negative");
     }
 
@@ -196,10 +214,26 @@ public class OrderService {
         return dishes.stream().mapToDouble(Dish::getPrice).sum();
     }
 
+    /**
+     * Resolves requested dishes efficiently using a single database query.
+     */
     private List<Dish> resolveRequestedDishes(List<Long> dishIds) {
-        return dishIds.stream()
-            .map(id -> dishRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Dish not found: " + id)))
-            .collect(Collectors.toList());
+        // Fetch all unique dishes in a single query to avoid the N+1 problem
+        List<Long> uniqueDishIds = dishIds.stream().distinct().collect(Collectors.toList());
+        List<Dish> fetchedDishes = dishRepository.findAllById(uniqueDishIds);
+
+        // Map them for O(1) fast lookup
+        Map<Long, Dish> dishMap = fetchedDishes.stream()
+                .collect(Collectors.toMap(Dish::getId, dish -> dish));
+
+        // Reconstruct the requested list (preserves duplicates if someone orders 2 of the same dish)
+        return dishIds.stream().map(id -> {
+            Dish dish = dishMap.get(id);
+            if (dish == null) {
+                throw new ResourceNotFoundException("Dish not found: " + id);
+            }
+            return dish;
+        }).collect(Collectors.toList());
     }
 
     private String generateSecretCode() {

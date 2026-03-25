@@ -14,4 +14,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * Required by RiderService to manage delivery workflows.
      */
     List<Order> findByRiderId(Long riderId);
+
+    /**
+     * Finds all orders placed by a specific customer.
+     */
+    List<Order> findByCustomerId(Long customerId);
 }

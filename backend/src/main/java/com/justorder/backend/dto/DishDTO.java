@@ -27,27 +27,83 @@ public class DishDTO {
         this.restaurantName = restaurantName;
     }
 
-    // Getters
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public double getPrice() { return price; }
-    public String getImage() { return image; }
-    public Long getRestaurantId() { return restaurantId; }
-    public String getRestaurantName() { return restaurantName; }
-    public List<String> getAllergenNames() { return allergenNames; }
-    public List<Long> getAllergenIds() { return allergenIds; }
-    public List<Long> getCategoryIds() { return categoryIds; }
+    public Long getId() {
+        return id;
+    }
 
-    // Setters
-    public void setId(Long id) { this.id = id; }
-    public void setName(String name) { this.name = name; }
-    public void setDescription(String description) { this.description = description; }
-    public void setPrice(double price) { this.price = price; }
-    public void setImage(String image) { this.image = image; }
-    public void setRestaurantId(Long restaurantId) { this.restaurantId = restaurantId; }
-    public void setRestaurantName(String restaurantName) { this.restaurantName = restaurantName; }
-    public void setAllergenNames(List<String> allergenNames) { this.allergenNames = allergenNames; }
-    public void setAllergenIds(List<Long> allergenIds) { this.allergenIds = allergenIds; }
-    public void setCategoryIds(List<Long> categoryIds) { this.categoryIds = categoryIds; }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Long getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Long restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+
+    public String getRestaurantName() {
+        return restaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        this.restaurantName = restaurantName;
+    }
+
+    public List<String> getAllergenNames() {
+        return allergenNames;
+    }
+
+    public void setAllergenNames(List<String> allergenNames) {
+        this.allergenNames = allergenNames;
+    }
+
+    public List<Long> getAllergenIds() {
+        return allergenIds;
+    }
+
+    public void setAllergenIds(List<Long> allergenIds) {
+        this.allergenIds = allergenIds;
+    }
+
+    public List<Long> getCategoryIds() {
+        return categoryIds;
+    }
+
+    public void setCategoryIds(List<Long> categoryIds) {
+        this.categoryIds = categoryIds;
+    }
 }

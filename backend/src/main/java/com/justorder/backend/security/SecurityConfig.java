@@ -2,7 +2,6 @@ package com.justorder.backend.security;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,16 +28,19 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+
+    /**
+     * Constructor injection (Best practice compared to @Autowired field injection).
+     */
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
 
     /**
      * Configures the main security filter chain for the application.
      * Disables CSRF, enforces stateless sessions, and defines access control rules 
      * for different API endpoints.
-     * @param http the {@link HttpSecurity} object to be configured.
-     * @return the built {@link SecurityFilterChain} defining the security structure.
-     * @throws Exception if an error occurs during configuration.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,28 +49,54 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Public routes and preflight checks
+                // Public preflight checks and auth endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/hello").permitAll()
                 
-                // Public registration and viewing routes
-                .requestMatchers("/api/restaurants/**").permitAll()
-                .requestMatchers("/api/customers/**").permitAll()
-                .requestMatchers("/api/riders/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/allergens").permitAll() 
-                .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
+                // 1. PUBLIC REGISTRATION (Anyone can register)
+                .requestMatchers(HttpMethod.POST, "/api/restaurants/create").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/customers/create").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/riders/create").permitAll()
                 
-                // Management routes (Requires specific roles)
+                // 2. PUBLIC VIEWING AND CHECKOUT (Specific operations allowed for public/customers)
+                .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/allergens/**", "/api/categories/**").permitAll() // <-- Categorías y Alérgenos en modo lectura
+                .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
+                
+                // 3. RESTAURANT OPERATIONS
+                .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasAnyRole("RESTAURANT", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasRole("ADMIN")
+                
+                // 4. CUSTOMER OPERATIONS
+                .requestMatchers(HttpMethod.GET, "/api/customers/**").hasAnyRole("CUSTOMER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/customers/**").hasAnyRole("CUSTOMER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/customers/**").hasAnyRole("CUSTOMER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/customers/**").hasRole("ADMIN")
+                
+                // 5. RIDER OPERATIONS
+                .requestMatchers(HttpMethod.GET, "/api/riders/**").hasAnyRole("RIDER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/riders/**").hasAnyRole("RIDER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/riders/**").hasAnyRole("RIDER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/riders/**").hasRole("ADMIN")
+                
+                // 6. DISH OPERATIONS
                 .requestMatchers(HttpMethod.POST, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/dishes/**").hasAnyRole("RESTAURANT", "ADMIN")
                 
-                // Protected admin-only routes
+                // 7. ORDER OPERATIONS (Admin general CRUD)
+                .requestMatchers("/api/orders/**").hasRole("ADMIN")
+                
+                // 8. SYSTEM DICTIONARIES (Admin exclusive modifications)
+                .requestMatchers("/api/allergens/**", "/api/categories/**", "/api/order-statuses/**").hasRole("ADMIN") // <-- ¡La solución!
+                
+                // 9. ADMIN EXCLUSIVE OPERATIONS
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
-                // Any other route requires generic authentication
+                // Any other route not specifically mapped above requires generic authentication
                 .anyRequest().authenticated()
             )
             // Custom JWT filter before the standard authentication filter
@@ -79,8 +107,6 @@ public class SecurityConfig {
 
     /**
      * Configures the BCrypt password encoder bean.
-     * Used for securely hashing passwords and verifying credentials.
-     * @return a {@link PasswordEncoder} instance utilizing BCrypt.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -89,8 +115,6 @@ public class SecurityConfig {
 
     /**
      * Configures the global CORS (Cross-Origin Resource Sharing) policy.
-     * Allows the frontend (localhost:3000) to communicate safely with the backend.
-     * @return a {@link CorsFilter} customized with allowed origins, headers, and methods.
      */
     @Bean
     public CorsFilter corsFilter() {

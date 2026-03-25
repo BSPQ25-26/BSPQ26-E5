@@ -108,7 +108,14 @@ public class CustomerController {
      */
     @GetMapping("/{customerId}/orders")
     public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        if (!customerRepository.existsById(customerId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        List<OrderDTO> orders = orderRepository.findByCustomerId(customerId)
+                .stream()
+                .map(order -> order.toDTO())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(orders);
     }
 
     /**
@@ -128,7 +135,7 @@ public class CustomerController {
      */
     @DeleteMapping
     public ResponseEntity<HttpStatus> deleteAllCustomers() {
-        orderRepository.deleteAll(); 
+        orderRepository.deleteAll();
         customerRepository.deleteAll();
         return ResponseEntity.ok(HttpStatus.OK);
     }

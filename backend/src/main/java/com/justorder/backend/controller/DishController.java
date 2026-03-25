@@ -1,7 +1,6 @@
 package com.justorder.backend.controller;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +20,14 @@ import com.justorder.backend.service.MenuService;
 @RequestMapping("/api/dishes")
 public class DishController {
 
-    @Autowired
-    private MenuService menuService;
+    private final MenuService menuService;
+
+    /**
+     * Constructor injection (Best practice compared to @Autowired field injection).
+     */
+    public DishController(MenuService menuService) {
+        this.menuService = menuService;
+    }
 
     /**
      * Retrieves a list of all available dishes in the database.
@@ -41,6 +46,11 @@ public class DishController {
      */
     @PostMapping("/{restaurantId}")
     public ResponseEntity<DishDTO> createDish(@PathVariable Long restaurantId, @RequestBody DishDTO dishDTO) {
+        // Prevent inconsistent payloads where path ID and body ID mismatch
+        if (dishDTO.getRestaurantId() != null && !restaurantId.equals(dishDTO.getRestaurantId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
         try {
             DishDTO created = menuService.createDish(restaurantId, dishDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -70,6 +80,8 @@ public class DishController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (DishConflictException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

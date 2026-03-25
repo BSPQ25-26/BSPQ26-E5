@@ -27,8 +27,7 @@ public class RestaurantControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Autowired
     private RestaurantRepository repository;
@@ -42,13 +41,13 @@ public class RestaurantControllerTest {
 
     @Test
     public void testGetAll() throws Exception {
-        mockMvc.perform(get("/api/restaurants/all"))
+        mockMvc.perform(get("/api/restaurants"))
                .andExpect(status().isOk());
     }
 
     @Test
     public void testUpdate() throws Exception {
-        // Guardamos un restaurante real en la BD de pruebas para poder actualizarlo
+
         Restaurant existing = new Restaurant();
         existing.setName("Burger King");
         existing.setEmail("bk@test.com");
@@ -57,7 +56,7 @@ public class RestaurantControllerTest {
         RestaurantDTO request = new RestaurantDTO();
         request.setName("Burger King Nuevo");
 
-        mockMvc.perform(put("/api/restaurants/update/" + existing.getId())
+        mockMvc.perform(put("/api/restaurants/" + existing.getId())
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
@@ -66,13 +65,13 @@ public class RestaurantControllerTest {
 
     @Test
     public void testDelete() throws Exception {
-        // Guardamos uno para borrarlo
+
         Restaurant existing = new Restaurant();
         existing.setName("To Delete");
         existing = repository.save(existing);
 
-        mockMvc.perform(delete("/api/restaurants/delete/" + existing.getId()))
-               .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/restaurants/" + existing.getId()))
+               .andExpect(status().isOk()); 
     }
 
     // ==========================================
@@ -82,10 +81,10 @@ public class RestaurantControllerTest {
     @Test
     public void testGetMenu() throws Exception {
         mockMvc.perform(get("/api/restaurants/1/menu"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[?(@.name=='Four Cheese Pizza' && @.description=='Stone-baked pizza with four cheeses' && @.price==23.0 && @.restaurantId==1 && @.allergenNames==[\"Gluten\",\"Lactose\"])]", hasSize(1)))
-                .andExpect(jsonPath("$[?(@.name=='Grilled Salmon' && @.description=='Grilled salmon fillet with herbs' && @.price==25.0 && @.restaurantId==1 && @.allergenNames==[])]", hasSize(1)));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$", hasSize(2)))
+                 .andExpect(jsonPath("$[?(@.name=='Four Cheese Pizza' && @.description=='Stone-baked pizza with four cheeses' && @.price==23.0 && @.restaurantId==1 && @.allergenNames==[\"Gluten\",\"Lactose\"])]", hasSize(1)))
+                 .andExpect(jsonPath("$[?(@.name=='Grilled Salmon' && @.description=='Grilled salmon fillet with herbs' && @.price==25.0 && @.restaurantId==1 && @.allergenNames==[])]", hasSize(1)));
     }
 
     @Test
@@ -123,7 +122,7 @@ public class RestaurantControllerTest {
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -204,84 +203,77 @@ public class RestaurantControllerTest {
 
     @Test
     void testDeleteAllRestaurants() throws Exception {
-        mockMvc.perform(delete("/api/restaurants"))
+        mockMvc.perform(delete("/api/restaurants/all"))
                .andExpect(status().isOk());
     }
 
-    // --- Filtros de Búsqueda ---
 
     @Test
     void testSearchAllRestaurants() throws Exception {
         mockMvc.perform(get("/api/restaurants/search"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testSearchByCuisine() throws Exception {
         mockMvc.perform(get("/api/restaurants/search").param("cuisine", "italian"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
+                 .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
     }
 
     @Test
     void testSearchByCuisineCaseInsensitive() throws Exception {
         mockMvc.perform(get("/api/restaurants/search").param("cuisine", "ITALIAN"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
+                 .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
     }
 
     @Test
     void testSearchByMinRating() throws Exception {
         mockMvc.perform(get("/api/restaurants/search").param("minRating", "4.0"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[*].averageRating", everyItem(greaterThanOrEqualTo(4.0))));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
+                 .andExpect(jsonPath("$[*].averageRating", everyItem(greaterThanOrEqualTo(4.0))));
     }
 
     @Test
     void testSearchByMaxPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search").param("maxPrice", "8.0"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
+                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
     @Test
     void testSearchByMinPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search").param("minPrice", "13.5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(3)));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
+                 .andExpect(jsonPath("$", hasSize(3)));
     }
 
     @Test
     void testSearchByCuisineAndMinRating() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
-                .param("cuisine", "japanese")
-                .param("minRating", "4.5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].name").value("Sushi Tokyo"));
+                 .param("cuisine", "japanese")
+                 .param("minRating", "4.5"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
+                 .andExpect(jsonPath("$", hasSize(1)))
+                 .andExpect(jsonPath("$[0].name").value("Sushi Tokyo"));
     }
 
     @Test
     void testSearchReturnsEmptyListWhenNoMatch() throws Exception {
         mockMvc.perform(get("/api/restaurants/search").param("cuisine", "indian"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(0)));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
+                 .andExpect(jsonPath("$", hasSize(0)));
     }
-    // -------------------------------------------------------------------------
-    // CO2 — Restaurant Order Rejection Tests
-    // -------------------------------------------------------------------------
-
-    /**
-     * Test successful rejection of an existing order by its restaurant.
-     */
+ 
     @Test
     void testRejectOrderSuccess() throws Exception {
         String requestBody = """
@@ -298,9 +290,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.rejectionReason").value("Out of pizza dough"));
     }
 
-    /**
-     * Test rejecting a non-existent order.
-     */
     @Test
     void testRejectOrderNotFound() throws Exception {
         String requestBody = """
@@ -308,8 +297,6 @@ public class RestaurantControllerTest {
             "reason": "This order does not exist"
         }
         """;
-
-        // El pedido 9999 no debería existir en la base de datos
         mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))

@@ -29,6 +29,4 @@ replay_pid*
 # Local configuration files
 application-dev.properties
 
-# Dependencies and System files
-frontend/node_modules/
 .DS_Store

@@ -31,8 +31,7 @@ class CustomerControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -52,7 +51,7 @@ class CustomerControllerTest {
         
         when(repository.findAll()).thenReturn(Arrays.asList(c));
 
-        mockMvc.perform(get("/api/customers/all"))
+        mockMvc.perform(get("/api/customers"))
                .andExpect(status().isOk())
                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Juan Perez")));
     }
@@ -73,7 +72,7 @@ class CustomerControllerTest {
         when(repository.findById(2L)).thenReturn(Optional.of(existing));
         when(repository.save(any(Customer.class))).thenReturn(updated);
 
-        mockMvc.perform(put("/api/customers/update/2")
+        mockMvc.perform(put("/api/customers/2")
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
@@ -83,7 +82,7 @@ class CustomerControllerTest {
     @Test
     void testDelete() throws Exception {
         when(repository.existsById(1L)).thenReturn(true);
-        mockMvc.perform(delete("/api/customers/delete/1"))
+        mockMvc.perform(delete("/api/customers/1"))
                .andExpect(status().isOk());
     }
 

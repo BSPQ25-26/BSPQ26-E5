@@ -2,7 +2,7 @@ package com.justorder.backend.dto;
 
 public class AllergenDTO {
 
-    private Long id; // <--- ID AÑADIDO
+    private Long id;
     private String name;
     private String description;
 
