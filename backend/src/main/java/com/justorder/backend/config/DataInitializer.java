@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -61,14 +62,23 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Value("${app.admin.default.name:Super Admin}")
+    private String defaultAdminName;
+
+    @Value("${app.admin.default.email:admin@justorder.com}")
+    private String defaultAdminEmail;
+
+    @Value("${app.admin.default.password:admin123}")
+    private String defaultAdminPassword;
+
     @Override
     public void run(String... args) throws Exception {
 
         if (adminRepository.count() == 0) {
             Admin superAdmin = new Admin();
-            superAdmin.setName("Super Admin");
-            superAdmin.setEmail("admin@justorder.com");
-            superAdmin.setPassword(passwordEncoder.encode("admin123"));
+            superAdmin.setName(defaultAdminName);
+            superAdmin.setEmail(defaultAdminEmail);
+            superAdmin.setPassword(passwordEncoder.encode(defaultAdminPassword));
             adminRepository.save(superAdmin);
         }
 
