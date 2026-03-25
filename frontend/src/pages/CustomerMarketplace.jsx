@@ -75,7 +75,7 @@ function CustomerMarketplace() {
 
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown">
-                    <Link to="/customer/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
+                    <Link to="/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
                       My Orders
                     </Link>
                     <Link to="/customer/profile" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>

@@ -8,6 +8,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import MenuEditor from "./pages/MenuEditor";
+import OrderStatusPage from "./pages/OrderStatusPage";
 import RiderDashboard from "./pages/RiderDashboard";
 import CustomerMarketplace from "./pages/CustomerMarketplace";
 import RestaurantDetail from './pages/RestaurantDetail';
@@ -35,6 +36,9 @@ function App() {
           {/* Restaurant Routes */}
           <Route path="/restaurants/:restaurantId/menu-editor" element={<MenuEditor />} />
           <Route path="/restaurants/:id" element={<RestaurantDetail />} />
+
+          {/* Order Routes */}
+          <Route path="/orders" element={<OrderStatusPage />} />
 
           {/* Rider and Customer Routes */}
           <Route path="/rider-dashboard" element={<RiderDashboard />} />

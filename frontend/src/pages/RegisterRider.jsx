@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { registerRider } from "../api/authApi";
 
 const RegisterRider = () => {
@@ -18,6 +19,8 @@ const RegisterRider = () => {
     });
 
     const [message, setMessage] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const navigate = useNavigate();
 
     const onFieldChange = (e) => {
         const { name, value } = e.target;
@@ -26,19 +29,23 @@ const RegisterRider = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (submitting) return;
+
+        setMessage("");
+        setSubmitting(true);
 
         const payload = {
-            name: formData.name,
-            dni: formData.dni,
-            phoneNumber: formData.phoneNumber,
-            email: formData.email,
+            name: formData.name.trim(),
+            dni: formData.dni.trim(),
+            phoneNumber: formData.phoneNumber.trim(),
+            email: formData.email.trim(),
             password: formData.password,
             starterPoint: {
-                city: formData.city,
-                province: formData.province,
-                country: formData.country,
-                postalCode: formData.postalCode,
-                number: formData.number,
+                city: formData.city.trim(),
+                province: formData.province.trim(),
+                country: formData.country.trim(),
+                postalCode: formData.postalCode.trim(),
+                number: formData.number.trim(),
                 longitude: Number(formData.longitude),
                 latitude: Number(formData.latitude),
             },
@@ -47,8 +54,13 @@ const RegisterRider = () => {
         try {
             await registerRider(payload);
             setMessage("Rider registered successfully");
+            setTimeout(() => {
+                navigate("/");
+            }, 1500);
         } catch (error) {
             setMessage(error.message || "Error registering rider");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -167,7 +179,9 @@ const RegisterRider = () => {
                     required
                 />
 
-                <button type="submit">Register Rider</button>
+                <button type="submit" disabled={submitting}>
+                    {submitting ? "Registering..." : "Register Rider"}
+                </button>
             </form>
 
             {message && <p role="alert">{message}</p>}

@@ -164,18 +164,7 @@ public class RestaurantControllerTest {
                .andExpect(status().isOk());
     }
 
-    // -------------------------------------------------------------------------
-    // CA2 — Restaurant Search & Filtering tests
-    // These tests rely on the restaurants seeded by DataInitializer:
-    //   - Pizza Roma      (Italian,       rating: 4.5, dishes: €9.50–€12.00)
-    //   - Sushi Tokyo     (Japanese,      rating: 4.8, dishes: €13.50–€14.00)
-    //   - Taco Loco       (Mexican,       rating: 3.2, dishes: €4.50–€7.00)
-    //   - Olive Garden    (Mediterranean, rating: 4.1, dishes: €6.50–€8.00)
-    // -------------------------------------------------------------------------
 
-    /**
-     * No filters → should return all restaurants with 200 OK.
-     */
     @Test
     void testSearchAllRestaurants() throws Exception {
         mockMvc.perform(get("/api/restaurants/search"))
@@ -183,9 +172,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$").isArray());
     }
 
-    /**
-     * Filter by cuisine=italian (case-insensitive) → should return only Pizza Roma.
-     */
+    
     @Test
     void testSearchByCuisine() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -195,9 +182,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
     }
 
-    /**
-     * Filter by cuisine=ITALIAN (uppercase) → same result as lowercase.
-     */
+   
     @Test
     void testSearchByCuisineCaseInsensitive() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -207,9 +192,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
     }
 
-    /**
-     * Filter by minRating=4.0 → every result must have averageRating >= 4.0.
-     */
     @Test
     void testSearchByMinRating() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -219,9 +201,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[*].averageRating", everyItem(greaterThanOrEqualTo(4.0))));
     }
 
-    /**
-     * Filter by maxPrice=8.0 → should return Taco Loco and Olive Garden only.
-     */
+   
     @Test
     void testSearchByMaxPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -231,9 +211,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    /**
-     * Filter by minPrice=10.0 → should return Pizza Roma and Sushi Tokyo only.
-     */
+   
     @Test
     void testSearchByMinPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -243,9 +221,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$", hasSize(3)));
     }
 
-    /**
-     * Filter by cuisine=japanese and minRating=4.5 → should return only Sushi Tokyo.
-     */
+   
     @Test
     void testSearchByCuisineAndMinRating() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -257,9 +233,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Sushi Tokyo"));
     }
 
-    /**
-     * Filter by cuisine=indian → no match, should return 200 OK with empty list.
-     */
+  
     @Test
     void testSearchReturnsEmptyListWhenNoMatch() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -268,13 +242,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
-    // -------------------------------------------------------------------------
-    // CO2 — Restaurant Order Rejection Tests
-    // -------------------------------------------------------------------------
-
-    /**
-     * Test successful rejection of an existing order by its restaurant.
-     */
+ 
     @Test
     void testRejectOrderSuccess() throws Exception {
         String requestBody = """
@@ -291,9 +259,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.rejectionReason").value("Out of pizza dough"));
     }
 
-    /**
-     * Test rejecting a non-existent order.
-     */
+
     @Test
     void testRejectOrderNotFound() throws Exception {
         String requestBody = """
@@ -301,8 +267,6 @@ public class RestaurantControllerTest {
             "reason": "This order does not exist"
         }
         """;
-
-        // El pedido 9999 no debería existir en la base de datos
         mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))

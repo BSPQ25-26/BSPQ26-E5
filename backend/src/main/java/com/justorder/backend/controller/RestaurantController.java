@@ -36,19 +36,13 @@ public class RestaurantController {
     private final RestaurantRepository restaurantRepository;
     private final RestaurantService restaurantService;
 
-    /**
-     * Handles order-related business logic (CO2).
-     * Injected here to process restaurant-initiated actions on their assigned orders, 
-     * such as order rejection.
-     */
+
     private final OrderService orderService;
 
-    /**
-     * Constructor injection of all dependencies.
-     *
-     * @param registerService      Service handling registration for all user types.
-     * @param restaurantRepository JPA repository for direct DB access (see tech debt note).
-     * @param restaurantService    Service handling restaurant search and filtering.
+    /***
+     * @param registerService      
+     * @param restaurantRepository 
+     * @param restaurantService    
      */
     public RestaurantController(RegisterService registerService,
                                 RestaurantRepository restaurantRepository,
@@ -78,11 +72,13 @@ public class RestaurantController {
 
     @PostMapping("/menu")
     public ResponseEntity<HttpStatus> createOrUpdateMenu(@RequestBody List<DishDTO> request) {
+   
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     @GetMapping("/{restaurantId}")
     public ResponseEntity<RestaurantDTO> getRestaurant(@PathVariable String restaurantId) {
+   
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
