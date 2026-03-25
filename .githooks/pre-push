@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Running backend tests before push..."
+echo "Running backend tests..."
 (
   cd backend
-  ./mvnw -B test
+  mvn clean test
 )
 
-echo "Running frontend tests before push..."
+echo "Running frontend tests..."
 (
   cd frontend
-  npm ci --silent
+  npm install
   CI=true npm test -- --watchAll=false
 )
 

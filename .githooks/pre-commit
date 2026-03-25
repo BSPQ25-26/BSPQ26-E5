@@ -4,14 +4,14 @@ set -euo pipefail
 echo "Running backend tests..."
 (
   cd backend
-  ./mvnw -B test
+  mvn clean test
 )
 
 echo "Running frontend tests..."
 (
   cd frontend
-  npm ci --silent
-  CI=true npm test -- --watchAll=false
+  npm install
+  npm test -- --watchAll=false
 )
 
 echo "All tests passed. Commit allowed."
