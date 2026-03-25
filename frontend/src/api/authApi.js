@@ -109,8 +109,7 @@ export const deleteDish = async (dishId) => {
 };
 
 export const loginUser = async (loginType, payload) => {
-    // 1. Decidir la URL en base al tipo de usuario
-    // (Respetamos tus rutas /sessions/ que no llevan /api/)
+    
     const BASE_URL = "http://localhost:8080";
     let endpoint = "";
 
@@ -118,24 +117,32 @@ export const loginUser = async (loginType, payload) => {
     else if (loginType === "rider") endpoint = `${BASE_URL}/sessions/riders`;
     else if (loginType === "restaurant") endpoint = `${BASE_URL}/sessions/restaurants`;
 
-    // 2. Disparar la petición
     const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 
-    // 3. Evaluar el Bypass (Tu regla especial de UI testing)
     if (response.status === 501 || response.status === 403) {
         return { isBypass: true, token: "dummy-dev-token" };
     }
 
-    // 4. Evaluar errores reales
     if (!response.ok) {
         throw new Error("Login failed. Please check your credentials.");
     }
 
-    // 5. Devolver éxito real
     const data = await response.json();
     return { isBypass: false, token: data.token };
+  
+export const getCustomerOrders = async (customerId) => {
+    const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching customer orders");
+    return text ? JSON.parse(text) : [];
 };
