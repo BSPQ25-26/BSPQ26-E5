@@ -2,38 +2,31 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import RegisterRestaurant from '../../pages/RegisterRestaurant';
 import { registerRestaurant } from '../../api/authApi';
-import { MemoryRouter } from 'react-router-dom';
+
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+    useNavigate: () => mockNavigate,
+}), { virtual: true });
 
 jest.mock('../../api/authApi', () => ({
     registerRestaurant: jest.fn(),
 }));
 
-const renderWithRouter = (ui) =>
-  render(
-    <MemoryRouter
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
-      {ui}
-    </MemoryRouter>
-  );
 const fillRequiredFields = () => {
     fireEvent.change(screen.getByPlaceholderText(/Restaurant Name/i), { target: { value: 'Pizza House' } });
-
     fireEvent.change(screen.getByPlaceholderText(/Description/i), { target: { value: 'Best pizza in town' } });
-    
     fireEvent.change(screen.getByPlaceholderText(/Phone/i), { target: { value: '+34 600 000 000' } });
-    
     fireEvent.change(screen.getByPlaceholderText(/^Email$/i), { target: { value: 'pizza@test.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/Password/i), { target: { value: 'supersecurepassword1' } });
 
-    fireEvent.change(screen.getByPlaceholderText(/Password/i), {target: { value: 'supersecurepassword1' },});
-
-    fireEvent.change(screen.getByPlaceholderText(/Monday \(HH:mm-HH:mm\)/i), { target: { value: "09:00-22:00" } });
-    fireEvent.change(screen.getByPlaceholderText(/Tuesday \(HH:mm-HH:mm\)/i), { target: { value: "09:00-22:00" } });
-    fireEvent.change(screen.getByPlaceholderText(/Wednesday \(HH:mm-HH:mm\)/i), { target: { value: "09:00-22:00" } });
-    fireEvent.change(screen.getByPlaceholderText(/Thursday \(HH:mm-HH:mm\)/i), { target: { value: "09:00-22:00" } });
-    fireEvent.change(screen.getByPlaceholderText(/Friday \(HH:mm-HH:mm\)/i), { target: { value: "09:00-23:00" } });
-    fireEvent.change(screen.getByPlaceholderText(/Saturday \(HH:mm-HH:mm\)/i), { target: { value: "10:00-23:00" } });
-    fireEvent.change(screen.getByPlaceholderText(/Sunday \(HH:mm-HH:mm\)/i), { target: { value: "10:00-21:00" } });
+    fireEvent.change(screen.getByPlaceholderText(/Monday \(HH:mm-HH:mm\)/i), { target: { value: '09:00-22:00' } });
+    fireEvent.change(screen.getByPlaceholderText(/Tuesday \(HH:mm-HH:mm\)/i), { target: { value: '09:00-22:00' } });
+    fireEvent.change(screen.getByPlaceholderText(/Wednesday \(HH:mm-HH:mm\)/i), { target: { value: '09:00-22:00' } });
+    fireEvent.change(screen.getByPlaceholderText(/Thursday \(HH:mm-HH:mm\)/i), { target: { value: '09:00-22:00' } });
+    fireEvent.change(screen.getByPlaceholderText(/Friday \(HH:mm-HH:mm\)/i), { target: { value: '09:00-23:00' } });
+    fireEvent.change(screen.getByPlaceholderText(/Saturday \(HH:mm-HH:mm\)/i), { target: { value: '10:00-23:00' } });
+    fireEvent.change(screen.getByPlaceholderText(/Sunday \(HH:mm-HH:mm\)/i), { target: { value: '10:00-21:00' } });
 
     fireEvent.change(screen.getByPlaceholderText(/City/i), { target: { value: 'Bilbao' } });
     fireEvent.change(screen.getByPlaceholderText(/Province/i), { target: { value: 'Bizkaia' } });
@@ -52,12 +45,12 @@ describe('RegisterRestaurant', () => {
     });
 
     test('renders restaurant registration title', () => {
-        renderWithRouter(<RegisterRestaurant />);;
-        expect(screen.getByRole("heading", { name: /Register Restaurant/i, level: 2 })).toBeInTheDocument();
+        render(<RegisterRestaurant />);
+        expect(screen.getByRole('heading', { name: /Register Restaurant/i, level: 2 })).toBeInTheDocument();
     });
 
     test('allows typing in inputs', () => {
-        renderWithRouter(<RegisterRestaurant />);
+        render(<RegisterRestaurant />);
         const nameInput = screen.getByPlaceholderText(/Restaurant Name/i);
         fireEvent.change(nameInput, { target: { value: 'Sushi Tokyo' } });
         expect(nameInput.value).toBe('Sushi Tokyo');
@@ -66,7 +59,7 @@ describe('RegisterRestaurant', () => {
     test('submits payload and shows success message', async () => {
         registerRestaurant.mockResolvedValueOnce(null);
 
-        renderWithRouter(<RegisterRestaurant />);
+        render(<RegisterRestaurant />);
         fillRequiredFields();
 
         fireEvent.click(screen.getByRole('button', { name: /Register restaurant/i }));
@@ -75,46 +68,47 @@ describe('RegisterRestaurant', () => {
             expect(registerRestaurant).toHaveBeenCalledTimes(1);
         });
 
-    expect(registerRestaurant).toHaveBeenCalledWith(
-    expect.objectContaining({
-        name: 'Pizza House',
-        description: 'Best pizza in town',
-        phone: '+34 600 000 000',
-        email: 'pizza@test.com',
-        password: 'supersecurepassword1',
-        mondayWorkingHours: '09:00-22:00',
-        tuesdayWorkingHours: '09:00-22:00',
-        wednesdayWorkingHours: '09:00-22:00',
-        thursdayWorkingHours: '09:00-22:00',
-        fridayWorkingHours: '09:00-23:00',
-        saturdayWorkingHours: '10:00-23:00',
-        sundayWorkingHours: '10:00-21:00',
-        cuisineCategoryNames: ['Italian'],
-    })
-    );
+        expect(registerRestaurant).toHaveBeenCalledWith(
+            expect.objectContaining({
+                name: 'Pizza House',
+                description: 'Best pizza in town',
+                phone: '+34 600 000 000',
+                email: 'pizza@test.com',
+                password: 'supersecurepassword1',
+                mondayWorkingHours: '09:00-22:00',
+                tuesdayWorkingHours: '09:00-22:00',
+                wednesdayWorkingHours: '09:00-22:00',
+                thursdayWorkingHours: '09:00-22:00',
+                fridayWorkingHours: '09:00-23:00',
+                saturdayWorkingHours: '10:00-23:00',
+                sundayWorkingHours: '10:00-21:00',
+                cuisineCategoryNames: ['Italian'],
+            })
+        );
 
-    expect(registerRestaurant).toHaveBeenCalledWith(
-    expect.objectContaining({
-        localizations: [
-        expect.objectContaining({
-            city: 'Bilbao',
-            province: 'Bizkaia',
-            country: 'Spain',
-            postalCode: '48001',
-            number: '12',
-            longitude: -2.935,
-            latitude: 43.263,
-        }),
-        ],
-    })
-    );
+        expect(registerRestaurant).toHaveBeenCalledWith(
+            expect.objectContaining({
+                localizations: [
+                    expect.objectContaining({
+                        city: 'Bilbao',
+                        province: 'Bizkaia',
+                        country: 'Spain',
+                        postalCode: '48001',
+                        number: '12',
+                        longitude: -2.935,
+                        latitude: 43.263,
+                    }),
+                ],
+            })
+        );
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Restaurant registered successfully/i);
+        expect(await screen.findByRole('alert')).toHaveTextContent(/Restaurant registered successfully/i);
     });
 
     test('shows error message when API fails', async () => {
         registerRestaurant.mockRejectedValueOnce(new Error('Backend error'));
-        renderWithRouter(<RegisterRestaurant />);
+
+        render(<RegisterRestaurant />);
         fillRequiredFields();
 
         fireEvent.click(screen.getByRole('button', { name: /Register restaurant/i }));

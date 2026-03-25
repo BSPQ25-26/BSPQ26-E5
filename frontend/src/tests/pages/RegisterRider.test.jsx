@@ -3,6 +3,12 @@ import "@testing-library/jest-dom";
 import RegisterRider from "../../pages/RegisterRider";
 import { registerRider } from "../../api/authApi";
 
+const mockNavigate = jest.fn();
+
+jest.mock("react-router-dom", () => ({
+    useNavigate: () => mockNavigate,
+}), { virtual: true });
+
 jest.mock("../../api/authApi", () => ({
     registerRider: jest.fn(),
 }));
