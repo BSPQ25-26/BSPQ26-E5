@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running backend tests before push..."
+(
+  cd backend
+  ./mvnw -B test
+)
+
+echo "Running frontend tests before push..."
+(
+  cd frontend
+  npm ci --silent
+  CI=true npm test -- --watchAll=false
+)
+
+echo "All tests passed. Push allowed."
