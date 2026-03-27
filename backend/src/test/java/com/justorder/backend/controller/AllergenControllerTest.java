@@ -1,6 +1,5 @@
 package com.justorder.backend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -20,15 +19,17 @@ public class AllergenControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-
+    
     @Test
     public void testGetAllAllergens() throws Exception {
+        
         mockMvc.perform(get("/api/allergens"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(6)))
-                .andExpect(jsonPath("$[?(@.name=='Gluten')]", hasSize(1)))
-                .andExpect(jsonPath("$[?(@.name=='Lactose')]", hasSize(1)));
+            .andExpect(jsonPath("$[?(@.name=='Gluten' && @.description=='Cereals containing gluten')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Lactose' && @.description=='Milk and dairy products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Peanuts' && @.description=='Peanuts and peanut-based products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Shellfish' && @.description=='Crustaceans and shellfish products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Soy' && @.description=='Soybeans and soy-based products')]", hasSize(1)))
+            .andExpect(jsonPath("$[?(@.name=='Eggs' && @.description=='Eggs and egg-based products')]", hasSize(1)));
     }
 }
