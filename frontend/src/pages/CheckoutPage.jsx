@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Cart from "../components/Cart";
 import { useCart } from "../store/CartContext";
 import "../assets/css/Checkout.css";
@@ -11,12 +12,33 @@ const MOCK_DISHES = [
 
 const formatPrice = (value) => `${value.toFixed(2)} EUR`;
 
+const ORDER_CODE_STORAGE_KEY = "justorder:verificationCodes";
+
+const readVerificationCodes = () => {
+  try {
+    const rawValue = localStorage.getItem(ORDER_CODE_STORAGE_KEY);
+    return rawValue ? JSON.parse(rawValue) : {};
+  } catch {
+    return {};
+  }
+};
+
+const storeVerificationCode = (orderId, secretCode) => {
+  if (!orderId || !secretCode) {
+    return;
+  }
+
+  const currentCodes = readVerificationCodes();
+  currentCodes[String(orderId)] = secretCode;
+  localStorage.setItem(ORDER_CODE_STORAGE_KEY, JSON.stringify(currentCodes));
+};
+
 const CheckoutPage = () => {
+  const navigate = useNavigate();
   const { items, addToCart, clearCart, totalPrice } = useCart();
   const [customerId, setCustomerId] = useState("1");
   const [paymentToken, setPaymentToken] = useState("mock-payment-token");
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const dishIds = useMemo(
@@ -30,7 +52,6 @@ const CheckoutPage = () => {
    * and a non-empty payment token.
    */
   const handleCheckout = async () => {
-    setSuccessMessage("");
     setErrorMessage("");
 
     const parsedCustomerId = Number(customerId);
@@ -79,9 +100,12 @@ const CheckoutPage = () => {
       }
 
       clearCart();
-      setSuccessMessage(
-        `Order confirmed. ID: ${data?.id ?? "N/A"}. Secret code: ${data?.secretCode ?? "N/A"}.`
-      );
+      storeVerificationCode(data?.id, data?.secretCode);
+      navigate("/orders/confirmation", {
+        state: {
+          order: data,
+        },
+      });
     } catch (error) {
       setErrorMessage(error.message || "Checkout could not be completed.");
     } finally {
@@ -181,12 +205,6 @@ const CheckoutPage = () => {
                 {isLoading ? "Processing..." : "Pay & Confirm Order"}
               </button>
             </div>
-
-            {successMessage && (
-              <div className="message-box message-success" role="status">
-                <span>{successMessage}</span>
-              </div>
-            )}
 
             {errorMessage && (
               <div className="message-box message-error" role="alert">
