@@ -8,6 +8,7 @@ import "../assets/css/OrderStatusPage.css";
 
 
 const CUSTOMER_ID = 1;
+const ORDER_CODE_STORAGE_KEY = "justorder:verificationCodes";
 
 const STATUS_CLASS = {
     "Pending":          "status-Pending",
@@ -19,6 +20,15 @@ const STATUS_CLASS = {
 };
 
 const formatPrice = (value) => `${Number(value).toFixed(2)} €`;
+
+const readVerificationCodes = () => {
+    try {
+        const rawValue = localStorage.getItem(ORDER_CODE_STORAGE_KEY);
+        return rawValue ? JSON.parse(rawValue) : {};
+    } catch {
+        return {};
+    }
+};
 
 const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -34,6 +44,7 @@ const formatDate = (dateString) => {
 const OrderCard = ({ order }) => {
     const isCancelled = order.status === "Cancelled";
     const statusClass = STATUS_CLASS[order.status] || "";
+    const verificationCode = order.verificationCode;
 
     return (
         <article className={`order-card ${isCancelled ? "cancelled" : ""}`}>
@@ -42,7 +53,14 @@ const OrderCard = ({ order }) => {
                     <span className="order-id">Order #{order.id}</span>
                     <span className="order-date">{formatDate(order.createdAt)}</span>
                 </div>
-                <span className={`status-badge ${statusClass}`}>{order.status}</span>
+                <div className="order-status-stack">
+                    <span className={`status-badge ${statusClass}`}>{order.status}</span>
+                    {verificationCode && (
+                        <span className="verification-code-label">
+                            Verification code: <strong>{verificationCode}</strong>
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="order-card-body">
@@ -90,7 +108,15 @@ function OrderStatusPage() {
     // Auto-load orders on mount, no user input needed
     useEffect(() => {
         getCustomerOrders(CUSTOMER_ID)
-            .then((data) => setOrders(data))
+            .then((data) => {
+                const verificationCodes = readVerificationCodes();
+                const ordersWithCodes = data.map((order) => ({
+                    ...order,
+                    verificationCode: verificationCodes[String(order.id)] || order.secretCode || null,
+                }));
+
+                setOrders(ordersWithCodes);
+            })
             .catch(() => setErrorMessage("Could not load your orders. Please try again later."))
             .finally(() => setIsLoading(false));
     }, []);

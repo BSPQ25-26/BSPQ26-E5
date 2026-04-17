@@ -1,0 +1,190 @@
+:root {
+  --confirm-bg: radial-gradient(circle at 10% 10%, #f7f9ff 0%, #eef3ff 42%, #f8fbf3 100%);
+  --confirm-panel: #ffffff;
+  --confirm-text: #101820;
+  --confirm-muted: #5d6b87;
+  --confirm-accent: #2f7c31;
+  --confirm-accent-hover: #245f26;
+  --confirm-outline: #dce4f3;
+  --confirm-shadow: 0 24px 60px rgba(16, 24, 32, 0.14);
+}
+
+.confirmation-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 28px 16px;
+  background: var(--confirm-bg);
+}
+
+.confirmation-shell {
+  width: min(860px, 100%);
+  background: var(--confirm-panel);
+  border: 1px solid var(--confirm-outline);
+  border-radius: 24px;
+  box-shadow: var(--confirm-shadow);
+  padding: 32px;
+  display: grid;
+  gap: 22px;
+}
+
+.confirmation-shell-empty {
+  max-width: 680px;
+  text-align: center;
+}
+
+.confirmation-header h1 {
+  margin: 6px 0;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.1;
+  color: var(--confirm-text);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--confirm-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+.subtext {
+  margin: 0;
+  color: var(--confirm-muted);
+  max-width: 64ch;
+}
+
+.code-card {
+  border: 1px solid var(--confirm-outline);
+  border-radius: 18px;
+  padding: 20px;
+  background: linear-gradient(120deg, #f7fff8 0%, #f3f9ff 100%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.code-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--confirm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-basis: 100%;
+}
+
+.code-value {
+  margin: 0;
+  font-size: clamp(28px, 7vw, 44px);
+  font-weight: 800;
+  color: var(--confirm-text);
+  letter-spacing: 0.16em;
+}
+
+.order-summary {
+  border: 1px solid var(--confirm-outline);
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.order-summary h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  color: var(--confirm-text);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summary-grid div {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--confirm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.value {
+  font-size: 16px;
+  color: var(--confirm-text);
+  font-weight: 700;
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--confirm-accent);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: var(--confirm-accent-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--confirm-text);
+  border: 1px solid var(--confirm-outline);
+}
+
+.btn-secondary:hover {
+  background: #f5f8ff;
+}
+
+@media (max-width: 768px) {
+  .confirmation-shell {
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmation-actions {
+    justify-content: stretch;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+}

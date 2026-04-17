@@ -37,6 +37,7 @@ const mockOrders = [
 describe("OrderStatusPage", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        localStorage.clear();
     });
 
     test("renders the page title on mount", async () => {
@@ -66,6 +67,19 @@ describe("OrderStatusPage", () => {
 
         expect(screen.getByText("Pending")).toBeInTheDocument();
         expect(screen.getByText("Cancelled")).toBeInTheDocument();
+    });
+
+    test("shows verification code under the status when stored locally", async () => {
+        localStorage.setItem(
+            "justorder:verificationCodes",
+            JSON.stringify({ "1": "123456" })
+        );
+
+        getCustomerOrders.mockResolvedValueOnce(mockOrders);
+        await act(async () => { render(<OrderStatusPage />); });
+
+        expect(screen.getByText(/Verification code:/i)).toBeInTheDocument();
+        expect(screen.getByText("123456")).toBeInTheDocument();
     });
 
     test("shows refund notice for cancelled orders", async () => {

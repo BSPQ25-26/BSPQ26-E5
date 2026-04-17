@@ -10,6 +10,7 @@ import OrderStatusPage from "./pages/OrderStatusPage";
 import RiderDashboard from "./pages/RiderDashboard";
 import CustomerMarketplace from "./pages/CustomerMarketplace";
 import RestaurantDetail from './pages/RestaurantDetail';
+import RestaurantOrderConfirmationView from "./pages/RestaurantOrderConfirmationView";
 import { CartProvider } from "./store/CartContext";
 import "./assets/css/Home.css";
 import "./assets/css/Register.css";
@@ -27,6 +28,7 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/restaurants/:restaurantId/menu-editor" element={<MenuEditor />} />
           <Route path="/orders" element={<OrderStatusPage />} />
+          <Route path="/orders/confirmation" element={<RestaurantOrderConfirmationView />} />
           <Route path="/rider-dashboard" element={<RiderDashboard />} />
           <Route path="/customer-marketplace" element={<CustomerMarketplace />} />
           <Route path="/restaurants/:id" element={<RestaurantDetail />} />
