@@ -1,6 +1,5 @@
 package com.justorder.backend.service;
 
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,26 +25,28 @@ import com.justorder.backend.repository.RiderRepository;
 public class OrderService {
 
     private static final String DEFAULT_ORDER_STATUS = "Pending";
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
     private final DishRepository dishRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final RiderRepository riderRepository;
+    private final OrderPinGenerationService orderPinGenerationService;
 
     public OrderService(
         OrderRepository orderRepository,
         CustomerRepository customerRepository,
         DishRepository dishRepository,
         OrderStatusRepository orderStatusRepository,
-        RiderRepository riderRepository
+        RiderRepository riderRepository,
+        OrderPinGenerationService orderPinGenerationService
     ) {
         this.orderRepository = orderRepository;
         this.customerRepository = customerRepository;
         this.dishRepository = dishRepository;
         this.orderStatusRepository = orderStatusRepository;
         this.riderRepository = riderRepository;
+        this.orderPinGenerationService = orderPinGenerationService;
     }
 
    
@@ -77,7 +78,7 @@ public class OrderService {
         order.setStatus(status);
         order.setRider(assignedRider);
         order.setTotalPrice(calculatedTotal);
-        order.setSecretCode(generateSecretCode());
+        order.setSecretCode(orderPinGenerationService.generatePin());
 
         return orderRepository.save(order).toDTO();
     }
@@ -158,8 +159,4 @@ public class OrderService {
         return resolvedDishes;
     }
 
-    private String generateSecretCode() {
-        int value = RANDOM.nextInt(900000) + 100000;
-        return String.valueOf(value);
-    }
 }
