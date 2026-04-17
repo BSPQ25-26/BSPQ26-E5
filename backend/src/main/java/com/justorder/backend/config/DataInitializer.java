@@ -246,11 +246,11 @@ public class DataInitializer implements CommandLineRunner {
             Dish dish1 = dishRepository.findAll().get(0);
 
             // Order 1 — for testing rejection + reassignment to Rider 2
-            Order order1 = new Order(customer1, List.of(dish1), pending, rider1, 23.0, "1234");
+            Order order1 = new Order(customer1, List.of(dish1), pending, rider1, 23.0, passwordEncoder.encode("1234"));
             orderRepository.save(order1);
 
             // Order 2 — for testing rejection + cancellation
-            Order order2 = new Order(customer1, List.of(dish1), pending, rider1, 14.0, "5678");
+            Order order2 = new Order(customer1, List.of(dish1), pending, rider1, 14.0, passwordEncoder.encode("5678"));
             orderRepository.save(order2);
         }
     }

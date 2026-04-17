@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import com.justorder.backend.dto.OrderDTO;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -59,10 +60,18 @@ public class Order {
     /** Pre-calculated total price of all dishes in the order, in euros. */
     private double totalPrice;
 
-    /**
-     * The rider must ask for this code upon delivery to verify the recipient.
-     */
-    private String secretCode;
+    /** BCrypt hash of the delivery verification PIN. */
+    @Column(name = "secret_code", nullable = false)
+    private String secretCodeHash;
+
+    /** Failed verification attempts by the assigned rider. */
+    private int pinFailedAttempts;
+
+    /** When present and in the future, PIN verification is temporarily locked. */
+    private LocalDateTime pinLockedUntil;
+
+    /** Timestamp when rider successfully verified the PIN and marked delivery complete. */
+    private LocalDateTime pinVerifiedAt;
 
     /**
      * <p>Null if the order has not been rejected by a rider.</p>
@@ -78,13 +87,13 @@ public class Order {
 
 
     public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider,
-                 double totalPrice, String secretCode) {
+                 double totalPrice, String secretCodeHash) {
         this.customer = customer;
         this.dishes = dishes;
         this.status = status;
         this.rider = rider;
         this.totalPrice = totalPrice;
-        this.secretCode = secretCode;
+        this.secretCodeHash = secretCodeHash;
     }
 
     // -------------------------------------------------------------------------
@@ -97,7 +106,10 @@ public class Order {
     public OrderStatus getStatus() { return status; }
     public Rider getRider() { return rider; }
     public double getTotalPrice() { return totalPrice; }
-    public String getSecretCode() { return secretCode; }
+    public String getSecretCodeHash() { return secretCodeHash; }
+    public int getPinFailedAttempts() { return pinFailedAttempts; }
+    public LocalDateTime getPinLockedUntil() { return pinLockedUntil; }
+    public LocalDateTime getPinVerifiedAt() { return pinVerifiedAt; }
     public String getRejectionReason() { return rejectionReason; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
@@ -112,7 +124,10 @@ public class Order {
     public void setStatus(OrderStatus status) { this.status = status; }
     public void setRider(Rider rider) { this.rider = rider; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
-    public void setSecretCode(String secretCode) { this.secretCode = secretCode; }
+    public void setSecretCodeHash(String secretCodeHash) { this.secretCodeHash = secretCodeHash; }
+    public void setPinFailedAttempts(int pinFailedAttempts) { this.pinFailedAttempts = pinFailedAttempts; }
+    public void setPinLockedUntil(LocalDateTime pinLockedUntil) { this.pinLockedUntil = pinLockedUntil; }
+    public void setPinVerifiedAt(LocalDateTime pinVerifiedAt) { this.pinVerifiedAt = pinVerifiedAt; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
@@ -124,7 +139,7 @@ public class Order {
     public OrderDTO toDTO() {
         OrderDTO dto = new OrderDTO(
             this.id, this.customer.getId(), this.status.getStatus(),
-            this.rider.getId(), this.totalPrice, this.secretCode
+            this.rider.getId(), this.totalPrice, null
         );
         dto.setRejectionReason(this.rejectionReason);
         dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));

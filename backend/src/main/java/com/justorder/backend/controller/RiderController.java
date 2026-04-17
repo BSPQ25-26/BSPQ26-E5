@@ -2,6 +2,7 @@ package com.justorder.backend.controller;
 
 import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.dto.RiderDTO;
+import com.justorder.backend.dto.VerifyOrderPinRequestDTO;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RiderService;
@@ -82,6 +83,30 @@ public class RiderController {
             return ResponseEntity.ok(updatedOrder);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/{riderId}/orders/{orderId}/verify-pin")
+    public ResponseEntity<OrderDTO> verifyOrderPin(
+            @PathVariable Long riderId,
+            @PathVariable Long orderId,
+            @RequestBody VerifyOrderPinRequestDTO request) {
+
+        if (request == null || request.getPin() == null || request.getPin().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            OrderDTO updatedOrder = riderService.verifyOrderPin(riderId, orderId, request.getPin());
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.LOCKED).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {

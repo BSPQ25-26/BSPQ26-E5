@@ -32,6 +32,7 @@ public class OrderService {
     private final OrderStatusRepository orderStatusRepository;
     private final RiderRepository riderRepository;
     private final OrderPinGenerationService orderPinGenerationService;
+    private final OrderPinSecurityService orderPinSecurityService;
 
     public OrderService(
         OrderRepository orderRepository,
@@ -39,7 +40,8 @@ public class OrderService {
         DishRepository dishRepository,
         OrderStatusRepository orderStatusRepository,
         RiderRepository riderRepository,
-        OrderPinGenerationService orderPinGenerationService
+        OrderPinGenerationService orderPinGenerationService,
+        OrderPinSecurityService orderPinSecurityService
     ) {
         this.orderRepository = orderRepository;
         this.customerRepository = customerRepository;
@@ -47,6 +49,7 @@ public class OrderService {
         this.orderStatusRepository = orderStatusRepository;
         this.riderRepository = riderRepository;
         this.orderPinGenerationService = orderPinGenerationService;
+        this.orderPinSecurityService = orderPinSecurityService;
     }
 
    
@@ -78,9 +81,12 @@ public class OrderService {
         order.setStatus(status);
         order.setRider(assignedRider);
         order.setTotalPrice(calculatedTotal);
-        order.setSecretCode(orderPinGenerationService.generatePin());
+        String plainPin = orderPinGenerationService.generatePin();
+        order.setSecretCodeHash(orderPinSecurityService.hashPin(plainPin));
 
-        return orderRepository.save(order).toDTO();
+        OrderDTO createdOrder = orderRepository.save(order).toDTO();
+        createdOrder.setSecretCode(plainPin);
+        return createdOrder;
     }
 
 
