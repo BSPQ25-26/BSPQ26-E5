@@ -57,7 +57,7 @@ public class OrderStatusControllerTest {
     @Test
     public void testCreate() throws Exception {
         OrderStatusDTO request = new OrderStatusDTO();
-        // CAMBIO: setName -> setStatus
+    
         request.setStatus("En Camino"); 
 
         OrderStatus saved = new OrderStatus();
@@ -76,7 +76,7 @@ public class OrderStatusControllerTest {
     @Test
     public void testUpdate() throws Exception {
         OrderStatusDTO request = new OrderStatusDTO();
-        // CAMBIO: setName -> setStatus
+    
         request.setStatus("Entregado");
 
         OrderStatus existing = new OrderStatus();
