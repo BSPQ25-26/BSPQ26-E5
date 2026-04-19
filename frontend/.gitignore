@@ -1,18 +1,11 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # Installed dependencies
 node_modules/
-/.pnp
-.pnp.js
-
-# Testing
-/coverage
 
 # Production/Consumption files
 build/
 dist/
 
-# Environment variables
+# System files
 .env
 .env.local
 .env.development.local
@@ -23,9 +16,6 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Archivos de configuracion local
-application-dev.properties
 
 # System configuration files
 .DS_Store

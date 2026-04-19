@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Cart from "../components/Cart";
 import { useCart } from "../store/CartContext";
+import "../assets/css/Checkout.css";
 
 const MOCK_DISHES = [
   { id: 1, name: "Four Cheese Pizza", price: 23.0 },
@@ -10,12 +12,33 @@ const MOCK_DISHES = [
 
 const formatPrice = (value) => `${value.toFixed(2)} EUR`;
 
+const ORDER_CODE_STORAGE_KEY = "justorder:verificationCodes";
+
+const readVerificationCodes = () => {
+  try {
+    const rawValue = localStorage.getItem(ORDER_CODE_STORAGE_KEY);
+    return rawValue ? JSON.parse(rawValue) : {};
+  } catch {
+    return {};
+  }
+};
+
+const storeVerificationCode = (orderId, secretCode) => {
+  if (!orderId || !secretCode) {
+    return;
+  }
+
+  const currentCodes = readVerificationCodes();
+  currentCodes[String(orderId)] = secretCode;
+  localStorage.setItem(ORDER_CODE_STORAGE_KEY, JSON.stringify(currentCodes));
+};
+
 const CheckoutPage = () => {
+  const navigate = useNavigate();
   const { items, addToCart, clearCart, totalPrice } = useCart();
   const [customerId, setCustomerId] = useState("1");
   const [paymentToken, setPaymentToken] = useState("mock-payment-token");
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const dishIds = useMemo(
@@ -29,7 +52,6 @@ const CheckoutPage = () => {
    * and a non-empty payment token.
    */
   const handleCheckout = async () => {
-    setSuccessMessage("");
     setErrorMessage("");
 
     const parsedCustomerId = Number(customerId);
@@ -78,9 +100,12 @@ const CheckoutPage = () => {
       }
 
       clearCart();
-      setSuccessMessage(
-        `Order confirmed. ID: ${data?.id ?? "N/A"}. Secret code: ${data?.secretCode ?? "N/A"}.`
-      );
+      storeVerificationCode(data?.id, data?.secretCode);
+      navigate("/orders/confirmation", {
+        state: {
+          order: data,
+        },
+      });
     } catch (error) {
       setErrorMessage(error.message || "Checkout could not be completed.");
     } finally {
@@ -89,93 +114,106 @@ const CheckoutPage = () => {
   };
 
   return (
-    <main className="home" style={{ maxWidth: "980px" }}>
-      <section className="home-hero">
-        <p className="home-kicker">Checkout</p>
-        <h1>Shopping Cart & Checkout</h1>
-        <p>Select dishes, review your cart, and confirm the order against the backend.</p>
-      </section>
+    <main className="checkout-page">
+      <div className="checkout-header">
+        <h1>🛒 Shopping Cart & Checkout</h1>
+        <p>Select dishes from our menu, review your order, and complete your purchase</p>
+      </div>
 
-      <section className="home-grid" style={{ marginTop: "18px" }}>
-        <article className="card" style={{ gridColumn: "span 2" }}>
-          <h2>Sample dishes</h2>
-          <p style={{ color: "#5d6b87" }}>
-            This temporary list is enough to validate the Sprint 1 cart and checkout flow.
-          </p>
+      <div className="checkout-steps">
+        <div className="step active">
+          <div className="step-number">1</div>
+          <span>Browse Menu</span>
+        </div>
+        <div className="step-connector"></div>
+        <div className={`step ${items.length > 0 ? "active" : ""}`}>
+          <div className="step-number">2</div>
+          <span>Review Cart</span>
+        </div>
+        <div className="step-connector"></div>
+        <div className={`step ${isLoading ? "active" : ""}`}>
+          <div className="step-number">3</div>
+          <span>Confirm Payment</span>
+        </div>
+      </div>
 
-          <div style={{ display: "grid", gap: "10px" }}>
+      <div className="checkout-container">
+        {/* Left: Menu Items */}
+        <div className="checkout-dishes-section">
+          <div className="dishes-header">
+            <h2>Available Dishes</h2>
+            <p>Select items to add to your cart</p>
+          </div>
+
+          <div className="dishes-grid">
             {MOCK_DISHES.map((dish) => (
-              <div
-                key={dish.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  border: "1px solid #dbe7f5",
-                  borderRadius: "12px",
-                  padding: "10px 12px",
-                }}
-              >
-                <div>
-                  <strong>{dish.name}</strong>
-                  <p style={{ margin: "6px 0 0", color: "#5d6b87" }}>{formatPrice(dish.price)}</p>
+              <div key={dish.id} className="dish-card">
+                <div className="dish-card-info">
+                  <p className="dish-name">{dish.name}</p>
+                  <p className="dish-price">{formatPrice(dish.price)}</p>
                 </div>
-                <button type="button" className="btn btn-primary" onClick={() => addToCart(dish)}>
-                  Add to cart
+                <button type="button" onClick={() => addToCart(dish)}>
+                  Add to Cart
                 </button>
               </div>
             ))}
           </div>
-        </article>
-
-        <Cart />
-      </section>
-
-      <section className="card" style={{ marginTop: "18px" }}>
-        <h2>Simulated payment</h2>
-
-        <div style={{ display: "grid", gap: "10px", maxWidth: "420px" }}>
-          <label htmlFor="customerIdInput">Customer ID</label>
-          <input
-            id="customerIdInput"
-            type="number"
-            min="1"
-            value={customerId}
-            onChange={(event) => setCustomerId(event.target.value)}
-          />
-
-          <label htmlFor="paymentTokenInput">Payment Token</label>
-          <input
-            id="paymentTokenInput"
-            type="text"
-            value={paymentToken}
-            onChange={(event) => setPaymentToken(event.target.value)}
-          />
-
-          <p style={{ margin: 0, color: "#5d6b87" }}>Total sent to backend: {formatPrice(totalPrice)}</p>
-
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleCheckout}
-            disabled={isLoading}
-          >
-            {isLoading ? "Processing..." : "Pay and Confirm"}
-          </button>
         </div>
 
-        {successMessage && (
-          <p role="status" style={{ marginTop: "12px", color: "#0f766e", fontWeight: 700 }}>
-            {successMessage}
-          </p>
-        )}
+        {/* Right: Cart & Payment */}
+        <div className="checkout-sidebar">
+          <Cart />
 
-        {errorMessage && (
-          <p role="alert" style={{ marginTop: "12px", color: "#b42318", fontWeight: 700 }}>
-            {errorMessage}
-          </p>
-        )}
-      </section>
+          <div className="payment-card">
+            <h3>Payment</h3>
+
+            <div className="payment-form">
+              <div className="form-group">
+                <label htmlFor="customerIdInput">Customer ID</label>
+                <input
+                  id="customerIdInput"
+                  type="number"
+                  min="1"
+                  value={customerId}
+                  onChange={(event) => setCustomerId(event.target.value)}
+                  placeholder="e.g., 1"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="paymentTokenInput">Payment Token</label>
+                <input
+                  id="paymentTokenInput"
+                  type="text"
+                  value={paymentToken}
+                  onChange={(event) => setPaymentToken(event.target.value)}
+                  placeholder="e.g., card-token-123"
+                />
+              </div>
+
+              <div className="total-display">
+                <span className="label">Total:</span>
+                <span className="amount">{formatPrice(totalPrice)}</span>
+              </div>
+
+              <button
+                type="button"
+                className="checkout-btn"
+                onClick={handleCheckout}
+                disabled={isLoading}
+              >
+                {isLoading ? "Processing..." : "Pay & Confirm Order"}
+              </button>
+            </div>
+
+            {errorMessage && (
+              <div className="message-box message-error" role="alert">
+                <span>{errorMessage}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </main>
   );
 };
