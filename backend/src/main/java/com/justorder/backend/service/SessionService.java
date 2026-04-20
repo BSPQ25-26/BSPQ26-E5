@@ -3,6 +3,9 @@ package com.justorder.backend.service;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.justorder.backend.dto.LoginRequest;
 import com.justorder.backend.dto.LoginResponseDTO;
 import com.justorder.backend.model.Customer;
@@ -12,17 +15,20 @@ import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.repository.RiderRepository;
 
+@Service
 public class SessionService {
     
     private HashMap<String, HashSet<String>> activeTokens = new HashMap<>();
     private final CustomerRepository customerRepository;
     private final RiderRepository riderRepository;
     private final RestaurantRepository restaurantRepository;
+    private final PasswordEncoder passwordEncoder;
     
-    public SessionService(CustomerRepository customerRepository, RiderRepository riderRepository, RestaurantRepository restaurantRepository) {
+    public SessionService(CustomerRepository customerRepository, RiderRepository riderRepository, RestaurantRepository restaurantRepository, PasswordEncoder passwordEncoder) {
         this.customerRepository = customerRepository;
         this.riderRepository = riderRepository;
         this.restaurantRepository = restaurantRepository;
+        this.passwordEncoder = passwordEncoder;
         activeTokens.put("rider", new HashSet<>());
         activeTokens.put("customer", new HashSet<>());
         activeTokens.put("restaurant", new HashSet<>());
@@ -53,7 +59,7 @@ public class SessionService {
         // Validate rider credentials and create session
         if (riderRepository.existsByEmail(request.getEmail())) {
             Rider rider = riderRepository.findByEmail(request.getEmail());
-            if (rider != null && rider.getPassword().equals(request.getPassword())) {
+            if (rider != null && passwordEncoder.matches(request.getPassword(), rider.getPassword())) {
                 String token = generateToken(request.getType());
                 activeTokens.get("rider").add(token);
                 response.setToken(token);
@@ -73,7 +79,7 @@ public class SessionService {
         // Validate restaurant credentials and create session
         if (restaurantRepository.existsByEmail(request.getEmail())) {
             Restaurant restaurant = restaurantRepository.findByEmail(request.getEmail());
-            if (restaurant != null && restaurant.getPassword().equals(request.getPassword())) {
+            if (restaurant != null && passwordEncoder.matches(request.getPassword(), restaurant.getPassword())) {
                 String token = generateToken(request.getType());
                 activeTokens.get("restaurant").add(token);
                 response.setToken(token);
@@ -93,7 +99,7 @@ public class SessionService {
         // Validate customer credentials and create session
         if (customerRepository.existsByEmail(request.getEmail())) {
             Customer customer = customerRepository.findByEmail(request.getEmail());
-            if (customer != null && customer.getPassword().equals(request.getPassword())) {
+            if (customer != null && passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
                 String token = generateToken(request.getType());
                 activeTokens.get("customer").add(token);
                 response.setToken(token);
