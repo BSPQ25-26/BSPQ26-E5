@@ -1,7 +1,7 @@
 package com.justorder.backend.dto;
 
 public class LoginRequest {
-    private String type; // "rider", "customer", "restaurant", "admin"
+    private String type; // "rider", "customer", "restaurant"
     private String email;
     private String password;
 
