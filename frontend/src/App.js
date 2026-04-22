@@ -9,6 +9,7 @@ import MenuEditor from "./pages/MenuEditor";
 import OrderStatusPage from "./pages/OrderStatusPage";
 import RiderDashboard from "./pages/RiderDashboard";
 import CustomerMarketplace from "./pages/CustomerMarketplace";
+import CustomerInformationPage from "./pages/CustomerInformationPage";
 import RestaurantDetail from './pages/RestaurantDetail';
 import RestaurantOrderConfirmationView from "./pages/RestaurantOrderConfirmationView";
 import { CartProvider } from "./store/CartContext";
@@ -31,6 +32,7 @@ function App() {
           <Route path="/orders/confirmation" element={<RestaurantOrderConfirmationView />} />
           <Route path="/rider-dashboard" element={<RiderDashboard />} />
           <Route path="/customer-marketplace" element={<CustomerMarketplace />} />
+          <Route path="/customer/profile" element={<CustomerInformationPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
