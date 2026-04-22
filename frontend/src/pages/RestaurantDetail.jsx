@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import cartImage from '../assets/images/Shopping cart.png';
 import { useCart } from '../store/CartContext';
@@ -14,6 +14,7 @@ function RestaurantDetail() {
   const [menu, setMenu] = useState([]);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const toastTimerRef = useRef(null);
 
   useEffect(() => {
     fetch('http://localhost:8080/api/restaurants/search')
@@ -33,6 +34,14 @@ function RestaurantDetail() {
       .catch(err => console.error("Error fetching menu:", err));
   }, [id]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSignOut = () => {
     alert("Signing out and destroying JWT token...");
     setIsProfileMenuOpen(false);
@@ -42,7 +51,14 @@ function RestaurantDetail() {
   const handleAddToCart = (dish) => {
     addToCart(dish);
     setToastMessage(`"${dish.name}" added to cart`);
-    setTimeout(() => setToastMessage(""), 2000);
+
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage("");
+      toastTimerRef.current = null;
+    }, 2000);
   };
 
   if (!restaurant) {
@@ -151,7 +167,6 @@ function RestaurantDetail() {
             fontWeight: 'bold',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             zIndex: 1000,
-            animation: 'fadeInUp 0.3s ease-out',
           }}
         >
           ✓ {toastMessage}
