@@ -69,7 +69,7 @@ function RestaurantDetail() {
 
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown">
-                    <Link to="/customer/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
+                    <Link to="/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
                     <Link to="/customer/profile" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>Information</Link>
                     <button className="dropdown-item sign-out" onClick={handleSignOut}>Sign out</button>
                   </div>

@@ -147,3 +147,16 @@ export const getCustomerOrders = async (customerId) => {
     if (!response.ok) throw new Error(text || "Error fetching customer orders");
     return text ? JSON.parse(text) : [];
 };
+
+export const getCustomerDashboard = async (customerId) => {
+    const response = await fetch(`${API_URL}/customers/${customerId}/dashboard`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching customer dashboard");
+    return text ? JSON.parse(text) : null;
+};
