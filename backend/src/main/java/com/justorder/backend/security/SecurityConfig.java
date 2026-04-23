@@ -33,6 +33,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/sessions/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/hello").permitAll()
                 .requestMatchers("/api/restaurants/**").permitAll()
@@ -41,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/allergens").permitAll() 
                 .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/sessions/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/dishes/**").permitAll()//.hasAnyRole("RESTAURANT", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/dishes/**").permitAll()//.hasAnyRole("RESTAURANT", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/dishes/**").permitAll()//.hasAnyRole("RESTAURANT", "ADMIN")
@@ -64,7 +66,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000")); 
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:3001",
+            "http://127.0.0.1:3001",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173"
+        ));
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
         source.registerCorsConfiguration("/**", config);

@@ -227,12 +227,21 @@ public class DataInitializer implements CommandLineRunner {
             Localization customerLocation = new Localization(
                 "Bilbao", "Bizkaia", "Spain", "48003", "5", -2.9200, 43.2600
             );
+            Localization customerLocation2 = new Localization(
+                "Bilbao", "Bizkaia", "Spain", "48003", "5", -2.9200, 43.2600
+            );
             Customer customer1 = new Customer(
                 "Test Customer", "customer@test.com", "+34 633 333 333",
                 passwordEncoder.encode("customer123"), 30, "11111111C",
                 List.of(customerLocation), List.of(), List.of()
             );
+            Customer customer2 = new Customer(
+                "John Doe", "john.doe@test.com", "+34 644 444 444",
+                passwordEncoder.encode("customer123"), 30, "22222222D",
+                List.of(customerLocation2), List.of(), List.of()
+            );
             customerRepository.save(customer1);
+            customerRepository.save(customer2);
         }
 
         // Orders depend on riders + customers existing, so we check both

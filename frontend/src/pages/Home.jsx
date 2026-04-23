@@ -16,10 +16,8 @@ function Home() {
     const handleLogin = async (e) => {
         e.preventDefault();
         
-        let payload = {};
-        if (loginType === "customer") payload = { email: identifier, password };
-        else if (loginType === "rider") payload = { dni: identifier, password };
-        else if (loginType === "restaurant") payload = { email: identifier, password };
+        const trimmedIdentifier = identifier.trim();
+        const payload = { email: trimmedIdentifier, password };
 
         try {
             const result = await loginUser(loginType, payload);
@@ -126,8 +124,8 @@ function Home() {
 
                                     <form onSubmit={handleLogin} className="login-form">
                                         <input 
-                                            type={loginType === 'rider' ? "text" : "email"} 
-                                            placeholder={loginType === 'rider' ? "Enter your DNI" : "Enter your Email"}
+                                            type="email" 
+                                            placeholder="Enter your Email"
                                             value={identifier}
                                             onChange={(e) => setIdentifier(e.target.value)}
                                             required
