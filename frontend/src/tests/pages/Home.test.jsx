@@ -42,21 +42,23 @@ describe("Home Component", () => {
     expect(screen.getByRole("button", { name: "Restaurant" })).toBeInTheDocument();
   });
 
-  test("switches login form inputs dynamically based on selected tab", () => {
+  test("switches login tabs and keeps email input", () => {
     render(<Home />);
 
     fireEvent.click(screen.getByRole("button", { name: /Log in/i }));
 
+    const customerTab = screen.getByRole("button", { name: "Customer" });
+    const riderTab = screen.getByRole("button", { name: "Rider" });
     const emailInput = screen.getByPlaceholderText(/Enter your Email/i);
+
+    expect(customerTab).toHaveClass("active");
     expect(emailInput).toBeInTheDocument();
     expect(emailInput.type).toBe("email");
 
-    fireEvent.click(screen.getByRole("button", { name: "Rider" }));
+    fireEvent.click(riderTab);
 
-    expect(screen.queryByPlaceholderText(/Enter your Email/i)).not.toBeInTheDocument();
-    const dniInput = screen.getByPlaceholderText(/Enter your DNI/i);
-    expect(dniInput).toBeInTheDocument();
-    expect(dniInput.type).toBe("text");
+    expect(riderTab).toHaveClass("active");
+    expect(screen.getByPlaceholderText(/Enter your Email/i)).toBeInTheDocument();
   });
 
   test("handles the 501 Backend Bypass correctly for a Customer", async () => {
@@ -108,8 +110,8 @@ describe("Home Component", () => {
     
     fireEvent.click(screen.getByRole("button", { name: "Rider" }));
     
-    fireEvent.change(screen.getByPlaceholderText(/Enter your DNI/i), {
-      target: { value: "12345678A" },
+    fireEvent.change(screen.getByPlaceholderText(/Enter your Email/i), {
+      target: { value: "rider@example.com" },
     });
     fireEvent.change(screen.getByPlaceholderText(/Password/i), {
       target: { value: "wrongpassword" },

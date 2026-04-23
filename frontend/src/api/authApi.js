@@ -109,7 +109,6 @@ export const deleteDish = async (dishId) => {
 };
 
 export const loginUser = async (loginType, payload) => {
-    
     const BASE_URL = "http://localhost:8080";
     let endpoint = "";
 
@@ -120,7 +119,7 @@ export const loginUser = async (loginType, payload) => {
     const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, type: loginType })
     });
 
     if (response.status === 501 || response.status === 403) {
