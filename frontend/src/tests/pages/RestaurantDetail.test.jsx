@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import RestaurantDetail from '../../pages/RestaurantDetail';
-import { CartProvider } from '../../store/CartContext';
+import { CartProvider, useCart } from '../../store/CartContext';
 
 const mockNavigate = jest.fn();
 
@@ -21,8 +21,22 @@ const mockRestaurant = {
 };
 
 const mockMenu = [
-  { id: 101, name: 'Beef Taco', description: 'Spicy beef with salsa', price: 4.5 },
-  { id: 102, name: 'Chicken Burrito', description: 'Grilled chicken', price: 7.0 },
+  {
+    id: 8,
+    name: 'Beef Taco',
+    description: 'Spicy beef with salsa',
+    price: 4.5,
+    restaurantId: 5,
+    restaurantName: 'Taco Loco',
+  },
+  {
+    id: 9,
+    name: 'Chicken Burrito',
+    description: 'Grilled chicken',
+    price: 7.0,
+    restaurantId: 5,
+    restaurantName: 'Taco Loco',
+  },
 ];
 
 const mockFetchResponses = () => {
@@ -43,10 +57,21 @@ const mockFetchResponses = () => {
   });
 };
 
-const renderComponent = async () => {
+const CartSeeder = ({ dishToSeed }) => {
+  const { addToCart } = useCart();
+  React.useEffect(() => {
+    if (dishToSeed) {
+      addToCart(dishToSeed);
+    }
+  }, []);
+  return null;
+};
+
+const renderComponent = async ({ seedDish } = {}) => {
   await act(async () => {
     render(
       <CartProvider>
+        {seedDish && <CartSeeder dishToSeed={seedDish} />}
         <RestaurantDetail />
       </CartProvider>
     );
@@ -126,6 +151,73 @@ describe('RestaurantDetail — add to cart flow', () => {
     act(() => {
       jest.advanceTimersByTime(200);
     });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+});
+
+describe('RestaurantDetail — different restaurant modal', () => {
+  const dishFromSushiTokyo = {
+    id: 15,
+    name: 'Nigiri Platter',
+    price: 18.0,
+    restaurantId: 3,
+    restaurantName: 'Sushi Tokyo',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetchResponses();
+  });
+
+  test('shows a confirmation modal when adding a dish from a different restaurant', async () => {
+    await renderComponent({ seedDish: dishFromSushiTokyo });
+
+    const addButtons = await screen.findAllByRole('button', { name: '+ Add' });
+
+    await act(async () => {
+      fireEvent.click(addButtons[0]); // try to add Beef Taco while Sushi Tokyo item is in the cart
+    });
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveTextContent('Sushi Tokyo');
+    expect(dialog).toHaveTextContent('Taco Loco');
+    expect(dialog).toHaveTextContent('one restaurant at a time');
+  });
+
+  test('confirming the modal replaces the cart and shows a toast', async () => {
+    await renderComponent({ seedDish: dishFromSushiTokyo });
+
+    const addButtons = await screen.findAllByRole('button', { name: '+ Add' });
+    await act(async () => {
+      fireEvent.click(addButtons[0]);
+    });
+
+    const confirmButton = screen.getByRole('button', { name: 'Switch restaurants' });
+    await act(async () => {
+      fireEvent.click(confirmButton);
+    });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    const toast = screen.getByRole('status');
+    expect(toast).toHaveTextContent('Cart cleared');
+    expect(toast).toHaveTextContent('Beef Taco');
+  });
+
+  test('cancelling the modal leaves the cart unchanged and shows no toast', async () => {
+    await renderComponent({ seedDish: dishFromSushiTokyo });
+
+    const addButtons = await screen.findAllByRole('button', { name: '+ Add' });
+    await act(async () => {
+      fireEvent.click(addButtons[0]);
+    });
+
+    const cancelButton = screen.getByRole('button', { name: 'Keep current cart' });
+    await act(async () => {
+      fireEvent.click(cancelButton);
+    });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });
