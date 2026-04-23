@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import cartImage from '../assets/images/Shopping cart.png';
-import '../assets/css/Home.css'; 
+import { useCart } from '../store/CartContext';
+import '../assets/css/Home.css';
 import '../assets/css/CustomerMarketplace.css';
 
 function RestaurantDetail() {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const toastTimerRef = useRef(null);
 
   useEffect(() => {
-   
     fetch('http://localhost:8080/api/restaurants/search')
       .then(res => res.json())
       .then(data => {
@@ -31,12 +34,32 @@ function RestaurantDetail() {
       .catch(err => console.error("Error fetching menu:", err));
   }, [id]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSignOut = () => {
     alert("Signing out and destroying JWT token...");
     setIsProfileMenuOpen(false);
-    navigate("/"); 
+    navigate("/");
   };
 
+  const handleAddToCart = (dish) => {
+    addToCart(dish);
+    setToastMessage(`"${dish.name}" added to cart`);
+
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage("");
+      toastTimerRef.current = null;
+    }, 2000);
+  };
 
   if (!restaurant) {
     return (
@@ -49,7 +72,7 @@ function RestaurantDetail() {
   return (
     <main className="home-page">
       <section className="home-shell">
-        
+
         <header className="home-navbar">
           <div className="brand-group" aria-label="JustOrder home">
             <Link to="/customer-marketplace" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -60,8 +83,8 @@ function RestaurantDetail() {
           <div className="home-header-right">
             <nav className="home-nav-links" aria-label="Main navigation">
               <div className="profile-menu-container">
-                <button 
-                  className="profile-avatar-btn" 
+                <button
+                  className="profile-avatar-btn"
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 >
                   <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile Avatar" className="profile-avatar-img"/>
@@ -69,7 +92,7 @@ function RestaurantDetail() {
 
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown">
-                    <Link to="/customer/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
+                    <Link to="/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
                     <Link to="/customer/profile" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>Information</Link>
                     <button className="dropdown-item sign-out" onClick={handleSignOut}>Sign out</button>
                   </div>
@@ -85,7 +108,6 @@ function RestaurantDetail() {
 
 
         <div className="marketplace-content" style={{ padding: '0 20px' }}>
-          
 
           <div style={{ padding: '30px 0', borderBottom: '1px solid #eaeaea', marginBottom: '30px' }}>
             <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{restaurant.name}</h1>
@@ -97,7 +119,6 @@ function RestaurantDetail() {
           </div>
 
           <h2 style={{ marginBottom: '20px' }}>Menu</h2>
-          
 
           <section className="restaurant-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
             {menu.length > 0 ? (
@@ -109,7 +130,11 @@ function RestaurantDetail() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
                     <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>€{dish.price.toFixed(2)}</span>
-                    <button style={{ backgroundColor: '#00cc66', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '30px', fontWeight: 'bold', cursor: 'pointer' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCart(dish)}
+                      style={{ backgroundColor: '#00cc66', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '30px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
                       + Add
                     </button>
                   </div>
@@ -125,6 +150,28 @@ function RestaurantDetail() {
 
         </div>
       </section>
+
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: '30px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#00cc66',
+            color: 'white',
+            padding: '14px 28px',
+            borderRadius: '30px',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+          }}
+        >
+          ✓ {toastMessage}
+        </div>
+      )}
     </main>
   );
 }
