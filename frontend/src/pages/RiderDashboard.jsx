@@ -14,10 +14,23 @@ function RiderDashboard() {
 
   const [newOrders, setNewOrders] = useState([]);
   const [assignedOrders, setAssignedOrders] = useState([]);
-  const RIDER_ID = 1;
+  
+  // Obtenemos el ID real del repartidor
+  const RIDER_ID = localStorage.getItem('riderId');
 
   useEffect(() => {
-    fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders`)
+    // Si no hay repartidor logueado, evitamos hacer la petición
+    if (!RIDER_ID) return;
+
+    const token = localStorage.getItem('token'); // Recuperamos el pase VIP
+
+    fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` // Lo enviamos por seguridad
+      }
+    })
       .then(response => {
         if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
@@ -41,7 +54,7 @@ function RiderDashboard() {
       .catch(error => {
         console.error("Error loading orders:", error);
       });
-  }, []);
+  }, [RIDER_ID]);
 
   const handleSignOut = () => {
     setIsProfileMenuOpen(false);
@@ -54,10 +67,14 @@ function RiderDashboard() {
   };
 
   const handleRejectionSubmit = async (orderId, reason) => {
+    const token = localStorage.getItem('token'); // También lo necesitamos aquí
     try {
       const response = await fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders/${orderId}/reject`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ reason: reason })
       });
 
