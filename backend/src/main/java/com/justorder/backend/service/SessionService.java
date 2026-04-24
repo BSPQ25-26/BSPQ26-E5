@@ -58,7 +58,7 @@ public class SessionService {
     private void createRiderSession(LoginRequest request, LoginResponseDTO response) {
         // Validate rider credentials and create session
         if (riderRepository.existsByEmail(request.getEmail())) {
-            Rider rider = riderRepository.findByEmail(request.getEmail());
+            Rider rider = riderRepository.findByEmail(request.getEmail()).orElse(null);;
             if (rider != null && passwordEncoder.matches(request.getPassword(), rider.getPassword())) {
                 String token = generateToken(request.getType());
                 activeTokens.get("rider").add(token);
@@ -78,7 +78,7 @@ public class SessionService {
     private void createRestaurantSession(LoginRequest request, LoginResponseDTO response) {
         // Validate restaurant credentials and create session
         if (restaurantRepository.existsByEmail(request.getEmail())) {
-            Restaurant restaurant = restaurantRepository.findByEmail(request.getEmail());
+            Restaurant restaurant = restaurantRepository.findByEmail(request.getEmail()).orElse(null);;
             if (restaurant != null && passwordEncoder.matches(request.getPassword(), restaurant.getPassword())) {
                 String token = generateToken(request.getType());
                 activeTokens.get("restaurant").add(token);
@@ -98,7 +98,7 @@ public class SessionService {
     private void createCustomerSession(LoginRequest request, LoginResponseDTO response) {
         // Validate customer credentials and create session
         if (customerRepository.existsByEmail(request.getEmail())) {
-            Customer customer = customerRepository.findByEmail(request.getEmail());
+            Customer customer = customerRepository.findByEmail(request.getEmail()).orElse(null);;
             if (customer != null && passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
                 String token = generateToken(request.getType());
                 activeTokens.get("customer").add(token);
