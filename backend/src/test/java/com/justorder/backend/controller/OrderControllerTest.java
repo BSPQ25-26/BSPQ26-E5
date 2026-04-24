@@ -94,23 +94,24 @@ public class OrderControllerTest {
     public void testGetAll() throws Exception {
         Order o = new Order();
         o.setId(1L);
-        o.setSecretCode("CODE-123");
+        o.setSecretCodeHash("HASH-123"); // Usamos el Hash ahora
         
         when(orderRepository.findAll()).thenReturn(Arrays.asList(o));
 
         mockMvc.perform(get("/api/orders"))
                .andExpect(status().isOk())
-               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("CODE-123")));
+               // Verificamos por el ID del pedido, ya que el código secreto no se devuelve en la lista
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("\"id\":1")));
     }
 
     @Test
     public void testCreate() throws Exception {
         OrderDTO request = new OrderDTO();
-        request.setSecretCode("CODE-456");
+        request.setSecretCode("CODE-456"); // El DTO sí puede recibir el PIN plano desde el frontend (admin)
 
         Order saved = new Order();
         saved.setId(2L);
-        saved.setSecretCode("CODE-456");
+        saved.setSecretCodeHash("HASH-456");
 
         when(orderRepository.save(any(Order.class))).thenReturn(saved);
 
@@ -118,7 +119,7 @@ public class OrderControllerTest {
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isCreated())
-               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("CODE-456")));
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("\"id\":2")));
     }
 
     @Test
@@ -128,11 +129,11 @@ public class OrderControllerTest {
 
         Order existing = new Order();
         existing.setId(2L);
-        existing.setSecretCode("CODE-456");
+        existing.setSecretCodeHash("HASH-456");
 
         Order updated = new Order();
         updated.setId(2L);
-        updated.setSecretCode("CODE-789");
+        updated.setSecretCodeHash("HASH-789");
 
         when(orderRepository.findById(2L)).thenReturn(Optional.of(existing));
         when(orderRepository.save(any(Order.class))).thenReturn(updated);
@@ -141,7 +142,7 @@ public class OrderControllerTest {
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
-               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("CODE-789")));
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("\"id\":2")));
     }
 
     @Test

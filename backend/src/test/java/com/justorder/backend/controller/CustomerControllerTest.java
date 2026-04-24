@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.model.Customer;
 import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.security.JwtUtil;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -40,6 +42,9 @@ class CustomerControllerTest {
 
     @MockitoBean
     private CustomerRepository repository;
+
+    @MockitoBean
+    private OrderRepository orderRepository;
 
     // ==========================================
     // TESTS DE LA RAMA 'HEAD' (CRUD BÁSICO)
@@ -302,6 +307,10 @@ class CustomerControllerTest {
 
     @Test
     void testGetCustomerDashboard() throws Exception {
+        // Le decimos a los Mocks cómo comportarse para que no de Error 404
+        when(repository.existsById(1L)).thenReturn(true);
+        when(orderRepository.findByCustomerId(1L)).thenReturn(new ArrayList<>());
+
         mockMvc.perform(get("/api/customers/1/dashboard"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.customerId").value(1))
@@ -316,6 +325,7 @@ class CustomerControllerTest {
 
     @Test
     void testGetCustomerDashboardNotFound() throws Exception {
+        when(repository.existsById(999999L)).thenReturn(false);
         mockMvc.perform(get("/api/customers/999999/dashboard"))
             .andExpect(status().isNotFound());
     }
