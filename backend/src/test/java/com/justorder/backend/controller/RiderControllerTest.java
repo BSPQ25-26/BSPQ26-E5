@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -50,6 +51,9 @@ class RiderControllerTest {
     @Autowired
     private OrderStatusRepository orderStatusRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @MockitoBean
     private JwtUtil jwtUtil;
 
@@ -64,7 +68,6 @@ class RiderControllerTest {
 
     private void ensureOrdersLoaded() {
         if (orderId1 == null || orderId2 == null) {
-            // Create test orders explicitly
             Rider rider1 = riderRepository.findById(1L)
                 .orElseGet(() -> {
                     Localization loc = new Localization("Test", "Test", "Test", "28001", "1", 0.0, 0.0);
@@ -83,27 +86,14 @@ class RiderControllerTest {
             
             OrderStatus pending = orderStatusRepository.findByStatus("Pending")
                 .orElseGet(() -> orderStatusRepository.save(new OrderStatus("Pending")));
-            
-            // Create orders if they don't exist
-            if (orderRepository.count() < 2) {
-                Order order1 = new Order(customer1, List.of(), pending, rider1, 23.0, "1234");
-                Order order2 = new Order(customer1, List.of(), pending, rider1, 14.0, "5678");
-                orderRepository.save(order1);
-                orderRepository.save(order2);
-            }
-            
-            // Get the actual order IDs
-            List<Long> orderIds = orderRepository.findAll().stream()
-                .map(Order::getId)
-                .sorted()
-                .toList();
-            
-            if (orderIds.size() < 2) {
-                throw new IllegalStateException("Failed to create orders for testing");
-            }
-            
-            orderId1 = orderIds.get(0);
-            orderId2 = orderIds.get(1);
+
+            Order order1 = new Order(customer1, List.of(), pending, rider1, 23.0, passwordEncoder.encode("123456"));
+            Order order2 = new Order(customer1, List.of(), pending, rider1, 14.0, passwordEncoder.encode("654321"));
+            order1 = orderRepository.save(order1);
+            order2 = orderRepository.save(order2);
+
+            orderId1 = order1.getId();
+            orderId2 = order2.getId();
         }
     }
 
@@ -307,5 +297,48 @@ class RiderControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testVerifyOrderPinMarksOrderAsDelivered() throws Exception {
+        ensureOrdersLoaded();
+
+        mockMvc.perform(post("/api/riders/1/orders/" + orderId1 + "/verify-pin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                            "pin": "123456"
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("Delivered"));
+    }
+
+    @Test
+    void testVerifyOrderPinWrongPinReturnsBadRequest() throws Exception {
+        ensureOrdersLoaded();
+
+        mockMvc.perform(post("/api/riders/1/orders/" + orderId1 + "/verify-pin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                            "pin": "000000"
+                        }
+                        """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testVerifyOrderPinWrongRiderReturnsForbidden() throws Exception {
+        ensureOrdersLoaded();
+
+        mockMvc.perform(post("/api/riders/2/orders/" + orderId1 + "/verify-pin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                            "pin": "123456"
+                        }
+                        """))
+                .andExpect(status().isForbidden());
     }
 }

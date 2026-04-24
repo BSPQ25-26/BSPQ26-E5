@@ -1,6 +1,5 @@
 package com.justorder.backend.service;
 
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,26 +27,31 @@ import com.justorder.backend.repository.RiderRepository;
 public class OrderService {
 
     private static final String DEFAULT_ORDER_STATUS = "Pending";
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
     private final DishRepository dishRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final RiderRepository riderRepository;
+    private final OrderPinGenerationService orderPinGenerationService;
+    private final OrderPinSecurityService orderPinSecurityService;
 
     public OrderService(
         OrderRepository orderRepository,
         CustomerRepository customerRepository,
         DishRepository dishRepository,
         OrderStatusRepository orderStatusRepository,
-        RiderRepository riderRepository
+        RiderRepository riderRepository,
+        OrderPinGenerationService orderPinGenerationService,
+        OrderPinSecurityService orderPinSecurityService
     ) {
         this.orderRepository = orderRepository;
         this.customerRepository = customerRepository;
         this.dishRepository = dishRepository;
         this.orderStatusRepository = orderStatusRepository;
         this.riderRepository = riderRepository;
+        this.orderPinGenerationService = orderPinGenerationService;
+        this.orderPinSecurityService = orderPinSecurityService;
     }
 
     /**
@@ -66,7 +70,13 @@ public class OrderService {
     public OrderDTO createOrder(OrderDTO dto) {
         Order order = new Order();
         order.setTotalPrice(dto.getTotalPrice());
-        order.setSecretCode(dto.getSecretCode() != null ? dto.getSecretCode() : generateSecretCode());
+        
+        // Si el DTO no trae PIN, generamos uno nuevo y lo encriptamos
+        if (dto.getSecretCode() != null) {
+             order.setSecretCodeHash(orderPinSecurityService.hashPin(dto.getSecretCode()));
+        } else {
+             order.setSecretCodeHash(orderPinSecurityService.hashPin(orderPinGenerationService.generatePin()));
+        }
 
         linkOrderEntities(order, dto);
 
@@ -82,7 +92,10 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id));
 
         order.setTotalPrice(dto.getTotalPrice());
-        order.setSecretCode(dto.getSecretCode());
+        
+        if (dto.getSecretCode() != null && !dto.getSecretCode().isBlank()) {
+            order.setSecretCodeHash(orderPinSecurityService.hashPin(dto.getSecretCode()));
+        }
         
         linkOrderEntities(order, dto);
 
@@ -131,9 +144,12 @@ public class OrderService {
         order.setStatus(status);
         order.setRider(assignedRider);
         order.setTotalPrice(calculatedTotal);
-        order.setSecretCode(generateSecretCode());
+        String plainPin = orderPinGenerationService.generatePin();
+        order.setSecretCodeHash(orderPinSecurityService.hashPin(plainPin));
 
-        return orderRepository.save(order).toDTO();
+        OrderDTO createdOrder = orderRepository.save(order).toDTO();
+        createdOrder.setSecretCode(plainPin);
+        return createdOrder;
     }
 
     /**
@@ -236,7 +252,4 @@ public class OrderService {
         }).collect(Collectors.toList());
     }
 
-    private String generateSecretCode() {
-        return String.valueOf(RANDOM.nextInt(900000) + 100000);
-    }
 }

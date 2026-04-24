@@ -2,10 +2,19 @@ package com.justorder.backend.dto;
 
 public class LoginRequest {
 
+    private String type; // "rider", "customer", "restaurant"
     private String email;
     private String password;
 
     public LoginRequest() {
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getEmail() {

@@ -51,6 +51,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public preflight checks and auth endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/sessions/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/hello").permitAll()
                 
@@ -62,7 +63,7 @@ public class SecurityConfig {
                 // 2. PUBLIC VIEWING AND CHECKOUT (Specific operations allowed for public/customers)
                 .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/dishes/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/allergens/**", "/api/categories/**").permitAll() // <-- Categorías y Alérgenos en modo lectura
+                .requestMatchers(HttpMethod.GET, "/api/allergens/**", "/api/categories/**").permitAll() // Categorías y Alérgenos en modo lectura
                 .requestMatchers(HttpMethod.POST, "/api/orders/checkout").permitAll()
                 
                 // 3. RESTAURANT OPERATIONS
@@ -91,7 +92,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/orders/**").hasRole("ADMIN")
                 
                 // 8. SYSTEM DICTIONARIES (Admin exclusive modifications)
-                .requestMatchers("/api/allergens/**", "/api/categories/**", "/api/order-statuses/**").hasRole("ADMIN") // <-- ¡La solución!
+                .requestMatchers("/api/allergens/**", "/api/categories/**", "/api/order-statuses/**").hasRole("ADMIN")
                 
                 // 9. ADMIN EXCLUSIVE OPERATIONS
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -121,7 +122,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000")); 
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:3001",
+            "http://127.0.0.1:3001",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173"
+        ));
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
         source.registerCorsConfiguration("/**", config);

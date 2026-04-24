@@ -21,8 +21,9 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -297,5 +298,25 @@ class CustomerControllerTest {
     void testDeleteAllCustomer() throws Exception {
         mockMvc.perform(delete("/api/customers"))
             .andExpect(status().isOk());
+    }
+
+    @Test
+    void testGetCustomerDashboard() throws Exception {
+        mockMvc.perform(get("/api/customers/1/dashboard"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.customerId").value(1))
+            .andExpect(jsonPath("$.totalOrders").value(greaterThanOrEqualTo(0)))
+            .andExpect(jsonPath("$.activeOrders").value(greaterThanOrEqualTo(0)))
+            .andExpect(jsonPath("$.cancelledOrders").value(greaterThanOrEqualTo(0)))
+            .andExpect(jsonPath("$.deliveredOrders").value(greaterThanOrEqualTo(0)))
+            .andExpect(jsonPath("$.totalSpent").isNumber())
+            .andExpect(jsonPath("$.totalRefunded").isNumber())
+            .andExpect(jsonPath("$.recentOrders").isArray());
+    }
+
+    @Test
+    void testGetCustomerDashboardNotFound() throws Exception {
+        mockMvc.perform(get("/api/customers/999999/dashboard"))
+            .andExpect(status().isNotFound());
     }
 }
