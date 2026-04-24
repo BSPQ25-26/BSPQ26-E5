@@ -132,14 +132,20 @@ export const loginUser = async (loginType, payload) => {
     }
 
     const data = await response.json();
+    localStorage.setItem('token', data.token);
+    localStorage.setItem(`${loginType}Id`, data.id);
     return { isBypass: false, token: data.token };
 };
   
 export const getCustomerOrders = async (customerId) => {
+
+    const token = localStorage.getItem('token');
+
     const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
         },
     });
 

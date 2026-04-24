@@ -7,7 +7,9 @@ import "../assets/css/CustomerMarketplace.css";
 import "../assets/css/OrderStatusPage.css";
 
 
+/*
 const CUSTOMER_ID = 1;
+*/
 
 const STATUS_CLASS = {
     "Pending":          "status-Pending",
@@ -86,14 +88,14 @@ function OrderStatusPage() {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     const navigate = useNavigate();
-
+    const customerId = localStorage.getItem('customerId');
     // Auto-load orders on mount, no user input needed
     useEffect(() => {
-        getCustomerOrders(CUSTOMER_ID)
+        getCustomerOrders(customerId)
             .then((data) => setOrders(data))
             .catch(() => setErrorMessage("Could not load your orders. Please try again later."))
             .finally(() => setIsLoading(false));
-    }, []);
+    }, [customerId]);
 
     const handleSignOut = () => {
         setIsProfileMenuOpen(false);
