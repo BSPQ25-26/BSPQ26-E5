@@ -1,6 +1,7 @@
 package com.justorder.backend.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,7 +13,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
 
     boolean existsByEmail(String email);
-    Restaurant findByEmail(String email);
+    Optional<Restaurant> findByEmail(String email);
 
     @Query("""
         SELECT DISTINCT r FROM Restaurant r
