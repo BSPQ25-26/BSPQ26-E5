@@ -1,22 +1,38 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Cart from "../components/Cart";
 import { useCart } from "../store/CartContext";
 import "../assets/css/Checkout.css";
 
-const MOCK_DISHES = [
-  { id: 1, name: "Four Cheese Pizza", price: 23.0 },
-  { id: 2, name: "Grilled Salmon", price: 25.0 },
-  { id: 3, name: "Thai Tofu Bowl", price: 19.5 },
-];
-
 const formatPrice = (value) => `${value.toFixed(2)} EUR`;
 
+const ORDER_CODE_STORAGE_KEY = "justorder:verificationCodes";
+
+const readVerificationCodes = () => {
+  try {
+    const rawValue = localStorage.getItem(ORDER_CODE_STORAGE_KEY);
+    return rawValue ? JSON.parse(rawValue) : {};
+  } catch {
+    return {};
+  }
+};
+
+const storeVerificationCode = (orderId, secretCode) => {
+  if (!orderId || !secretCode) {
+    return;
+  }
+
+  const currentCodes = readVerificationCodes();
+  currentCodes[String(orderId)] = secretCode;
+  localStorage.setItem(ORDER_CODE_STORAGE_KEY, JSON.stringify(currentCodes));
+};
+
 const CheckoutPage = () => {
-  const { items, addToCart, clearCart, totalPrice } = useCart();
+  const navigate = useNavigate();
+  const { items, clearCart, totalPrice } = useCart();
   const [customerId, setCustomerId] = useState("1");
   const [paymentToken, setPaymentToken] = useState("mock-payment-token");
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const dishIds = useMemo(
@@ -30,7 +46,6 @@ const CheckoutPage = () => {
    * and a non-empty payment token.
    */
   const handleCheckout = async () => {
-    setSuccessMessage("");
     setErrorMessage("");
 
     const parsedCustomerId = Number(customerId);
@@ -79,9 +94,12 @@ const CheckoutPage = () => {
       }
 
       clearCart();
-      setSuccessMessage(
-        `Order confirmed. ID: ${data?.id ?? "N/A"}. Secret code: ${data?.secretCode ?? "N/A"}.`
-      );
+      storeVerificationCode(data?.id, data?.secretCode);
+      navigate("/orders/confirmation", {
+        state: {
+          order: data,
+        },
+      });
     } catch (error) {
       setErrorMessage(error.message || "Checkout could not be completed.");
     } finally {
@@ -93,7 +111,7 @@ const CheckoutPage = () => {
     <main className="checkout-page">
       <div className="checkout-header">
         <h1>🛒 Shopping Cart & Checkout</h1>
-        <p>Select dishes from our menu, review your order, and complete your purchase</p>
+        <p>Review your cart and complete your purchase</p>
       </div>
 
       <div className="checkout-steps">
@@ -113,87 +131,56 @@ const CheckoutPage = () => {
         </div>
       </div>
 
-      <div className="checkout-container">
-        {/* Left: Menu Items */}
-        <div className="checkout-dishes-section">
-          <div className="dishes-header">
-            <h2>Available Dishes</h2>
-            <p>Select items to add to your cart</p>
-          </div>
+      <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <Cart />
 
-          <div className="dishes-grid">
-            {MOCK_DISHES.map((dish) => (
-              <div key={dish.id} className="dish-card">
-                <div className="dish-card-info">
-                  <p className="dish-name">{dish.name}</p>
-                  <p className="dish-price">{formatPrice(dish.price)}</p>
-                </div>
-                <button type="button" onClick={() => addToCart(dish)}>
-                  Add to Cart
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <div className="payment-card">
+          <h3>Payment</h3>
 
-        {/* Right: Cart & Payment */}
-        <div className="checkout-sidebar">
-          <Cart />
-
-          <div className="payment-card">
-            <h3>Payment</h3>
-
-            <div className="payment-form">
-              <div className="form-group">
-                <label htmlFor="customerIdInput">Customer ID</label>
-                <input
-                  id="customerIdInput"
-                  type="number"
-                  min="1"
-                  value={customerId}
-                  onChange={(event) => setCustomerId(event.target.value)}
-                  placeholder="e.g., 1"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="paymentTokenInput">Payment Token</label>
-                <input
-                  id="paymentTokenInput"
-                  type="text"
-                  value={paymentToken}
-                  onChange={(event) => setPaymentToken(event.target.value)}
-                  placeholder="e.g., card-token-123"
-                />
-              </div>
-
-              <div className="total-display">
-                <span className="label">Total:</span>
-                <span className="amount">{formatPrice(totalPrice)}</span>
-              </div>
-
-              <button
-                type="button"
-                className="checkout-btn"
-                onClick={handleCheckout}
-                disabled={isLoading}
-              >
-                {isLoading ? "Processing..." : "Pay & Confirm Order"}
-              </button>
+          <div className="payment-form">
+            <div className="form-group">
+              <label htmlFor="customerIdInput">Customer ID</label>
+              <input
+                id="customerIdInput"
+                type="number"
+                min="1"
+                value={customerId}
+                onChange={(event) => setCustomerId(event.target.value)}
+                placeholder="e.g., 1"
+              />
             </div>
 
-            {successMessage && (
-              <div className="message-box message-success" role="status">
-                <span>{successMessage}</span>
-              </div>
-            )}
+            <div className="form-group">
+              <label htmlFor="paymentTokenInput">Payment Token</label>
+              <input
+                id="paymentTokenInput"
+                type="text"
+                value={paymentToken}
+                onChange={(event) => setPaymentToken(event.target.value)}
+                placeholder="e.g., card-token-123"
+              />
+            </div>
 
-            {errorMessage && (
-              <div className="message-box message-error" role="alert">
-                <span>{errorMessage}</span>
-              </div>
-            )}
+            <div className="total-display">
+              <span className="label">Total:</span>
+              <span className="amount">{formatPrice(totalPrice)}</span>
+            </div>
+
+            <button
+              type="button"
+              className="checkout-btn"
+              onClick={handleCheckout}
+              disabled={isLoading}
+            >
+              {isLoading ? "Processing..." : "Pay & Confirm Order"}
+            </button>
           </div>
+
+          {errorMessage && (
+            <div className="message-box message-error" role="alert">
+              <span>{errorMessage}</span>
+            </div>
+          )}
         </div>
       </div>
     </main>

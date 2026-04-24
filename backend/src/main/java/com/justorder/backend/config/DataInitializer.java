@@ -227,12 +227,21 @@ public class DataInitializer implements CommandLineRunner {
             Localization customerLocation = new Localization(
                 "Bilbao", "Bizkaia", "Spain", "48003", "5", -2.9200, 43.2600
             );
+            Localization customerLocation2 = new Localization(
+                "Bilbao", "Bizkaia", "Spain", "48003", "5", -2.9200, 43.2600
+            );
             Customer customer1 = new Customer(
                 "Test Customer", "customer@test.com", "+34 633 333 333",
                 passwordEncoder.encode("customer123"), 30, "11111111C",
                 List.of(customerLocation), List.of(), List.of()
             );
+            Customer customer2 = new Customer(
+                "John Doe", "john.doe@test.com", "+34 644 444 444",
+                passwordEncoder.encode("customer123"), 30, "22222222D",
+                List.of(customerLocation2), List.of(), List.of()
+            );
             customerRepository.save(customer1);
+            customerRepository.save(customer2);
         }
 
         // Orders depend on riders + customers existing, so we check both
@@ -246,11 +255,11 @@ public class DataInitializer implements CommandLineRunner {
             Dish dish1 = dishRepository.findAll().get(0);
 
             // Order 1 — for testing rejection + reassignment to Rider 2
-            Order order1 = new Order(customer1, List.of(dish1), pending, rider1, 23.0, "1234");
+            Order order1 = new Order(customer1, List.of(dish1), pending, rider1, 23.0, passwordEncoder.encode("1234"));
             orderRepository.save(order1);
 
             // Order 2 — for testing rejection + cancellation
-            Order order2 = new Order(customer1, List.of(dish1), pending, rider1, 14.0, "5678");
+            Order order2 = new Order(customer1, List.of(dish1), pending, rider1, 14.0, passwordEncoder.encode("5678"));
             orderRepository.save(order2);
         }
     }

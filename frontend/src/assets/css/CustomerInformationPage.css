@@ -1,0 +1,116 @@
+.customer-info-content {
+    padding: 2rem;
+}
+
+.customer-info-header h2 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.customer-info-header p {
+    margin-top: 0.5rem;
+    color: #6d7482;
+}
+
+.customer-info-meta {
+    margin-top: 1.25rem;
+    color: #485066;
+    font-weight: 600;
+}
+
+.customer-info-loading {
+    margin-top: 1.25rem;
+    color: #7d8594;
+}
+
+.customer-info-error {
+    margin-top: 1.25rem;
+    color: #c0392b;
+    font-weight: 600;
+}
+
+.customer-info-stats-grid {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.customer-info-stat-card {
+    padding: 1rem 1.2rem;
+    border: 1px solid #e2e7ef;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(36, 51, 90, 0.06);
+}
+
+.customer-info-stat-card h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #637087;
+    font-weight: 600;
+}
+
+.customer-info-stat-card p {
+    margin: 0.45rem 0 0;
+    font-size: 1.4rem;
+    color: #1f2a44;
+    font-weight: 700;
+}
+
+.customer-info-orders-section {
+    margin-top: 2rem;
+    border-top: 1px solid #e5eaf2;
+    padding-top: 1.5rem;
+}
+
+.customer-info-orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.customer-info-orders-header h3 {
+    margin: 0;
+    color: #1f2a44;
+}
+
+.customer-info-orders-header a {
+    color: #2f6ecf;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.customer-info-empty-state {
+    margin-top: 1rem;
+    color: #6e7788;
+}
+
+.customer-info-recent-orders {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.8rem;
+}
+
+.customer-info-order-card {
+    border: 1px solid #e2e7ef;
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    background: #fff;
+}
+
+.customer-info-order-top-row,
+.customer-info-order-bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.customer-info-order-bottom-row {
+    margin-top: 0.5rem;
+    color: #70798b;
+    font-size: 0.9rem;
+}

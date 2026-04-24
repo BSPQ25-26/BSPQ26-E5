@@ -10,23 +10,30 @@ import com.justorder.backend.repository.RiderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class RiderService {
 
+    private static final int MAX_PIN_ATTEMPTS = 5;
+    private static final int PIN_LOCK_MINUTES = 10;
+
     private final OrderRepository orderRepository;
     private final RiderRepository riderRepository;
     private final OrderStatusRepository orderStatusRepository;
+    private final OrderPinSecurityService orderPinSecurityService;
 
 
     public RiderService(OrderRepository orderRepository,
                         RiderRepository riderRepository,
-                        OrderStatusRepository orderStatusRepository) {
+                        OrderStatusRepository orderStatusRepository,
+                        OrderPinSecurityService orderPinSecurityService) {
         this.orderRepository = orderRepository;
         this.riderRepository = riderRepository;
         this.orderStatusRepository = orderStatusRepository;
+        this.orderPinSecurityService = orderPinSecurityService;
     }
 
 
@@ -77,5 +84,56 @@ public class RiderService {
                 .stream()
                 .map(Order::toDTO)
                 .toList();
+    }
+
+
+    @Transactional
+    public OrderDTO verifyOrderPin(Long riderId, Long orderId, String pin) {
+        if (pin == null || !pin.matches("\\d{6}")) {
+            throw new IllegalArgumentException("PIN must be a 6-digit numeric code");
+        }
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Order not found with id: " + orderId));
+
+        if (!order.getRider().getId().equals(riderId)) {
+            throw new SecurityException(
+                    "Rider " + riderId + " is not assigned to order " + orderId);
+        }
+
+        if ("Delivered".equalsIgnoreCase(order.getStatus().getStatus())) {
+            return order.toDTO();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (order.getPinLockedUntil() != null && order.getPinLockedUntil().isAfter(now)) {
+            throw new IllegalStateException("PIN verification is temporarily locked");
+        }
+
+        boolean pinMatches = orderPinSecurityService.matches(pin, order.getSecretCodeHash());
+        if (!pinMatches) {
+            int failedAttempts = order.getPinFailedAttempts() + 1;
+            order.setPinFailedAttempts(failedAttempts);
+
+            if (failedAttempts >= MAX_PIN_ATTEMPTS) {
+                order.setPinLockedUntil(now.plusMinutes(PIN_LOCK_MINUTES));
+                order.setPinFailedAttempts(0);
+            }
+
+            orderRepository.save(order);
+            throw new IllegalArgumentException("Invalid verification PIN");
+        }
+
+        OrderStatus deliveredStatus = orderStatusRepository.findByStatusIgnoreCase("Delivered")
+                .orElseThrow(() -> new IllegalArgumentException("Delivered status not found"));
+
+        order.setStatus(deliveredStatus);
+        order.setDeliveredAt(now);
+        order.setPinVerifiedAt(now);
+        order.setPinFailedAttempts(0);
+        order.setPinLockedUntil(null);
+
+        return orderRepository.save(order).toDTO();
     }
 }
