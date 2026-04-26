@@ -6,10 +6,9 @@ import { loginAdmin } from '../../api/authService';
 
 const mockNavigate = jest.fn();
 
-// MASTER TRICK: virtual: true prevents Jest from trying to find the real library
 jest.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate
-}), { virtual: true });
+}));
 
 // Interceptamos la llamada a la API
 jest.mock('../../api/authService', () => ({
