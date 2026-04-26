@@ -78,7 +78,7 @@ public class SessionService {
     private void createRestaurantSession(LoginRequest request, LoginResponseDTO response) {
         // Validate restaurant credentials and create session
         if (restaurantRepository.existsByEmail(request.getEmail())) {
-            Restaurant restaurant = restaurantRepository.findByEmail(request.getEmail()).orElse(null);;
+            Restaurant restaurant = restaurantRepository.findByEmail(request.getEmail()).orElse(null);
             if (restaurant != null && passwordEncoder.matches(request.getPassword(), restaurant.getPassword())) {
                 String token = generateToken(request.getType());
                 activeTokens.get("restaurant").add(token);
