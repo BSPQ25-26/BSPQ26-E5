@@ -231,6 +231,7 @@ class CustomerControllerTest {
         mockMvc.perform(get("/api/customers/1/dashboard"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.customerId").value(1))
+            .andExpect(jsonPath("$.customerName").value("Test Customer"))
             .andExpect(jsonPath("$.totalOrders").value(greaterThanOrEqualTo(0)))
             .andExpect(jsonPath("$.activeOrders").value(greaterThanOrEqualTo(0)))
             .andExpect(jsonPath("$.cancelledOrders").value(greaterThanOrEqualTo(0)))

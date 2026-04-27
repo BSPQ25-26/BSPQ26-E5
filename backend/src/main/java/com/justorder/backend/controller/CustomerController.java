@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.model.Customer;
 import com.justorder.backend.model.Order;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.OrderRepository;
@@ -82,7 +83,8 @@ public class CustomerController {
 
     @GetMapping("/{customerId}/dashboard")
     public ResponseEntity<CustomerDashboardDTO> getCustomerDashboard(@PathVariable Long customerId) {
-    if (!customerRepository.existsById(customerId)) {
+    Customer customer = customerRepository.findById(customerId).orElse(null);
+    if (customer == null) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
@@ -114,6 +116,7 @@ public class CustomerController {
 
     CustomerDashboardDTO dashboard = new CustomerDashboardDTO(
         customerId,
+        customer.getName(),
         totalOrders,
         activeOrders,
         cancelledOrders,
