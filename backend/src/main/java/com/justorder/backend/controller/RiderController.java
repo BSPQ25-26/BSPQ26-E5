@@ -1,6 +1,7 @@
 package com.justorder.backend.controller;
 
 import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RiderDashboardDTO;
 import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.dto.VerifyOrderPinRequestDTO;
 import com.justorder.backend.repository.RiderRepository;
@@ -52,8 +53,12 @@ public class RiderController {
     }
 
     @GetMapping("/{riderId}")
-    public ResponseEntity<RiderDTO> getRider(@PathVariable String riderId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
+    public ResponseEntity<RiderDTO> getRider(@PathVariable Long riderId) {
+        try {
+            return ResponseEntity.ok(riderService.getRider(riderId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @GetMapping("/{riderId}/orders")
@@ -61,6 +66,15 @@ public class RiderController {
         try {
             List<OrderDTO> orders = riderService.getRiderOrders(riderId);
             return ResponseEntity.ok(orders);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/{riderId}/dashboard")
+    public ResponseEntity<RiderDashboardDTO> getRiderDashboard(@PathVariable Long riderId) {
+        try {
+            return ResponseEntity.ok(riderService.getRiderDashboard(riderId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
