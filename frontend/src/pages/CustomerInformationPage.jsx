@@ -112,33 +112,33 @@ function CustomerInformationPage() {
                     {!isLoading && !errorMessage && dashboard && (
                         <>
                             <div className="customer-info-meta">
-                                <span>
+                                <span data-testid="customer-meta">
                                     Customer: {dashboard.customerName || loggedInCustomer?.name || "Unknown"}
                                 </span>
                             </div>
 
                             <div className="customer-info-stats-grid">
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-total-orders">
                                     <h3>Total orders</h3>
                                     <p>{dashboard.totalOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-active-orders">
                                     <h3>Active orders</h3>
                                     <p>{dashboard.activeOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-delivered-orders">
                                     <h3>Delivered orders</h3>
                                     <p>{dashboard.deliveredOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-cancelled-orders">
                                     <h3>Cancelled orders</h3>
                                     <p>{dashboard.cancelledOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-total-spent">
                                     <h3>Total spent</h3>
                                     <p>{formatPrice(dashboard.totalSpent)}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-total-refunded">
                                     <h3>Total refunded</h3>
                                     <p>{formatPrice(dashboard.totalRefunded)}</p>
                                 </article>
