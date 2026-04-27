@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,11 +21,15 @@ import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.dto.RejectionRequestDTO;
 import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.dto.RestaurantDashboardDTO;
+import com.justorder.backend.dto.RestaurantProfileUpdateDTO;
+import com.justorder.backend.exception.ResourceNotFoundException;
 import com.justorder.backend.service.MenuService;
 import com.justorder.backend.service.OrderService;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RestaurantService;
+import com.justorder.backend.service.SessionService;
 
 
 @RestController
@@ -35,6 +41,7 @@ public class RestaurantController {
     private final RegisterService registerService;
     private final RestaurantRepository restaurantRepository;
     private final RestaurantService restaurantService;
+    private final SessionService sessionService;
 
 
     private final OrderService orderService;
@@ -47,11 +54,13 @@ public class RestaurantController {
     public RestaurantController(RegisterService registerService,
                                 RestaurantRepository restaurantRepository,
                                 RestaurantService restaurantService,
-                                OrderService orderService) {    
+                                OrderService orderService,
+                                SessionService sessionService) {    
         this.registerService = registerService;
         this.restaurantRepository = restaurantRepository;
         this.restaurantService = restaurantService;
         this.orderService = orderService;
+        this.sessionService = sessionService;
     }
 
     @GetMapping("/hello")
@@ -74,6 +83,59 @@ public class RestaurantController {
     public ResponseEntity<HttpStatus> createOrUpdateMenu(@RequestBody List<DishDTO> request) {
    
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<RestaurantDTO> getMyProfile(@RequestHeader("Authorization") String authorization) {
+        try {
+            Long restaurantId = sessionService.getActiveRestaurantId(authorization);
+            RestaurantDTO profile = restaurantService.getRestaurantProfile(restaurantId);
+            return ResponseEntity.ok(profile);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<RestaurantDTO> updateMyProfile(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody RestaurantProfileUpdateDTO request) {
+        try {
+            Long restaurantId = sessionService.getActiveRestaurantId(authorization);
+            RestaurantDTO updatedProfile = restaurantService.updateRestaurantProfile(restaurantId, request);
+            return ResponseEntity.ok(updatedProfile);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<RestaurantDashboardDTO> getMyDashboard(@RequestHeader("Authorization") String authorization) {
+        try {
+            Long restaurantId = sessionService.getActiveRestaurantId(authorization);
+            RestaurantDashboardDTO dashboard = restaurantService.getRestaurantDashboard(restaurantId);
+            return ResponseEntity.ok(dashboard);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/{restaurantId}")
