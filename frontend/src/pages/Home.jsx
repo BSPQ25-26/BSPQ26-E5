@@ -14,32 +14,38 @@ function Home() {
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
-        e.preventDefault();
-        
-        const trimmedIdentifier = identifier.trim();
-        const payload = { email: trimmedIdentifier, password };
+    e.preventDefault();
 
-        try {
-            const result = await loginUser(loginType, payload);
-            
-            if (result.isBypass) {
-                alert("Backend endpoint is NOT IMPLEMENTED yet. Bypassing for UI testing.");
-            }
-            
-            localStorage.setItem("token", result.token);
-            
-            if (loginType === "customer") navigate("/customer-marketplace");
-            else if (loginType === "rider") navigate("/rider-dashboard");
-            else alert("Restaurant dashboard coming soon!");
+    const trimmedIdentifier = identifier.trim();
+    const payload = { email: trimmedIdentifier, password };
 
-        } catch (error) {
-            if (error.message === "Failed to fetch" || error.message.includes("NetworkError")) {
-                alert("Could not connect to the server. Is Spring Boot running?");
-            } else {
-                alert(error.message);
-            }
+    try {
+        const result = await loginUser(loginType, payload);
+
+        if (result.isBypass) {
+            alert("Backend endpoint is NOT IMPLEMENTED yet. Bypassing for UI testing.");
         }
-    };
+
+        localStorage.setItem("token", result.token);
+
+        // Persist the logged-in user so the rest of the app can auto-fill things
+        if (result.user) {
+            localStorage.setItem("userType", loginType);
+            localStorage.setItem("user", JSON.stringify(result.user));
+        }
+
+        if (loginType === "customer") navigate("/customer-marketplace");
+        else if (loginType === "rider") navigate("/rider-dashboard");
+        else alert("Restaurant dashboard coming soon!");
+
+    } catch (error) {
+        if (error.message === "Failed to fetch" || error.message.includes("NetworkError")) {
+            alert("Could not connect to the server. Is Spring Boot running?");
+        } else {
+            alert(error.message);
+        }
+    }
+};
 
     const handleTabSwitch = (type) => {
         setLoginType(type);
