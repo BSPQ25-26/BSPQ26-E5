@@ -3,57 +3,120 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 const CartContext = createContext(undefined);
 
 /**
- * Stores cart items grouped by dish id and exposes the operations used by the
- * checkout flow.
+ * Stores cart items by dish id and exposes the operations used by the
+ * checkout flow. Enforces the rule that a cart can only contain dishes from
+ * one restaurant at a time.
  */
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([]);
+  const [restaurantId, setRestaurantId] = useState(null);
+  const [restaurantName, setRestaurantName] = useState(null);
 
+  /**
+   * Tries to add a dish to the cart.
+   * Returns { success: true } on success.
+   * Returns { success: false, reason: 'different_restaurant', ... } if the dish
+   * belongs to a restaurant different from the one currently in the cart.
+   */
   const addToCart = (dish) => {
     if (!dish || dish.id == null) {
-      return;
+      return { success: false, reason: "invalid_dish" };
     }
 
-    setItems((prevItems) => {
-      const existing = prevItems.find((item) => item.id === dish.id);
-      if (existing) {
-        return prevItems.map((item) =>
+    const cartHasItems = items.length > 0;
+    const dishIsFromDifferentRestaurant =
+      cartHasItems &&
+      restaurantId != null &&
+      dish.restaurantId !== restaurantId;
+
+    if (dishIsFromDifferentRestaurant) {
+      return {
+        success: false,
+        reason: "different_restaurant",
+        currentRestaurantName: restaurantName,
+        attemptedRestaurantName: dish.restaurantName,
+      };
+    }
+
+    const existing = items.find((item) => item.id === dish.id);
+    const nextItems = existing
+      ? items.map((item) =>
           item.id === dish.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
-        );
-      }
+        )
+      : [
+          ...items,
+          {
+            id: dish.id,
+            name: dish.name,
+            price: Number(dish.price) || 0,
+            quantity: 1,
+          },
+        ];
 
-      return [
-        ...prevItems,
-        {
-          id: dish.id,
-          name: dish.name,
-          price: Number(dish.price) || 0,
-          quantity: 1,
-        },
-      ];
-    });
+    setItems(nextItems);
+
+    // Capture the restaurant the first time an item is added to an empty cart.
+    if (!cartHasItems) {
+      setRestaurantId(dish.restaurantId ?? null);
+      setRestaurantName(dish.restaurantName ?? null);
+    }
+
+    return { success: true };
+  };
+
+  /**
+   * Clears the cart and replaces it with a single dish. Used when the user
+   * confirms switching restaurants.
+   */
+  const replaceCartWith = (dish) => {
+    if (!dish || dish.id == null) {
+      return { success: false, reason: "invalid_dish" };
+    }
+
+    setItems([
+      {
+        id: dish.id,
+        name: dish.name,
+        price: Number(dish.price) || 0,
+        quantity: 1,
+      },
+    ]);
+    setRestaurantId(dish.restaurantId ?? null);
+    setRestaurantName(dish.restaurantName ?? null);
+
+    return { success: true };
   };
 
   const removeFromCart = (dishId) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== dishId));
+    const next = items.filter((item) => item.id !== dishId);
+    setItems(next);
+    if (next.length === 0) {
+      setRestaurantId(null);
+      setRestaurantName(null);
+    }
   };
 
   const decreaseQuantity = (dishId) => {
-    setItems((prevItems) =>
-      prevItems
-        .map((item) =>
-          item.id === dishId
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
+    const next = items
+      .map((item) =>
+        item.id === dishId
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+      .filter((item) => item.quantity > 0);
+    setItems(next);
+    if (next.length === 0) {
+      setRestaurantId(null);
+      setRestaurantName(null);
+    }
   };
 
   const clearCart = () => {
     setItems([]);
+    setRestaurantId(null);
+    setRestaurantName(null);
   };
 
   const totalPrice = useMemo(
@@ -72,7 +135,10 @@ export const CartProvider = ({ children }) => {
 
   const value = {
     items,
+    restaurantId,
+    restaurantName,
     addToCart,
+    replaceCartWith,
     removeFromCart,
     decreaseQuantity,
     clearCart,

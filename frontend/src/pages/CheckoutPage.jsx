@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cart from "../components/Cart";
 import { useCart } from "../store/CartContext";
@@ -27,30 +27,43 @@ const storeVerificationCode = (orderId, secretCode) => {
   localStorage.setItem(ORDER_CODE_STORAGE_KEY, JSON.stringify(currentCodes));
 };
 
+const readLoggedInCustomer = () => {
+  try {
+    const userType = localStorage.getItem("userType");
+    const rawUser = localStorage.getItem("user");
+    if (userType !== "customer" || !rawUser) {
+      return null;
+    }
+    const user = JSON.parse(rawUser);
+    return user && user.id ? user : null;
+  } catch {
+    return null;
+  }
+};
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, clearCart, totalPrice } = useCart();
-  const [customerId, setCustomerId] = useState("1");
+  const [loggedInCustomer, setLoggedInCustomer] = useState(null);
   const [paymentToken, setPaymentToken] = useState("mock-payment-token");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Load the logged-in customer from localStorage on mount.
+  useEffect(() => {
+    setLoggedInCustomer(readLoggedInCustomer());
+  }, []);
 
   const dishIds = useMemo(
     () => items.flatMap((item) => Array.from({ length: item.quantity }, () => item.id)),
     [items]
   );
 
-  /**
-   * Sends the checkout payload expected by the backend.
-   * A valid request requires a positive customerId, at least one dish id,
-   * and a non-empty payment token.
-   */
   const handleCheckout = async () => {
     setErrorMessage("");
 
-    const parsedCustomerId = Number(customerId);
-    if (!parsedCustomerId || parsedCustomerId <= 0) {
-      setErrorMessage("Enter a valid customerId.");
+    if (!loggedInCustomer) {
+      setErrorMessage("You must be logged in as a customer to place an order.");
       return;
     }
 
@@ -65,7 +78,7 @@ const CheckoutPage = () => {
     }
 
     const payload = {
-      customerId: parsedCustomerId,
+      customerId: loggedInCustomer.id,
       dishIds,
       totalPrice,
       clientTotal: totalPrice,
@@ -89,7 +102,7 @@ const CheckoutPage = () => {
       if (!response.ok) {
         throw new Error(
           data?.message ||
-          `Checkout failed with status ${response.status}. Check customerId, dishes, or payment data.`
+            `Checkout failed with status ${response.status}. Check your cart or payment data.`
         );
       }
 
@@ -137,19 +150,17 @@ const CheckoutPage = () => {
         <div className="payment-card">
           <h3>Payment</h3>
 
-          <div className="payment-form">
-            <div className="form-group">
-              <label htmlFor="customerIdInput">Customer ID</label>
-              <input
-                id="customerIdInput"
-                type="number"
-                min="1"
-                value={customerId}
-                onChange={(event) => setCustomerId(event.target.value)}
-                placeholder="e.g., 1"
-              />
-            </div>
+          {loggedInCustomer ? (
+            <p style={{ margin: '0 0 16px', color: '#333' }}>
+              Ordering as <strong>{loggedInCustomer.name || loggedInCustomer.email}</strong>
+            </p>
+          ) : (
+            <p style={{ margin: '0 0 16px', color: '#b00020' }}>
+              You are not logged in. Please log in to place an order.
+            </p>
+          )}
 
+          <div className="payment-form">
             <div className="form-group">
               <label htmlFor="paymentTokenInput">Payment Token</label>
               <input
@@ -170,7 +181,7 @@ const CheckoutPage = () => {
               type="button"
               className="checkout-btn"
               onClick={handleCheckout}
-              disabled={isLoading}
+              disabled={isLoading || !loggedInCustomer}
             >
               {isLoading ? "Processing..." : "Pay & Confirm Order"}
             </button>

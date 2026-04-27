@@ -2,19 +2,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import cartImage from '../assets/images/Shopping cart.png';
 import { useCart } from '../store/CartContext';
+import ConfirmReplaceCartModal from '../components/ConfirmReplaceCartModal';
 import '../assets/css/Home.css';
 import '../assets/css/CustomerMarketplace.css';
 
 function RestaurantDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, replaceCartWith } = useCart();
 
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const toastTimerRef = useRef(null);
+
+  const [pendingDish, setPendingDish] = useState(null);
+  const [modalInfo, setModalInfo] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:8080/api/restaurants/search')
@@ -42,16 +46,8 @@ function RestaurantDetail() {
     };
   }, []);
 
-  const handleSignOut = () => {
-    alert("Signing out and destroying JWT token...");
-    setIsProfileMenuOpen(false);
-    navigate("/");
-  };
-
-  const handleAddToCart = (dish) => {
-    addToCart(dish);
-    setToastMessage(`"${dish.name}" added to cart`);
-
+  const showToast = (message) => {
+    setToastMessage(message);
     if (toastTimerRef.current) {
       clearTimeout(toastTimerRef.current);
     }
@@ -59,6 +55,43 @@ function RestaurantDetail() {
       setToastMessage("");
       toastTimerRef.current = null;
     }, 2000);
+  };
+
+  const handleSignOut = () => {
+    alert("Signing out and destroying JWT token...");
+    setIsProfileMenuOpen(false);
+    navigate("/");
+  };
+
+  const handleAddToCart = (dish) => {
+    const result = addToCart(dish);
+
+    if (result.success) {
+      showToast(`"${dish.name}" added to cart`);
+      return;
+    }
+
+    if (result.reason === 'different_restaurant') {
+      setPendingDish(dish);
+      setModalInfo({
+        currentRestaurantName: result.currentRestaurantName,
+        newRestaurantName: result.attemptedRestaurantName,
+      });
+    }
+  };
+
+  const handleConfirmReplace = () => {
+    if (pendingDish) {
+      replaceCartWith(pendingDish);
+      showToast(`Cart cleared. "${pendingDish.name}" added to cart`);
+    }
+    setPendingDish(null);
+    setModalInfo(null);
+  };
+
+  const handleCancelReplace = () => {
+    setPendingDish(null);
+    setModalInfo(null);
   };
 
   if (!restaurant) {
@@ -92,7 +125,7 @@ function RestaurantDetail() {
 
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown">
-                    <Link to="/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
+                    <Link to="/customer/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
                     <Link to="/customer/profile" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>Information</Link>
                     <button className="dropdown-item sign-out" onClick={handleSignOut}>Sign out</button>
                   </div>
@@ -171,6 +204,15 @@ function RestaurantDetail() {
         >
           ✓ {toastMessage}
         </div>
+      )}
+
+      {modalInfo && (
+        <ConfirmReplaceCartModal
+          currentRestaurantName={modalInfo.currentRestaurantName}
+          newRestaurantName={modalInfo.newRestaurantName}
+          onConfirm={handleConfirmReplace}
+          onCancel={handleCancelReplace}
+        />
       )}
     </main>
   );
