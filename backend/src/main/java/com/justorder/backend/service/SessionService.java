@@ -45,6 +45,7 @@ public class SessionService {
         }
 
         if (!restaurantRepository.existsById(restaurantId)) {
+            activeTokens.get("restaurant").remove(token);
             throw new SecurityException("Restaurant not found for token");
         }
 
