@@ -2,25 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import cartImage from "../assets/images/Shopping cart.png";
 import { getCustomerDashboard } from "../api/authApi";
+import { readLoggedInCustomer } from "../utils/auth";
 import "../assets/css/Home.css";
 import "../assets/css/CustomerMarketplace.css";
 import "../assets/css/CustomerInformationPage.css";
 
 const formatPrice = (value) => `${Number(value || 0).toFixed(2)} EUR`;
-
-const readLoggedInCustomer = () => {
-    try {
-        const userType = localStorage.getItem("userType");
-        const rawUser = localStorage.getItem("user");
-        if (userType !== "customer" || !rawUser) {
-            return null;
-        }
-        const user = JSON.parse(rawUser);
-        return user && user.id ? user : null;
-    } catch {
-        return null;
-    }
-};
 
 const formatDate = (dateString) => {
     if (!dateString) return "-";
