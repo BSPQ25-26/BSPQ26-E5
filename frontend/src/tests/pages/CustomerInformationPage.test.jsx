@@ -17,6 +17,7 @@ jest.mock("react-router-dom", () => ({
 
 const mockDashboard = {
     customerId: 1,
+    customerName: "Test Customer",
     totalOrders: 7,
     activeOrders: 4,
     cancelledOrders: 2,
@@ -36,9 +37,12 @@ const mockDashboard = {
 describe("CustomerInformationPage", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        localStorage.clear();
+        localStorage.setItem("userType", "customer");
+        localStorage.setItem("user", JSON.stringify({ id: 1, name: "Test Customer" }));
     });
 
-    test("loads dashboard for customer 1 on mount", async () => {
+    test("loads dashboard for logged-in customer on mount", async () => {
         getCustomerDashboard.mockResolvedValueOnce(mockDashboard);
 
         await act(async () => {
@@ -62,6 +66,18 @@ describe("CustomerInformationPage", () => {
         expect(screen.getByText("Cancelled orders")).toBeInTheDocument();
         expect(screen.getByText("Total spent")).toBeInTheDocument();
         expect(screen.getByText("Total refunded")).toBeInTheDocument();
+        expect(screen.getByText(/Customer: Test Customer/i)).toBeInTheDocument();
+    });
+
+    test("shows login-required message when customer is not logged in", async () => {
+        localStorage.clear();
+
+        await act(async () => {
+            render(<CustomerInformationPage />);
+        });
+
+        expect(getCustomerDashboard).not.toHaveBeenCalled();
+        expect(screen.getByText(/You must be logged in as a customer/i)).toBeInTheDocument();
     });
 
     test("shows recent orders section when orders exist", async () => {

@@ -6,9 +6,21 @@ import "../assets/css/Home.css";
 import "../assets/css/CustomerMarketplace.css";
 import "../assets/css/CustomerInformationPage.css";
 
-const CUSTOMER_ID = 1;
-
 const formatPrice = (value) => `${Number(value || 0).toFixed(2)} EUR`;
+
+const readLoggedInCustomer = () => {
+    try {
+        const userType = localStorage.getItem("userType");
+        const rawUser = localStorage.getItem("user");
+        if (userType !== "customer" || !rawUser) {
+            return null;
+        }
+        const user = JSON.parse(rawUser);
+        return user && user.id ? user : null;
+    } catch {
+        return null;
+    }
+};
 
 const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -23,6 +35,7 @@ const formatDate = (dateString) => {
 
 function CustomerInformationPage() {
     const [dashboard, setDashboard] = useState(null);
+    const [loggedInCustomer, setLoggedInCustomer] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -30,7 +43,16 @@ function CustomerInformationPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        getCustomerDashboard(CUSTOMER_ID)
+        const customer = readLoggedInCustomer();
+        setLoggedInCustomer(customer);
+
+        if (!customer) {
+            setErrorMessage("You must be logged in as a customer to see this dashboard.");
+            setIsLoading(false);
+            return;
+        }
+
+        getCustomerDashboard(customer.id)
             .then((data) => setDashboard(data))
             .catch(() => setErrorMessage("Could not load your information dashboard. Please try again later."))
             .finally(() => setIsLoading(false));
@@ -103,7 +125,9 @@ function CustomerInformationPage() {
                     {!isLoading && !errorMessage && dashboard && (
                         <>
                             <div className="customer-info-meta">
-                                <span>Customer ID: {dashboard.customerId}</span>
+                                <span>
+                                    Customer: {dashboard.customerName || loggedInCustomer?.name || "Unknown"}
+                                </span>
                             </div>
 
                             <div className="customer-info-stats-grid">

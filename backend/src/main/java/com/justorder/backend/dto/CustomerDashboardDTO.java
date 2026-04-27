@@ -5,6 +5,7 @@ import java.util.List;
 public class CustomerDashboardDTO {
 
     private Long customerId;
+    private String customerName;
     private long totalOrders;
     private long activeOrders;
     private long cancelledOrders;
@@ -17,6 +18,7 @@ public class CustomerDashboardDTO {
     }
 
     public CustomerDashboardDTO(Long customerId,
+                                String customerName,
                                 long totalOrders,
                                 long activeOrders,
                                 long cancelledOrders,
@@ -25,6 +27,7 @@ public class CustomerDashboardDTO {
                                 double totalRefunded,
                                 List<OrderDTO> recentOrders) {
         this.customerId = customerId;
+        this.customerName = customerName;
         this.totalOrders = totalOrders;
         this.activeOrders = activeOrders;
         this.cancelledOrders = cancelledOrders;
@@ -40,6 +43,14 @@ public class CustomerDashboardDTO {
 
     public void setCustomerId(Long customerId) {
         this.customerId = customerId;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
     public long getTotalOrders() {
