@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.dto.OrderDTO;
@@ -35,6 +37,8 @@ import com.justorder.backend.service.SessionService;
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
+
+    private static final Logger logger = LogManager.getLogger(RestaurantController.class);
 
     @Autowired
     private MenuService menuService;
@@ -65,15 +69,18 @@ public class RestaurantController {
 
     @GetMapping("/hello")
     public String hello() {
+        logger.info("GET /api/restaurants/hello - hello endpoint called");
         return "Hello from JustOrder!";
     }
 
     @PostMapping("/create")
     public ResponseEntity<HttpStatus> createOrUpdateRestaurant(@RequestBody RestaurantDTO request) {
         try {
+            logger.info("POST /api/restaurants/create - register restaurant request: {}", request != null ? request.getName() : "<null>");
             this.registerService.registerRestaurant(request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            logger.error("Error registering restaurant", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -89,6 +96,7 @@ public class RestaurantController {
     public ResponseEntity<RestaurantDTO> getMyProfile(@RequestHeader("Authorization") String authorization) {
         try {
             Long restaurantId = sessionService.getActiveRestaurantId(authorization);
+            logger.info("GET /api/restaurants/profile - profile request for restaurant {}", restaurantId);
             RestaurantDTO profile = restaurantService.getRestaurantProfile(restaurantId);
             return ResponseEntity.ok(profile);
         } catch (ResourceNotFoundException e) {
@@ -108,6 +116,7 @@ public class RestaurantController {
             @RequestBody RestaurantProfileUpdateDTO request) {
         try {
             Long restaurantId = sessionService.getActiveRestaurantId(authorization);
+            logger.info("PUT /api/restaurants/profile - update request for restaurant {}", restaurantId);
             RestaurantDTO updatedProfile = restaurantService.updateRestaurantProfile(restaurantId, request);
             return ResponseEntity.ok(updatedProfile);
         } catch (ResourceNotFoundException e) {
@@ -125,6 +134,7 @@ public class RestaurantController {
     public ResponseEntity<RestaurantDashboardDTO> getMyDashboard(@RequestHeader("Authorization") String authorization) {
         try {
             Long restaurantId = sessionService.getActiveRestaurantId(authorization);
+            logger.info("GET /api/restaurants/dashboard - dashboard request for restaurant {}", restaurantId);
             RestaurantDashboardDTO dashboard = restaurantService.getRestaurantDashboard(restaurantId);
             return ResponseEntity.ok(dashboard);
         } catch (ResourceNotFoundException e) {
