@@ -1,6 +1,8 @@
 package com.justorder.backend.service;
 
 import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RiderDashboardDTO;
+import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.model.Order;
 import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Rider;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +38,53 @@ public class RiderService {
         this.orderStatusRepository = orderStatusRepository;
         this.orderPinSecurityService = orderPinSecurityService;
     }
+
+        @Transactional(readOnly = true)
+        public RiderDTO getRider(Long riderId) {
+        Rider rider = riderRepository.findById(riderId)
+                    .orElseThrow(() -> new IllegalArgumentException("Rider not found with id: " + riderId));
+        return rider.toDTO();
+        }
+
+        @Transactional(readOnly = true)
+        public RiderDashboardDTO getRiderDashboard(Long riderId) {
+        Rider rider = riderRepository.findById(riderId)
+                    .orElseThrow(() -> new IllegalArgumentException("Rider not found with id: " + riderId));
+
+        List<Order> riderOrders = orderRepository.findByRiderId(riderId);
+
+        long pendingOrders = riderOrders.stream()
+                    .filter(order -> isStatus(order, "Pending"))
+                    .count();
+        long deliveredOrders = riderOrders.stream()
+                    .filter(order -> isStatus(order, "Delivered"))
+                    .count();
+        long cancelledOrders = riderOrders.stream()
+                    .filter(order -> isStatus(order, "Cancelled"))
+                    .count();
+        long inProgressOrders = riderOrders.size() - pendingOrders - deliveredOrders - cancelledOrders;
+
+        List<OrderDTO> assignedOrders = riderOrders.stream()
+                    .sorted(Comparator.comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                    .map(Order::toDTO)
+                    .toList();
+
+        return new RiderDashboardDTO(
+                    riderId,
+                    rider.getName(),
+                    riderOrders.size(),
+                    pendingOrders,
+                    inProgressOrders,
+                    deliveredOrders,
+                    cancelledOrders,
+                    assignedOrders
+            );
+        }
+
+        private boolean isStatus(Order order, String expectedStatus) {
+        return order.getStatus() != null
+                    && expectedStatus.equalsIgnoreCase(order.getStatus().getStatus());
+        }
 
 
     @Transactional

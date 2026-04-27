@@ -177,6 +177,38 @@ class RiderControllerTest {
     }
 
     /**
+     * GET /api/riders/{riderId}/dashboard → 200 OK with rider summary and orders.
+     * Verifies that the dashboard exposes the rider name and order metrics.
+     */
+    @Test
+    void testGetRiderDashboard() throws Exception {
+        ensureOrdersLoaded();
+
+        Rider rider = riderRepository.findById(1L).orElseThrow();
+        long expectedTotalOrders = orderRepository.findByRiderId(rider.getId()).size();
+
+        mockMvc.perform(get("/api/riders/1/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.riderId").value(1))
+                .andExpect(jsonPath("$.riderName").value(rider.getName()))
+                .andExpect(jsonPath("$.totalOrders").value((int) expectedTotalOrders))
+                .andExpect(jsonPath("$.pendingOrders").value((int) expectedTotalOrders))
+                .andExpect(jsonPath("$.inProgressOrders").value(0))
+                .andExpect(jsonPath("$.deliveredOrders").value(0))
+                .andExpect(jsonPath("$.cancelledOrders").value(0))
+                .andExpect(jsonPath("$.assignedOrders").isArray());
+    }
+
+    /**
+     * GET /api/riders/999999/dashboard → 404 when rider does not exist.
+     */
+    @Test
+    void testGetRiderDashboardRiderNotFound() throws Exception {
+        mockMvc.perform(get("/api/riders/999999/dashboard"))
+                .andExpect(status().isNotFound());
+    }
+
+    /**
      * First rejection of an order → 200 OK, order reassigned to Rider 2.
      */
     @Test
