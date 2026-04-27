@@ -10,7 +10,7 @@ jest.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate
 }));
 
-// Interceptamos la llamada a la API
+
 jest.mock('../../api/authService', () => ({
     loginAdmin: jest.fn()
 }));
