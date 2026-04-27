@@ -133,6 +133,21 @@ export const loginUser = async (loginType, payload) => {
     const data = await response.json();
     return { isBypass: false, token: data.token };
 };
+
+export const loginAdmin = async (email, password) => {
+    const response = await fetch(`${API_URL}/auth/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok) {
+        throw new Error("Admin login failed. Please check your credentials.");
+    }
+
+    const data = await response.json();
+    return data.token;
+};
   
 export const getCustomerOrders = async (customerId) => {
     const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AdminLogin from '../../pages/AdminLogin';
-import { loginAdmin } from '../../api/authService';
+import { loginAdmin } from '../../api/authApi';
 
 const mockNavigate = jest.fn();
 
@@ -11,7 +11,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 
-jest.mock('../../api/authService', () => ({
+jest.mock('../../api/authApi', () => ({
     loginAdmin: jest.fn()
 }));
 
