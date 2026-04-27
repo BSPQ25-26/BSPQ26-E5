@@ -1,0 +1,203 @@
+/* RESET PARA OCUPAR TODA LA PANTALLA */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+    text-align: left;
+    overflow-x: hidden;
+}
+
+/* HEADER AJUSTADO */
+.dashboard-container .home-navbar {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0 40px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #eaeaea;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    height: 80px;
+}
+
+.dashboard-layout {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+/* SIDEBAR FIJA A LA IZQUIERDA */
+.sidebar {
+    width: 250px;
+    min-width: 250px;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    border-right: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+    z-index: 10;
+}
+
+.sidebar button {
+    background: none;
+    border: none;
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.sidebar button:hover {
+    background-color: #f8f9fa;
+    color: #00cc66;
+}
+
+.sidebar button.active {
+    background-color: #e6faf0; 
+    color: #00cc66;
+    border-left: 4px solid #00cc66;
+}
+
+/* CONTENIDO CON FIX DE TAMAÑO */
+.dashboard-content {
+    flex: 1;
+    min-width: 0;
+    padding: 40px;
+    /* Forzamos el carril del scroll para que no haya saltos de 15px */
+    overflow-y: scroll; 
+    background-color: #f4f7f6;
+}
+
+.dashboard-content h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    margin-bottom: 24px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #eaeaea;
+    padding-bottom: 15px;
+}
+
+.add-button {
+    background-color: #00cc66;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* GRID DE PLATOS */
+.dishes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.dish-card-simple {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+}
+
+.dish-card-simple h3 { margin: 0 0 12px 0; font-size: 19px; }
+.dish-card-simple p { color: #777; font-size: 14px; flex-grow: 1; margin-bottom: 20px; }
+.dish-card-simple .price { font-size: 20px; font-weight: 800; color: #00cc66; align-self: flex-end; }
+
+.info-msg { 
+    background-color: #fff3cd; 
+    color: #856404; 
+    padding: 16px 20px; 
+    border-radius: 8px; 
+    border-left: 5px solid #ffeeba; 
+}
+
+/* =========================================
+   HISTORIAL DE PEDIDOS (TABLA)
+   ========================================= */
+
+   .table-container {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #eaeaea;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    overflow: hidden; /* Corta las esquinas de la tabla para que queden redondas */
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.history-table th {
+    background-color: #f8f9fa;
+    color: #4a5568;
+    font-weight: 600;
+    padding: 16px 20px;
+    border-bottom: 2px solid #eaeaea;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.history-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    font-size: 15px;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table tr:hover {
+    background-color: #fcfcfc;
+}
+
+/* Badges (Píldoras) de estado */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.status-badge.delivered {
+    background-color: #e6faf0;
+    color: #00cc66;
+}
+
+.status-badge.cancelled {
+    background-color: #fff0f1;
+    color: #dc3545;
+}

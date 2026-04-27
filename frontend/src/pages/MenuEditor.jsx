@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   getAllergens, 
   getMenuByRestaurantId, 
@@ -29,6 +29,7 @@ function MenuEditor() {
   const [editingDishId, setEditingDishId] = useState(null);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   // Load allergens and dishes on mount
   useEffect(() => {
@@ -311,12 +312,15 @@ function MenuEditor() {
             )}
           </section>
         </div>
-
         <div className="menu-editor-footer-link">
-          <Link to="/" className="btn btn-secondary">
-            Back to home
-          </Link>
-        </div>
+        <button 
+          type="button" 
+          onClick={() => navigate(-1)} 
+          className="btn btn-secondary"
+        >
+          Back to dashboard
+        </button>
+      </div>
       </section>
     </main>
   );

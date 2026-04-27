@@ -107,9 +107,7 @@ function Home() {
                                     </Link>
                                 </div>
                             )}
-                            <Link to="/restaurants/1/menu-editor" className="nav-link menu-editor-button">
-                                Edit menu
-                            </Link>
+                            
 
                             {isLoginOpen && (
                                 <div className="home-dropdown home-login-dropdown">
