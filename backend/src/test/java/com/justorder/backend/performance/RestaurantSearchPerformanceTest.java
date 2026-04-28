@@ -79,4 +79,15 @@ public class RestaurantSearchPerformanceTest {
     public void searchEndpoint_failsWhenTargetIsImpossible() throws Exception {
         hitSearchEndpoint();
     }
+
+    /**
+     * Executes the search endpoint repeatedly for a specific duration.
+     * Passes when throughput is at least 10 ops/sec over a 10 second period.
+     */
+    @Test
+    @PerfTest(duration = 10000, threads = 2)
+    @Required(throughput = 10)
+    public void searchEndpoint_runsForSpecificDuration() throws Exception {
+        hitSearchEndpoint();
+    }
 }
