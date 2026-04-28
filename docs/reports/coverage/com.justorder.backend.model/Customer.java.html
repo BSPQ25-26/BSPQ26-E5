@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Customer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.model</a> &gt; <span class="el_source">Customer.java</span></div><h1>Customer.java</h1><pre class="source lang-java linenums">package com.justorder.backend.model;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.justorder.backend.dto.CustomerDTO;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = &quot;customers&quot;)
+public class Customer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+    private String phone;
+    private String password;
+    private Integer age;
+    private String dni; 
+
+<span class="fc" id="L35">    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)</span>
+    private List&lt;Localization&gt; localizations = new ArrayList&lt;&gt;();
+
+<span class="fc" id="L38">    @ManyToMany</span>
+    @JoinTable(
+        name = &quot;customer_allergens&quot;,
+        joinColumns = @JoinColumn(name = &quot;customer_id&quot;),
+        inverseJoinColumns = @JoinColumn(name = &quot;allergen_id&quot;)
+    )
+    private List&lt;Allergen&gt; allergens = new ArrayList&lt;&gt;();
+
+<span class="fc" id="L46">    @ManyToMany</span>
+    @JoinTable(
+        name = &quot;customer_preferences&quot;,
+        joinColumns = @JoinColumn(name = &quot;customer_id&quot;),
+        inverseJoinColumns = @JoinColumn(name = &quot;cuisine_category_id&quot;)
+    )
+    private List&lt;CuisineCategory&gt; preferences = new ArrayList&lt;&gt;();
+
+<span class="fc" id="L54">    @OneToMany(mappedBy = &quot;customer&quot;)</span>
+    private List&lt;Order&gt; orders = new ArrayList&lt;&gt;();
+
+    // Constructors 
+<span class="fc" id="L58">    public Customer() {</span>
+<span class="fc" id="L59">    }</span>
+
+    public Customer(String name, 
+        String email, 
+        String phone, 
+        String password, 
+        Integer age, 
+        String dni, 
+        List&lt;Localization&gt; localizations,
+        List&lt;CuisineCategory&gt; preferences,
+        List&lt;Allergen&gt; allergens
+<span class="fc" id="L70">    ) {</span>
+<span class="fc" id="L71">        this.name = name;</span>
+<span class="fc" id="L72">        this.email = email;</span>
+<span class="fc" id="L73">        this.phone = phone;</span>
+<span class="fc" id="L74">        this.password = password;</span>
+<span class="fc" id="L75">        this.age = age;</span>
+<span class="fc" id="L76">        this.dni = dni;</span>
+<span class="fc" id="L77">        this.localizations = localizations;</span>
+<span class="fc" id="L78">        this.preferences = preferences;</span>
+<span class="fc" id="L79">        this.allergens = allergens;</span>
+<span class="fc" id="L80">    }</span>
+
+    // Getters
+<span class="fc" id="L83">    public Long getId() { return id; }</span>
+<span class="fc" id="L84">    public String getName() { return name; }</span>
+<span class="nc" id="L85">    public String getEmail() { return email; }</span>
+<span class="nc" id="L86">    public String getPhone() { return phone; }</span>
+<span class="fc" id="L87">    public String getPassword() { return password; }</span>
+<span class="nc" id="L88">    public Integer getAge() { return age; }</span>
+<span class="nc" id="L89">    public String getDni() { return dni; }</span>
+<span class="nc" id="L90">    public List&lt;Localization&gt; getLocalizations() { return localizations; }</span>
+<span class="nc" id="L91">    public List&lt;Allergen&gt; getAllergens() { return allergens; }</span>
+<span class="nc" id="L92">    public List&lt;CuisineCategory&gt; getPreferences() { return preferences; }</span>
+<span class="nc" id="L93">    public List&lt;Order&gt; getOrders() { return orders; }</span>
+
+    // Setters
+<span class="nc" id="L96">    public void setId(Long id) { this.id = id;}</span>
+<span class="nc" id="L97">    public void setName(String name) { this.name = name; }</span>
+<span class="nc" id="L98">    public void setEmail(String email) { this.email = email; }</span>
+<span class="nc" id="L99">    public void setPhone(String phone) { this.phone = phone; }</span>
+<span class="nc" id="L100">    public void setPassword(String password) { this.password = password; }</span>
+<span class="nc" id="L101">    public void setAge(Integer age) { this.age = age; }</span>
+<span class="nc" id="L102">    public void setDni(String dni) { this.dni = dni; }</span>
+<span class="nc" id="L103">    public void setLocalizations(List&lt;Localization&gt; localizations) { this.localizations = localizations; }</span>
+<span class="nc" id="L104">    public void setAllergens(List&lt;Allergen&gt; allergens) { this.allergens = allergens; }</span>
+<span class="nc" id="L105">    public void setPreferences(List&lt;CuisineCategory&gt; preferences) { this.preferences = preferences; }</span>
+<span class="nc" id="L106">    public void setOrders(List&lt;Order&gt; orders) { this.orders = orders; }</span>
+
+    // toDTO
+    public CustomerDTO toDTO() {
+<span class="fc" id="L110">        CustomerDTO dto = new CustomerDTO(</span>
+            this.id, this.name, this.email, this.phone, this.password, this.age, this.dni
+        );
+<span class="fc" id="L113">        dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));</span>
+<span class="fc" id="L114">        dto.setAllergenNames(this.allergens.stream().map(Allergen::getName).collect(Collectors.toList()));</span>
+<span class="fc" id="L115">        dto.setPreferenceNames(this.preferences.stream().map(CuisineCategory::getName).collect(Collectors.toList()));</span>
+<span class="fc" id="L116">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

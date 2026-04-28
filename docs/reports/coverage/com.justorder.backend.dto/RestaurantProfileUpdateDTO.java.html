@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RestaurantProfileUpdateDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.dto</a> &gt; <span class="el_source">RestaurantProfileUpdateDTO.java</span></div><h1>RestaurantProfileUpdateDTO.java</h1><pre class="source lang-java linenums">package com.justorder.backend.dto;
+
+import java.util.List;
+
+public class RestaurantProfileUpdateDTO {
+
+    private String name;
+    private String description;
+    private String phone;
+    private String mondayWorkingHours;
+    private String tuesdayWorkingHours;
+    private String wednesdayWorkingHours;
+    private String thursdayWorkingHours;
+    private String fridayWorkingHours;
+    private String saturdayWorkingHours;
+    private String sundayWorkingHours;
+    private List&lt;LocalizationDTO&gt; localizations;
+    private List&lt;String&gt; cuisineCategoryNames;
+
+<span class="fc" id="L20">    public RestaurantProfileUpdateDTO() {</span>
+<span class="fc" id="L21">    }</span>
+
+    public String getName() {
+<span class="fc" id="L24">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="fc" id="L28">        this.name = name;</span>
+<span class="fc" id="L29">    }</span>
+
+    public String getDescription() {
+<span class="fc" id="L32">        return description;</span>
+    }
+
+    public void setDescription(String description) {
+<span class="fc" id="L36">        this.description = description;</span>
+<span class="fc" id="L37">    }</span>
+
+    public String getPhone() {
+<span class="fc" id="L40">        return phone;</span>
+    }
+
+    public void setPhone(String phone) {
+<span class="fc" id="L44">        this.phone = phone;</span>
+<span class="fc" id="L45">    }</span>
+
+    public String getMondayWorkingHours() {
+<span class="fc" id="L48">        return mondayWorkingHours;</span>
+    }
+
+    public void setMondayWorkingHours(String mondayWorkingHours) {
+<span class="fc" id="L52">        this.mondayWorkingHours = mondayWorkingHours;</span>
+<span class="fc" id="L53">    }</span>
+
+    public String getTuesdayWorkingHours() {
+<span class="fc" id="L56">        return tuesdayWorkingHours;</span>
+    }
+
+    public void setTuesdayWorkingHours(String tuesdayWorkingHours) {
+<span class="fc" id="L60">        this.tuesdayWorkingHours = tuesdayWorkingHours;</span>
+<span class="fc" id="L61">    }</span>
+
+    public String getWednesdayWorkingHours() {
+<span class="fc" id="L64">        return wednesdayWorkingHours;</span>
+    }
+
+    public void setWednesdayWorkingHours(String wednesdayWorkingHours) {
+<span class="fc" id="L68">        this.wednesdayWorkingHours = wednesdayWorkingHours;</span>
+<span class="fc" id="L69">    }</span>
+
+    public String getThursdayWorkingHours() {
+<span class="fc" id="L72">        return thursdayWorkingHours;</span>
+    }
+
+    public void setThursdayWorkingHours(String thursdayWorkingHours) {
+<span class="fc" id="L76">        this.thursdayWorkingHours = thursdayWorkingHours;</span>
+<span class="fc" id="L77">    }</span>
+
+    public String getFridayWorkingHours() {
+<span class="fc" id="L80">        return fridayWorkingHours;</span>
+    }
+
+    public void setFridayWorkingHours(String fridayWorkingHours) {
+<span class="fc" id="L84">        this.fridayWorkingHours = fridayWorkingHours;</span>
+<span class="fc" id="L85">    }</span>
+
+    public String getSaturdayWorkingHours() {
+<span class="fc" id="L88">        return saturdayWorkingHours;</span>
+    }
+
+    public void setSaturdayWorkingHours(String saturdayWorkingHours) {
+<span class="fc" id="L92">        this.saturdayWorkingHours = saturdayWorkingHours;</span>
+<span class="fc" id="L93">    }</span>
+
+    public String getSundayWorkingHours() {
+<span class="fc" id="L96">        return sundayWorkingHours;</span>
+    }
+
+    public void setSundayWorkingHours(String sundayWorkingHours) {
+<span class="fc" id="L100">        this.sundayWorkingHours = sundayWorkingHours;</span>
+<span class="fc" id="L101">    }</span>
+
+    public List&lt;LocalizationDTO&gt; getLocalizations() {
+<span class="fc" id="L104">        return localizations;</span>
+    }
+
+    public void setLocalizations(List&lt;LocalizationDTO&gt; localizations) {
+<span class="fc" id="L108">        this.localizations = localizations;</span>
+<span class="fc" id="L109">    }</span>
+
+    public List&lt;String&gt; getCuisineCategoryNames() {
+<span class="fc" id="L112">        return cuisineCategoryNames;</span>
+    }
+
+    public void setCuisineCategoryNames(List&lt;String&gt; cuisineCategoryNames) {
+<span class="fc" id="L116">        this.cuisineCategoryNames = cuisineCategoryNames;</span>
+<span class="fc" id="L117">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
