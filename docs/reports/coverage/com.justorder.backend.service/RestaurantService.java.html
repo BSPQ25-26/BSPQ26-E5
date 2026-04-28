@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RestaurantService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.service</a> &gt; <span class="el_source">RestaurantService.java</span></div><h1>RestaurantService.java</h1><pre class="source lang-java linenums">package com.justorder.backend.service;
+
+import com.justorder.backend.dto.LocalizationDTO;
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RestaurantDashboardDTO;
+import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.dto.RestaurantProfileUpdateDTO;
+import com.justorder.backend.exception.ResourceNotFoundException;
+import com.justorder.backend.model.CuisineCategory;
+import com.justorder.backend.model.Localization;
+import com.justorder.backend.model.Order;
+import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.repository.CuisineCategoryRepository;
+import com.justorder.backend.repository.OrderRepository;
+import com.justorder.backend.repository.RestaurantRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class RestaurantService {
+
+    private final RestaurantRepository restaurantRepository;
+    private final CuisineCategoryRepository cuisineCategoryRepository;
+    private final OrderRepository orderRepository;
+
+
+    public RestaurantService(RestaurantRepository restaurantRepository,
+                             CuisineCategoryRepository cuisineCategoryRepository,
+<span class="fc" id="L34">                             OrderRepository orderRepository) {</span>
+<span class="fc" id="L35">        this.restaurantRepository = restaurantRepository;</span>
+<span class="fc" id="L36">        this.cuisineCategoryRepository = cuisineCategoryRepository;</span>
+<span class="fc" id="L37">        this.orderRepository = orderRepository;</span>
+<span class="fc" id="L38">    }</span>
+
+
+    public List&lt;RestaurantDTO&gt; searchRestaurants(
+            String cuisineName,
+            Double minRating,
+            Double minPrice,
+            Double maxPrice) {
+
+<span class="fc" id="L47">        List&lt;Restaurant&gt; results = restaurantRepository.findWithFilters(</span>
+                cuisineName,
+                minRating,
+                minPrice,
+                maxPrice
+        );
+
+<span class="fc" id="L54">        return results.stream()</span>
+<span class="fc" id="L55">                .map(Restaurant::toDTO)</span>
+<span class="fc" id="L56">                .collect(Collectors.toList());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public RestaurantDTO getRestaurantProfile(Long restaurantId) {
+<span class="fc" id="L61">        Restaurant restaurant = getRestaurantOrThrow(restaurantId);</span>
+<span class="fc" id="L62">        return sanitizeRestaurantDTO(restaurant.toDTO());</span>
+    }
+
+    @Transactional
+    public RestaurantDTO updateRestaurantProfile(Long restaurantId, RestaurantProfileUpdateDTO request) {
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (request == null) {</span>
+<span class="nc" id="L68">            throw new IllegalArgumentException(&quot;Profile update payload is required&quot;);</span>
+        }
+
+<span class="fc" id="L71">        Restaurant restaurant = getRestaurantOrThrow(restaurantId);</span>
+
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (request.getName() != null) {</span>
+<span class="fc" id="L74">            restaurant.setName(validateRequiredText(request.getName(), &quot;name&quot;));</span>
+        }
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (request.getDescription() != null) {</span>
+<span class="fc" id="L77">            restaurant.setDescription(validateRequiredText(request.getDescription(), &quot;description&quot;));</span>
+        }
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (request.getPhone() != null) {</span>
+<span class="fc" id="L80">            restaurant.setPhone(validateRequiredText(request.getPhone(), &quot;phone&quot;));</span>
+        }
+
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (request.getMondayWorkingHours() != null) {</span>
+<span class="fc" id="L84">            restaurant.setMondayWorkingHours(validateWorkingHours(request.getMondayWorkingHours(), &quot;mondayWorkingHours&quot;));</span>
+        }
+<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (request.getTuesdayWorkingHours() != null) {</span>
+<span class="fc" id="L87">            restaurant.setTuesdayWorkingHours(validateWorkingHours(request.getTuesdayWorkingHours(), &quot;tuesdayWorkingHours&quot;));</span>
+        }
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (request.getWednesdayWorkingHours() != null) {</span>
+<span class="fc" id="L90">            restaurant.setWednesdayWorkingHours(validateWorkingHours(request.getWednesdayWorkingHours(), &quot;wednesdayWorkingHours&quot;));</span>
+        }
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (request.getThursdayWorkingHours() != null) {</span>
+<span class="fc" id="L93">            restaurant.setThursdayWorkingHours(validateWorkingHours(request.getThursdayWorkingHours(), &quot;thursdayWorkingHours&quot;));</span>
+        }
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (request.getFridayWorkingHours() != null) {</span>
+<span class="fc" id="L96">            restaurant.setFridayWorkingHours(validateWorkingHours(request.getFridayWorkingHours(), &quot;fridayWorkingHours&quot;));</span>
+        }
+<span class="fc bfc" id="L98" title="All 2 branches covered.">        if (request.getSaturdayWorkingHours() != null) {</span>
+<span class="fc" id="L99">            restaurant.setSaturdayWorkingHours(validateWorkingHours(request.getSaturdayWorkingHours(), &quot;saturdayWorkingHours&quot;));</span>
+        }
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (request.getSundayWorkingHours() != null) {</span>
+<span class="fc" id="L102">            restaurant.setSundayWorkingHours(validateWorkingHours(request.getSundayWorkingHours(), &quot;sundayWorkingHours&quot;));</span>
+        }
+
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (request.getLocalizations() != null) {</span>
+<span class="fc" id="L106">            updateLocalizations(restaurant, toLocalizationEntities(request.getLocalizations()));</span>
+        }
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        if (request.getCuisineCategoryNames() != null) {</span>
+<span class="fc" id="L109">            updateCuisineCategories(restaurant, toCuisineCategoryEntities(request.getCuisineCategoryNames()));</span>
+        }
+
+<span class="fc" id="L112">        Restaurant savedRestaurant = restaurantRepository.save(restaurant);</span>
+<span class="fc" id="L113">        return sanitizeRestaurantDTO(savedRestaurant.toDTO());</span>
+    }
+
+    @Transactional(readOnly = true)
+    public RestaurantDashboardDTO getRestaurantDashboard(Long restaurantId) {
+<span class="fc" id="L118">        getRestaurantOrThrow(restaurantId);</span>
+
+<span class="fc" id="L120">        List&lt;Order&gt; restaurantOrders = orderRepository.findAll().stream()</span>
+<span class="fc" id="L121">                .filter(order -&gt; isOrderFromRestaurant(order, restaurantId))</span>
+<span class="fc" id="L122">                .toList();</span>
+
+<span class="fc" id="L124">        long totalOrders = restaurantOrders.size();</span>
+<span class="fc" id="L125">        long cancelledOrders = countByStatus(restaurantOrders, &quot;Cancelled&quot;);</span>
+<span class="fc" id="L126">        long deliveredOrders = countByStatus(restaurantOrders, &quot;Delivered&quot;);</span>
+<span class="fc" id="L127">        long activeOrders = totalOrders - cancelledOrders;</span>
+
+<span class="fc" id="L129">        double totalRevenue = restaurantOrders.stream()</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">                .filter(order -&gt; !isStatus(order, &quot;Cancelled&quot;))</span>
+<span class="fc" id="L131">                .mapToDouble(Order::getTotalPrice)</span>
+<span class="fc" id="L132">                .sum();</span>
+
+<span class="fc" id="L134">        double totalRefunded = restaurantOrders.stream()</span>
+<span class="fc" id="L135">                .filter(order -&gt; isStatus(order, &quot;Cancelled&quot;))</span>
+<span class="fc" id="L136">                .mapToDouble(Order::getTotalPrice)</span>
+<span class="fc" id="L137">                .sum();</span>
+
+<span class="fc" id="L139">        List&lt;OrderDTO&gt; recentOrders = restaurantOrders.stream()</span>
+<span class="fc" id="L140">                .sorted(Comparator.comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))</span>
+<span class="fc" id="L141">                .limit(5)</span>
+<span class="fc" id="L142">                .map(Order::toDTO)</span>
+<span class="fc" id="L143">                .toList();</span>
+
+<span class="fc" id="L145">        return new RestaurantDashboardDTO(</span>
+                restaurantId,
+                totalOrders,
+                activeOrders,
+                cancelledOrders,
+                deliveredOrders,
+                totalRevenue,
+                totalRefunded,
+                recentOrders
+        );
+    }
+
+    private Restaurant getRestaurantOrThrow(Long restaurantId) {
+<span class="fc" id="L158">        return restaurantRepository.findById(restaurantId)</span>
+<span class="pc" id="L159">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Restaurant not found with id: &quot; + restaurantId));</span>
+    }
+
+    private boolean isOrderFromRestaurant(Order order, Long restaurantId) {
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">        if (order.getDishes() == null) {</span>
+<span class="nc" id="L164">            return false;</span>
+        }
+
+<span class="fc" id="L167">        return order.getDishes().stream()</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">                .anyMatch(dish -&gt; dish.getRestaurant() != null</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">                        &amp;&amp; dish.getRestaurant().getId() != null</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">                        &amp;&amp; dish.getRestaurant().getId().equals(restaurantId));</span>
+    }
+
+    private boolean isStatus(Order order, String status) {
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">        return order.getStatus() != null</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">                &amp;&amp; order.getStatus().getStatus() != null</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                &amp;&amp; order.getStatus().getStatus().equalsIgnoreCase(status);</span>
+    }
+
+    private long countByStatus(List&lt;Order&gt; orders, String status) {
+<span class="fc" id="L180">        return orders.stream()</span>
+<span class="fc" id="L181">                .filter(order -&gt; isStatus(order, status))</span>
+<span class="fc" id="L182">                .count();</span>
+    }
+
+    private String validateRequiredText(String value, String fieldName) {
+<span class="pc bpc" id="L186" title="2 of 4 branches missed.">        if (value == null || value.isBlank()) {</span>
+<span class="nc" id="L187">            throw new IllegalArgumentException(fieldName + &quot; is required&quot;);</span>
+        }
+<span class="fc" id="L189">        return value.trim();</span>
+    }
+
+    private String validateWorkingHours(String workingHours, String fieldName) {
+<span class="fc" id="L193">        String value = validateRequiredText(workingHours, fieldName);</span>
+<span class="fc" id="L194">        String[] parts = value.split(&quot;-&quot;);</span>
+<span class="pc bpc" id="L195" title="2 of 6 branches missed.">        if (parts.length != 2 || !parts[0].matches(&quot;\\d{2}:\\d{2}&quot;) || !parts[1].matches(&quot;\\d{2}:\\d{2}&quot;)) {</span>
+<span class="fc" id="L196">            throw new IllegalArgumentException(fieldName + &quot; must be in format HH:mm-HH:mm&quot;);</span>
+        }
+<span class="fc" id="L198">        return value;</span>
+    }
+
+    private List&lt;Localization&gt; toLocalizationEntities(List&lt;LocalizationDTO&gt; localizations) {
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        if (localizations.isEmpty()) {</span>
+<span class="fc" id="L203">            throw new IllegalArgumentException(&quot;At least one localization is required&quot;);</span>
+        }
+
+<span class="fc" id="L206">        return localizations.stream()</span>
+<span class="fc" id="L207">                .map(Localization::new)</span>
+<span class="fc" id="L208">                .collect(Collectors.toCollection(ArrayList::new));</span>
+    }
+
+    private void updateLocalizations(Restaurant restaurant, List&lt;Localization&gt; newLocalizations) {
+<span class="fc" id="L212">        restaurant.getLocalizations().clear();</span>
+<span class="fc" id="L213">        restaurant.getLocalizations().addAll(newLocalizations);</span>
+<span class="fc" id="L214">    }</span>
+
+    private List&lt;CuisineCategory&gt; toCuisineCategoryEntities(List&lt;String&gt; cuisineCategoryNames) {
+<span class="fc bfc" id="L217" title="All 2 branches covered.">        if (cuisineCategoryNames.isEmpty()) {</span>
+<span class="fc" id="L218">            throw new IllegalArgumentException(&quot;At least one cuisine category is required&quot;);</span>
+        }
+
+<span class="fc" id="L221">        return cuisineCategoryNames.stream()</span>
+<span class="fc" id="L222">                .map(name -&gt; cuisineCategoryRepository.findByName(name)</span>
+<span class="fc" id="L223">                        .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Unknown cuisine category: &quot; + name)))</span>
+<span class="fc" id="L224">                .collect(Collectors.toCollection(ArrayList::new));</span>
+    }
+
+    private void updateCuisineCategories(Restaurant restaurant, List&lt;CuisineCategory&gt; newCuisineCategories) {
+<span class="fc" id="L228">        restaurant.getCuisineCategories().clear();</span>
+<span class="fc" id="L229">        restaurant.getCuisineCategories().addAll(newCuisineCategories);</span>
+<span class="fc" id="L230">    }</span>
+    private RestaurantDTO sanitizeRestaurantDTO(RestaurantDTO dto) {
+<span class="fc" id="L232">        dto.setPassword(null);</span>
+<span class="fc" id="L233">        return dto;</span>
+    }   
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

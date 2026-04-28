@@ -1,7 +1,24 @@
 package com.justorder.backend.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.justorder.backend.dto.RiderDTO;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.justorder.backend.model.Customer;
 import com.justorder.backend.model.Localization;
 import com.justorder.backend.model.Order;
@@ -11,23 +28,11 @@ import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RiderRepository;
-import com.justorder.backend.security.JwtUtil;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -54,16 +59,13 @@ class RiderControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @MockitoBean
-    private JwtUtil jwtUtil;
-
     private Long orderId1;
     private Long orderId2;
+    private static final String INVALID_TOKEN = "Bearer invalid-rider-token";
 
     @BeforeEach
     void setUp() {
         // Initialization for tests that don't need order IDs
-        // Order IDs are loaded on-demand by ensureOrdersLoaded()
     }
 
     private void ensureOrdersLoaded() {
@@ -72,15 +74,15 @@ class RiderControllerTest {
                 .orElseGet(() -> {
                     Localization loc = new Localization("Test", "Test", "Test", "28001", "1", 0.0, 0.0);
                     Rider r = new Rider("Test Rider", "12345678A", "+34 612345678", 
-                        "test@test.com", "TestPass123", loc);
+                        "test.rider@justorder.com", passwordEncoder.encode("TestPass123"), loc);
                     return riderRepository.save(r);
                 });
             
             Customer customer1 = customerRepository.findById(1L)
                 .orElseGet(() -> {
                     Localization loc = new Localization("Test", "Test", "Test", "28001", "1", 0.0, 0.0);
-                    Customer c = new Customer("Test Customer", "test@test.com", "+34 612345678", 
-                        "TestPass123", 30, "11111111A", List.of(loc), List.of(), List.of());
+                    Customer c = new Customer("Test Customer", "test.customer@justorder.com", "+34 612345678", 
+                        passwordEncoder.encode("TestPass123"), 30, "11111111A", List.of(loc), List.of(), List.of());
                     return customerRepository.save(c);
                 });
             
@@ -104,7 +106,7 @@ class RiderControllerTest {
     @Test
     void testGetAll() throws Exception {
         Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
-        Rider r = new Rider("Carlos Moto", "12345678X", "+34 600000000", "carlos@moto.com", "pass123", loc);
+        Rider r = new Rider("Carlos Moto", "12345678X", "+34 600000000", "carlos@moto.com", passwordEncoder.encode("pass123"), loc);
         riderRepository.save(r);
 
         mockMvc.perform(get("/api/riders"))
@@ -115,10 +117,10 @@ class RiderControllerTest {
     @Test
     void testUpdate() throws Exception {
         Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
-        Rider existing = new Rider("Luis Bici", "12345678Y", "+34 600000001", "luis@bici.com", "pass123", loc);
+        Rider existing = new Rider("Luis Bici", "12345678Y", "+34 600000001", "luis@bici.com", passwordEncoder.encode("pass123"), loc);
         existing = riderRepository.save(existing);
 
-        RiderDTO request = new RiderDTO();
+        com.justorder.backend.dto.RiderDTO request = new com.justorder.backend.dto.RiderDTO();
         request.setName("Luis Modificado");
 
         mockMvc.perform(put("/api/riders/" + existing.getId())
@@ -130,7 +132,7 @@ class RiderControllerTest {
     @Test
     void testDeleteById() throws Exception {
         Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
-        Rider existing = new Rider("To Delete", "12345678Z", "+34 600000002", "del@rider.com", "pass123", loc);
+        Rider existing = new Rider("To Delete", "12345678Z", "+34 600000002", "del@rider.com", passwordEncoder.encode("pass123"), loc);
         existing = riderRepository.save(existing);
 
         mockMvc.perform(delete("/api/riders/" + existing.getId()))
@@ -215,18 +217,18 @@ class RiderControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * GET /api/riders/{riderId}/dashboard → 200 OK with rider summary and orders.
-     * Verifies that the dashboard exposes the rider name and order metrics.
-     */
     @Test
     void testGetRiderDashboard() throws Exception {
         ensureOrdersLoaded();
+        
+        // Conseguimos un token válido y asegurado para el Rider 1
+        String token = getValidTokenForRider(1L);
 
         Rider rider = riderRepository.findById(1L).orElseThrow();
         long expectedTotalOrders = orderRepository.findByRiderId(rider.getId()).size();
 
-        mockMvc.perform(get("/api/riders/1/dashboard"))
+        mockMvc.perform(get("/api/riders/dashboard")
+            .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.riderId").value(1))
                 .andExpect(jsonPath("$.riderName").value(rider.getName()))
@@ -238,18 +240,38 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$.assignedOrders").isArray());
     }
 
-    /**
-     * GET /api/riders/999999/dashboard → 404 when rider does not exist.
-     */
     @Test
-    void testGetRiderDashboardRiderNotFound() throws Exception {
-        mockMvc.perform(get("/api/riders/999999/dashboard"))
-                .andExpect(status().isNotFound());
+    void testGetRiderDashboardWithTokenFromDeletedRider() throws Exception {
+        String email = "temp-rider-delete2@justorder.com";
+        String password = "temporaryRiderPass123";
+
+        // Creamos el rider y obtenemos el token de la sesión real
+        String token = createTempRiderSessionAndGetToken(email, password);
+        Rider rider = riderRepository.findByEmail(email).orElseThrow();
+        
+        // Eliminamos explícitamente el registro de la sesión en el SessionService 
+        // a través de un HTTP DELETE que simula un logout o cierre de sesión,
+        // esto invalidará el token.
+        mockMvc.perform(delete("/sessions/riders")
+            .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk());
+            
+        // Borramos al usuario de la DB
+        riderRepository.deleteById(rider.getId());
+
+        // Al intentar acceder con el token eliminado de la sesión, debe dar 401
+        mockMvc.perform(get("/api/riders/dashboard")
+            .header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
     }
 
-    /**
-     * First rejection of an order → 200 OK, order reassigned to Rider 2.
-     */
+    @Test
+    void testGetRiderDashboardUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/riders/dashboard")
+            .header("Authorization", INVALID_TOKEN))
+            .andExpect(status().isUnauthorized());
+    }
+
     @Test
     void testRejectOrderReassignsToAnotherRider() throws Exception {
         ensureOrdersLoaded();
@@ -375,5 +397,75 @@ class RiderControllerTest {
                         }
                         """))
                 .andExpect(status().isForbidden());
+    }
+
+    private String getValidTokenForRider(Long riderId) throws Exception {
+        Rider rider = riderRepository.findById(riderId)
+                .orElseThrow(() -> new RuntimeException("Rider con ID " + riderId + " no encontrado."));
+        
+        String plainPassword = "TestPassword123!";
+        rider.setPassword(passwordEncoder.encode(plainPassword));
+        riderRepository.save(rider); 
+
+        String loginBody = """
+                {
+                    "type": "rider",
+                    "email": "%s",
+                    "password": "%s"
+                }
+                """.formatted(rider.getEmail(), plainPassword);
+
+        MvcResult result = mockMvc.perform(post("/sessions/riders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
+    }
+
+    private String createTempRiderSessionAndGetToken(String email, String password) throws Exception {
+        String createBody = """
+        {
+            "name": "Temp Rider",
+            "dni": "99999998Z",
+            "phoneNumber": "600123458",
+            "email": "%s",
+            "password": "%s",
+            "starterPoint":{
+                "city": "Bilbao",
+                "province": "Bizkaia",
+                "country": "Spain",
+                "postalCode": "48001",
+                "number": "8",
+                "longitude": -2.9253,
+                "latitude": 43.2630
+            }
+        }
+        """.formatted(email, password);
+
+        mockMvc.perform(post("/api/riders/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createBody))
+            .andExpect(status().isCreated());
+
+        String loginBody = """
+        {
+            "type": "rider",
+            "email": "%s",
+            "password": "%s"
+        }
+        """.formatted(email, password);
+
+        MvcResult result = mockMvc.perform(post("/sessions/riders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
     }
 }

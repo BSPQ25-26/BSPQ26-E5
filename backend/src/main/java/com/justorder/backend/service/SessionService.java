@@ -52,6 +52,25 @@ public class SessionService {
         return restaurantId;
     }
 
+    public Long getActiveRiderId(String authorizationHeader) {
+        String token = extractToken(authorizationHeader);
+        if (token == null || token.isBlank()) {
+            throw new SecurityException("Authorization token is required");
+        }
+
+        Long riderId = activeTokens.get("rider").get(token);
+        if (riderId == null) {
+            throw new SecurityException("Invalid or expired rider token");
+        }
+
+        if (!riderRepository.existsById(riderId)) {
+            activeTokens.get("rider").remove(token);
+            throw new SecurityException("Rider not found for token");
+        }
+
+        return riderId;
+    }
+
     private String extractToken(String authorizationHeader) {
         if (authorizationHeader == null || authorizationHeader.isBlank()) {
             return null;
@@ -71,6 +90,13 @@ public class SessionService {
             if (!activeTokens.get(type).containsKey(token)) {
                 return token;
             }
+        }
+    }
+
+    public void deleteSession(String type, String authorizationHeader) {
+        String token = extractToken(authorizationHeader);
+        if (token != null && !token.isBlank() && activeTokens.containsKey(type)) {
+            activeTokens.get(type).remove(token);
         }
     }
 

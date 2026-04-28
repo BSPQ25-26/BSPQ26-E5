@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RiderController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.controller</a> &gt; <span class="el_source">RiderController.java</span></div><h1>RiderController.java</h1><pre class="source lang-java linenums">package com.justorder.backend.controller;
+
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RiderDashboardDTO;
+import com.justorder.backend.dto.RiderDTO;
+import com.justorder.backend.dto.VerifyOrderPinRequestDTO;
+import com.justorder.backend.repository.RiderRepository;
+import com.justorder.backend.service.RegisterService;
+import com.justorder.backend.service.RiderService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/riders&quot;)
+public class RiderController {
+
+    private final RegisterService registerService;
+    private final RiderRepository riderRepository;
+    private final RiderService riderService;
+
+    public RiderController(RegisterService registerService,
+                           RiderRepository riderRepository,
+<span class="fc" id="L27">                           RiderService riderService) {</span>
+<span class="fc" id="L28">        this.registerService = registerService;</span>
+<span class="fc" id="L29">        this.riderRepository = riderRepository;</span>
+<span class="fc" id="L30">        this.riderService = riderService;</span>
+<span class="fc" id="L31">    }</span>
+
+
+    @GetMapping(&quot;/hello&quot;)
+    public String hello() {
+<span class="nc" id="L36">        return &quot;Hello from JustOrder!&quot;;</span>
+    }
+
+
+    @PostMapping(&quot;/create&quot;)
+    public ResponseEntity&lt;HttpStatus&gt; createOrUpdateRider(@RequestBody RiderDTO request) {
+        try {
+<span class="fc" id="L43">            this.registerService.registerRider(request);</span>
+<span class="fc" id="L44">            return ResponseEntity.ok().build();</span>
+<span class="fc" id="L45">        } catch (Exception e) {</span>
+<span class="fc" id="L46">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    @PostMapping(&quot;/orders&quot;)
+    public ResponseEntity&lt;HttpStatus&gt; updateStatus(@RequestBody String request) {
+<span class="nc" id="L52">        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();</span>
+    }
+
+    @GetMapping(&quot;/{riderId}&quot;)
+    public ResponseEntity&lt;RiderDTO&gt; getRider(@PathVariable Long riderId) {
+        try {
+<span class="nc" id="L58">            return ResponseEntity.ok(riderService.getRider(riderId));</span>
+<span class="nc" id="L59">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L60">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+        }
+    }
+
+    @GetMapping(&quot;/{riderId}/orders&quot;)
+    public ResponseEntity&lt;List&lt;OrderDTO&gt;&gt; getRiderOrders(@PathVariable Long riderId) {
+        try {
+<span class="fc" id="L67">            List&lt;OrderDTO&gt; orders = riderService.getRiderOrders(riderId);</span>
+<span class="fc" id="L68">            return ResponseEntity.ok(orders);</span>
+<span class="fc" id="L69">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L70">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+        }
+    }
+
+    @GetMapping(&quot;/{riderId}/dashboard&quot;)
+    public ResponseEntity&lt;RiderDashboardDTO&gt; getRiderDashboard(@PathVariable Long riderId) {
+        try {
+<span class="fc" id="L77">            return ResponseEntity.ok(riderService.getRiderDashboard(riderId));</span>
+<span class="fc" id="L78">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L79">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+        }
+    }
+
+
+    @PostMapping(&quot;/{riderId}/orders/{orderId}/reject&quot;)
+    public ResponseEntity&lt;OrderDTO&gt; rejectOrder(
+            @PathVariable Long riderId,
+            @PathVariable Long orderId,
+            @RequestBody Map&lt;String, String&gt; body) {
+
+<span class="fc" id="L90">        String reason = body.get(&quot;reason&quot;);</span>
+<span class="pc bpc" id="L91" title="1 of 4 branches missed.">        if (reason == null || reason.isBlank()) {</span>
+<span class="fc" id="L92">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+        }
+
+        try {
+<span class="fc" id="L96">            OrderDTO updatedOrder = riderService.rejectOrder(riderId, orderId, reason);</span>
+<span class="fc" id="L97">            return ResponseEntity.ok(updatedOrder);</span>
+<span class="fc" id="L98">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L99">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+<span class="fc" id="L100">        } catch (SecurityException e) {</span>
+<span class="fc" id="L101">            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();</span>
+<span class="nc" id="L102">        } catch (Exception e) {</span>
+<span class="nc" id="L103">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    @PostMapping(&quot;/{riderId}/orders/{orderId}/verify-pin&quot;)
+    public ResponseEntity&lt;OrderDTO&gt; verifyOrderPin(
+            @PathVariable Long riderId,
+            @PathVariable Long orderId,
+            @RequestBody VerifyOrderPinRequestDTO request) {
+
+<span class="pc bpc" id="L113" title="3 of 6 branches missed.">        if (request == null || request.getPin() == null || request.getPin().isBlank()) {</span>
+<span class="nc" id="L114">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+        }
+
+        try {
+<span class="fc" id="L118">            OrderDTO updatedOrder = riderService.verifyOrderPin(riderId, orderId, request.getPin());</span>
+<span class="fc" id="L119">            return ResponseEntity.ok(updatedOrder);</span>
+<span class="nc" id="L120">        } catch (IllegalStateException e) {</span>
+<span class="nc" id="L121">            return ResponseEntity.status(HttpStatus.LOCKED).build();</span>
+<span class="fc" id="L122">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L123">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+<span class="fc" id="L124">        } catch (SecurityException e) {</span>
+<span class="fc" id="L125">            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();</span>
+<span class="nc" id="L126">        } catch (Exception e) {</span>
+<span class="nc" id="L127">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    @DeleteMapping()
+    public ResponseEntity&lt;HttpStatus&gt; deleteAllRiders() {
+<span class="fc" id="L133">        riderRepository.deleteAll();</span>
+<span class="fc" id="L134">        return ResponseEntity.ok().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

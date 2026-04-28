@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SessionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.controller</a> &gt; <span class="el_source">SessionController.java</span></div><h1>SessionController.java</h1><pre class="source lang-java linenums">package com.justorder.backend.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.justorder.backend.dto.LoginRequest;
+import com.justorder.backend.dto.LoginResponseDTO;
+import com.justorder.backend.service.SessionService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+@RestController
+@RequestMapping(&quot;/sessions&quot;)
+public class SessionController {
+
+    private final SessionService sessionService;    
+
+<span class="fc" id="L24">    private static final Logger logger = LogManager.getLogger(SessionController.class);</span>
+
+<span class="fc" id="L26">    public SessionController(SessionService sessionService) {</span>
+<span class="fc" id="L27">        this.sessionService = sessionService;</span>
+<span class="fc" id="L28">    }</span>
+    
+    @PostMapping(&quot;/users&quot;)
+    public ResponseEntity&lt;LoginResponseDTO&gt; createUserSession(@RequestBody LoginRequest request) {
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        logger.info(&quot;POST /sessions/users - create user session for {}&quot;, request != null ? request.getEmail() : &quot;&lt;null&gt;&quot;);</span>
+        try {
+<span class="fc" id="L34">            LoginResponseDTO response = sessionService.createSession(request);</span>
+<span class="fc" id="L35">            return ResponseEntity.ok(response);</span>
+<span class="fc" id="L36">        } catch (Exception e) {</span>
+<span class="fc" id="L37">            logger.warn(&quot;Failed to create user session&quot;, e);</span>
+<span class="fc" id="L38">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);</span>
+        }
+    }
+
+    @GetMapping(&quot;/hello&quot;)
+    public String hello() {
+<span class="nc" id="L44">        logger.info(&quot;GET /sessions/hello - hello endpoint called&quot;);</span>
+<span class="nc" id="L45">        return &quot;Hello from JustOrder!&quot;;</span>
+    }
+
+    @PostMapping(&quot;/riders&quot;)
+    public ResponseEntity&lt;LoginResponseDTO&gt; createRiderSession(@RequestBody LoginRequest request) {
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        logger.info(&quot;POST /sessions/riders - create rider session for {}&quot;, request != null ? request.getEmail() : &quot;&lt;null&gt;&quot;);</span>
+        try {
+<span class="fc" id="L52">            LoginResponseDTO response = sessionService.createSession(request);</span>
+<span class="fc" id="L53">            return ResponseEntity.ok(response);</span>
+<span class="nc" id="L54">        } catch (Exception e) {</span>
+<span class="nc" id="L55">            logger.warn(&quot;Failed to create rider session&quot;, e);</span>
+<span class="nc" id="L56">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);</span>
+        }
+    }
+
+    @PostMapping(&quot;/restaurants&quot;)
+    public ResponseEntity&lt;LoginResponseDTO&gt; createRestaurantSession(@RequestBody LoginRequest request) {
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        logger.info(&quot;POST /sessions/restaurants - create restaurant session for {}&quot;, request != null ? request.getEmail() : &quot;&lt;null&gt;&quot;);</span>
+        try {
+<span class="fc" id="L64">            LoginResponseDTO response = sessionService.createSession(request);</span>
+<span class="fc" id="L65">            return ResponseEntity.ok(response);</span>
+<span class="nc" id="L66">        } catch (Exception e) {</span>
+<span class="nc" id="L67">            logger.warn(&quot;Failed to create restaurant session&quot;, e);</span>
+<span class="nc" id="L68">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);</span>
+        }
+    }
+
+    @DeleteMapping(&quot;/users&quot;)
+    public HttpStatus deleteUserSession() {
+<span class="nc" id="L74">        return HttpStatus.NOT_IMPLEMENTED;</span>
+    }
+
+    @DeleteMapping(&quot;/riders&quot;)
+    public HttpStatus deleteRiderSession() {
+<span class="nc" id="L79">        return HttpStatus.NOT_IMPLEMENTED;</span>
+    }
+
+    @DeleteMapping(&quot;/restaurants&quot;)
+    public HttpStatus deleteRestaurantSession() {
+<span class="nc" id="L84">        return HttpStatus.NOT_IMPLEMENTED;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

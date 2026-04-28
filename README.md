@@ -95,7 +95,14 @@ In GitHub: **Settings → Branches → Branch protection rules → main**:
 3. Select `backend-tests` and `frontend-tests` as required checks
 4. (Recommended) Enable **Restrict who can push to matching branches**
 
-With this setup, PRs cannot be merged unless both test jobs pass.
+	With this setup, PRs cannot be merged unless both test jobs pass.
+
+## Testing & Performance
+
+The project includes an extensive test suite and performance benchmarks:
+- **Unit & Integration Testing**: Coverage reports generated using JaCoCo ensure >50% code coverage. The frontend uses `fetchThroughNode` to test remoteness and perform integration tests with the backend server.
+- **Performance Testing**: Implemented via ContiPerf targeting backend remote methods. Tests evaluate invocations, threads, throughput, and duration requirements. Reports can be found in `docs/reports/performance`.
+- **Logs**: We enforce the use of `Log4j2` over standard console outputs for all server-side logging.
 
 ## Project Structure
 

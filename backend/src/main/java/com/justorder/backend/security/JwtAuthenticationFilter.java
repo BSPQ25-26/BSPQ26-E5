@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -54,7 +55,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2. Extract the token (removing the "Bearer " prefix)
         jwt = authHeader.substring(7);
-        userEmail = jwtUtil.extractEmail(jwt);
+
+        // This application mixes JWT auth and session-token auth (UUID tokens).
+        // Ignore non-JWT Bearer values so session-based flows can continue.
+        if (!looksLikeJwt(jwt)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            userEmail = jwtUtil.extractEmail(jwt);
+        } catch (JwtException | IllegalArgumentException ex) {
+            // Invalid JWT should not crash request processing for permitAll/session endpoints.
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // 3. If an email is present and the security context is not yet authenticated
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -80,5 +95,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         filterChain.doFilter(request, response);
+    }
+
+    private boolean looksLikeJwt(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+
+        int dotCount = 0;
+        for (int i = 0; i < token.length(); i++) {
+            if (token.charAt(i) == '.') {
+                dotCount++;
+            }
+        }
+        return dotCount == 2;
     }
 }

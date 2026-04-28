@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataInitializer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.config</a> &gt; <span class="el_source">DataInitializer.java</span></div><h1>DataInitializer.java</h1><pre class="source lang-java linenums">package com.justorder.backend.config;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import com.justorder.backend.model.Admin;
+import com.justorder.backend.model.Allergen;
+import com.justorder.backend.model.CuisineCategory;
+import com.justorder.backend.model.Customer;
+import com.justorder.backend.model.Dish;
+import com.justorder.backend.model.Localization;
+import com.justorder.backend.model.Order;
+import com.justorder.backend.model.OrderStatus;
+import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.model.Rider;
+import com.justorder.backend.repository.AdminRepository;
+import com.justorder.backend.repository.AllergenRepository;
+import com.justorder.backend.repository.CuisineCategoryRepository;
+import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.repository.DishRepository;
+import com.justorder.backend.repository.OrderRepository;
+import com.justorder.backend.repository.OrderStatusRepository;
+import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.repository.RiderRepository;
+
+@Component
+<span class="fc" id="L32">public class DataInitializer implements CommandLineRunner {</span>
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private RiderRepository riderRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private CuisineCategoryRepository cuisineCategoryRepository;
+
+    @Autowired
+    private AllergenRepository allergenRepository;
+
+    @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    @Autowired
+    private DishRepository dishRepository;
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Override
+    public void run(String... args) throws Exception {
+
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (adminRepository.count() == 0) {</span>
+<span class="fc" id="L68">            Admin superAdmin = new Admin();</span>
+<span class="fc" id="L69">            superAdmin.setName(&quot;Super Admin&quot;);</span>
+<span class="fc" id="L70">            superAdmin.setEmail(&quot;admin@justorder.com&quot;);</span>
+<span class="fc" id="L71">            superAdmin.setPassword(passwordEncoder.encode(&quot;admin123&quot;));</span>
+<span class="fc" id="L72">            adminRepository.save(superAdmin);</span>
+        }
+
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (cuisineCategoryRepository.count() == 0) {</span>
+<span class="fc" id="L76">            cuisineCategoryRepository.save(new CuisineCategory(&quot;Italian&quot;));</span>
+<span class="fc" id="L77">            cuisineCategoryRepository.save(new CuisineCategory(&quot;Chinese&quot;));</span>
+<span class="fc" id="L78">            cuisineCategoryRepository.save(new CuisineCategory(&quot;Mexican&quot;));</span>
+<span class="fc" id="L79">            cuisineCategoryRepository.save(new CuisineCategory(&quot;Indian&quot;));</span>
+<span class="fc" id="L80">            cuisineCategoryRepository.save(new CuisineCategory(&quot;Japanese&quot;));</span>
+<span class="fc" id="L81">            cuisineCategoryRepository.save(new CuisineCategory(&quot;Mediterranean&quot;));</span>
+        }
+
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (allergenRepository.count() == 0) {</span>
+<span class="fc" id="L85">            allergenRepository.save(new Allergen(&quot;Gluten&quot;, &quot;Cereals containing gluten&quot;));</span>
+<span class="fc" id="L86">            allergenRepository.save(new Allergen(&quot;Lactose&quot;, &quot;Milk and dairy products&quot;));</span>
+<span class="fc" id="L87">            allergenRepository.save(new Allergen(&quot;Peanuts&quot;, &quot;Peanuts and peanut-based products&quot;));</span>
+<span class="fc" id="L88">            allergenRepository.save(new Allergen(&quot;Shellfish&quot;, &quot;Crustaceans and shellfish products&quot;));</span>
+<span class="fc" id="L89">            allergenRepository.save(new Allergen(&quot;Soy&quot;, &quot;Soybeans and soy-based products&quot;));</span>
+<span class="fc" id="L90">            allergenRepository.save(new Allergen(&quot;Eggs&quot;, &quot;Eggs and egg-based products&quot;));</span>
+        }
+
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (orderStatusRepository.count() == 0) {</span>
+<span class="fc" id="L94">            orderStatusRepository.save(new OrderStatus(&quot;Pending&quot;));</span>
+<span class="fc" id="L95">            orderStatusRepository.save(new OrderStatus(&quot;Confirmed&quot;));</span>
+<span class="fc" id="L96">            orderStatusRepository.save(new OrderStatus(&quot;Preparing&quot;));</span>
+<span class="fc" id="L97">            orderStatusRepository.save(new OrderStatus(&quot;Out for Delivery&quot;));</span>
+<span class="fc" id="L98">            orderStatusRepository.save(new OrderStatus(&quot;Delivered&quot;));</span>
+<span class="fc" id="L99">            orderStatusRepository.save(new OrderStatus(&quot;Cancelled&quot;));</span>
+        }
+
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (restaurantRepository.count() == 0) {</span>
+
+<span class="fc" id="L104">            Restaurant restaurant1 = new Restaurant(</span>
+                &quot;La Marina Bistro&quot;, &quot;Mediterranean restaurant near the seafront&quot;,
+                &quot;+34 900 000 001&quot;, &quot;lamarina@justorder.com&quot;,
+<span class="fc" id="L107">                passwordEncoder.encode(&quot;restaurant123&quot;),</span>
+                &quot;09:00-22:00&quot;, &quot;09:00-22:00&quot;, &quot;09:00-22:00&quot;,
+                &quot;09:00-22:00&quot;, &quot;09:00-23:00&quot;, &quot;10:00-23:00&quot;, &quot;10:00-22:00&quot;
+            );
+<span class="fc" id="L111">            restaurant1 = restaurantRepository.save(restaurant1);</span>
+
+<span class="fc" id="L113">            Restaurant restaurant2 = new Restaurant(</span>
+                &quot;Green Bowl Kitchen&quot;, &quot;Healthy bowls and plant-forward comfort food&quot;,
+                &quot;+34 900 000 002&quot;, &quot;greenbowl@justorder.com&quot;,
+<span class="fc" id="L116">                passwordEncoder.encode(&quot;restaurant123&quot;),</span>
+                &quot;11:00-22:00&quot;, &quot;11:00-22:00&quot;, &quot;11:00-22:00&quot;,
+                &quot;11:00-22:00&quot;, &quot;11:00-23:00&quot;, &quot;11:00-23:00&quot;, &quot;11:00-21:00&quot;
+            );
+<span class="fc" id="L120">            restaurant2 = restaurantRepository.save(restaurant2);</span>
+
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">            if (dishRepository.count() == 0) {</span>
+<span class="fc" id="L123">                Allergen gluten  = allergenRepository.findByName(&quot;Gluten&quot;).orElseThrow();</span>
+<span class="fc" id="L124">                Allergen lactose = allergenRepository.findByName(&quot;Lactose&quot;).orElseThrow();</span>
+<span class="fc" id="L125">                Allergen soy     = allergenRepository.findByName(&quot;Soy&quot;).orElseThrow();</span>
+<span class="fc" id="L126">                Allergen eggs    = allergenRepository.findByName(&quot;Eggs&quot;).orElseThrow();</span>
+<span class="fc" id="L127">                Allergen peanuts = allergenRepository.findByName(&quot;Peanuts&quot;).orElseThrow();</span>
+
+<span class="fc" id="L129">                Dish dish1 = new Dish(&quot;Four Cheese Pizza&quot;, &quot;Stone-baked pizza with four cheeses&quot;, 23.0, restaurant1);</span>
+<span class="fc" id="L130">                dish1.setAllergens(Arrays.asList(gluten, lactose));</span>
+<span class="fc" id="L131">                Dish dish2 = new Dish(&quot;Grilled Salmon&quot;, &quot;Grilled salmon fillet with herbs&quot;, 25.0, restaurant1);</span>
+<span class="fc" id="L132">                dish2.setAllergens(List.of());</span>
+<span class="fc" id="L133">                Dish dish3 = new Dish(&quot;Thai Tofu Bowl&quot;, &quot;Tofu bowl with peanut sauce and scrambled egg&quot;, 19.5, restaurant2);</span>
+<span class="fc" id="L134">                dish3.setAllergens(Arrays.asList(soy, eggs, peanuts));</span>
+
+<span class="fc" id="L136">                dishRepository.save(dish1);</span>
+<span class="fc" id="L137">                dishRepository.save(dish2);</span>
+<span class="fc" id="L138">                dishRepository.save(dish3);</span>
+            }
+
+<span class="fc" id="L141">            CuisineCategory italian       = cuisineCategoryRepository.findByName(&quot;Italian&quot;).orElseThrow();</span>
+<span class="fc" id="L142">            CuisineCategory japanese      = cuisineCategoryRepository.findByName(&quot;Japanese&quot;).orElseThrow();</span>
+<span class="fc" id="L143">            CuisineCategory mexican       = cuisineCategoryRepository.findByName(&quot;Mexican&quot;).orElseThrow();</span>
+<span class="fc" id="L144">            CuisineCategory mediterranean = cuisineCategoryRepository.findByName(&quot;Mediterranean&quot;).orElseThrow();</span>
+
+<span class="fc" id="L146">            Restaurant pizzaRoma = new Restaurant(</span>
+                &quot;Pizza Roma&quot;, &quot;Authentic Italian pizza and pasta&quot;,
+                &quot;+34 600 111 222&quot;, &quot;pizzaroma@test.com&quot;, &quot;test123&quot;,
+                &quot;09:00-22:00&quot;, &quot;09:00-22:00&quot;, &quot;09:00-22:00&quot;,
+                &quot;09:00-22:00&quot;, &quot;09:00-23:00&quot;, &quot;10:00-23:00&quot;, null
+            );
+<span class="fc" id="L152">            pizzaRoma.setAverageRating(4.5);</span>
+<span class="fc" id="L153">            pizzaRoma.setCuisineCategories(List.of(italian));</span>
+<span class="fc" id="L154">            pizzaRoma.setDishes(List.of(</span>
+                new Dish(&quot;Margherita&quot;, &quot;Classic tomato and mozzarella&quot;, 9.50, pizzaRoma),
+                new Dish(&quot;Carbonara&quot;, &quot;Creamy pasta with bacon&quot;, 12.00, pizzaRoma)
+            ));
+<span class="fc" id="L158">            restaurantRepository.save(pizzaRoma);</span>
+
+<span class="fc" id="L160">            Restaurant sushiTokyo = new Restaurant(</span>
+                &quot;Sushi Tokyo&quot;, &quot;Premium Japanese sushi and ramen&quot;,
+                &quot;+34 600 333 444&quot;, &quot;sushitokyo@test.com&quot;, &quot;test123&quot;,
+                &quot;12:00-22:00&quot;, &quot;12:00-22:00&quot;, &quot;12:00-22:00&quot;,
+                &quot;12:00-22:00&quot;, &quot;12:00-23:00&quot;, &quot;12:00-23:00&quot;, &quot;13:00-21:00&quot;
+            );
+<span class="fc" id="L166">            sushiTokyo.setAverageRating(4.8);</span>
+<span class="fc" id="L167">            sushiTokyo.setCuisineCategories(List.of(japanese));</span>
+<span class="fc" id="L168">            sushiTokyo.setDishes(List.of(</span>
+                new Dish(&quot;Salmon Roll (8 pcs)&quot;, &quot;Fresh salmon with avocado&quot;, 14.00, sushiTokyo),
+                new Dish(&quot;Tonkotsu Ramen&quot;, &quot;Rich pork broth ramen&quot;, 13.50, sushiTokyo)
+            ));
+<span class="fc" id="L172">            restaurantRepository.save(sushiTokyo);</span>
+
+<span class="fc" id="L174">            Restaurant tacoLoco = new Restaurant(</span>
+                &quot;Taco Loco&quot;, &quot;Street-style Mexican tacos and burritos&quot;,
+                &quot;+34 600 555 666&quot;, &quot;tacoloco@test.com&quot;, &quot;test123&quot;,
+                &quot;11:00-23:00&quot;, &quot;11:00-23:00&quot;, &quot;11:00-23:00&quot;,
+                &quot;11:00-23:00&quot;, &quot;11:00-00:00&quot;, &quot;11:00-00:00&quot;, null
+            );
+<span class="fc" id="L180">            tacoLoco.setAverageRating(3.2);</span>
+<span class="fc" id="L181">            tacoLoco.setCuisineCategories(List.of(mexican));</span>
+<span class="fc" id="L182">            tacoLoco.setDishes(List.of(</span>
+                new Dish(&quot;Beef Taco&quot;, &quot;Spicy beef with salsa and guacamole&quot;, 4.50, tacoLoco),
+                new Dish(&quot;Chicken Burrito&quot;, &quot;Grilled chicken with rice and beans&quot;, 7.00, tacoLoco)
+            ));
+<span class="fc" id="L186">            restaurantRepository.save(tacoLoco);</span>
+
+<span class="fc" id="L188">            Restaurant oliveGarden = new Restaurant(</span>
+                &quot;Olive Garden&quot;, &quot;Fresh Mediterranean cuisine&quot;,
+                &quot;+34 600 777 888&quot;, &quot;olivegarden@test.com&quot;, &quot;test123&quot;,
+                &quot;10:00-21:00&quot;, &quot;10:00-21:00&quot;, &quot;10:00-21:00&quot;,
+                &quot;10:00-21:00&quot;, &quot;10:00-22:00&quot;, &quot;10:00-22:00&quot;, null
+            );
+<span class="fc" id="L194">            oliveGarden.setAverageRating(4.1);</span>
+<span class="fc" id="L195">            oliveGarden.setCuisineCategories(List.of(mediterranean));</span>
+<span class="fc" id="L196">            oliveGarden.setDishes(List.of(</span>
+                new Dish(&quot;Hummus Plate&quot;, &quot;Homemade hummus with pita bread&quot;, 6.50, oliveGarden),
+                new Dish(&quot;Falafel Wrap&quot;, &quot;Crispy falafel with tahini sauce&quot;, 8.00, oliveGarden)
+            ));
+<span class="fc" id="L200">            restaurantRepository.save(oliveGarden);</span>
+        }
+
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">        if (riderRepository.count() == 0) {</span>
+            // Constructor: city, province, country, postalCode, number, longitude, latitude
+<span class="fc" id="L205">            Localization rider1Location = new Localization(</span>
+                &quot;Bilbao&quot;, &quot;Bizkaia&quot;, &quot;Spain&quot;, &quot;48001&quot;, &quot;1&quot;, -2.9253, 43.2630
+            );
+<span class="fc" id="L208">            Rider rider1 = new Rider(</span>
+                &quot;Carlos Rider&quot;, &quot;12345678A&quot;, &quot;+34 611 111 111&quot;,
+<span class="fc" id="L210">                &quot;carlos.rider@test.com&quot;, passwordEncoder.encode(&quot;rider123&quot;),</span>
+                rider1Location
+            );
+<span class="fc" id="L213">            riderRepository.save(rider1);</span>
+
+<span class="fc" id="L215">            Localization rider2Location = new Localization(</span>
+                &quot;Bilbao&quot;, &quot;Bizkaia&quot;, &quot;Spain&quot;, &quot;48002&quot;, &quot;20&quot;, -2.9300, 43.2650
+            );
+<span class="fc" id="L218">            Rider rider2 = new Rider(</span>
+                &quot;Ana Rider&quot;, &quot;87654321B&quot;, &quot;+34 622 222 222&quot;,
+<span class="fc" id="L220">                &quot;ana.rider@test.com&quot;, passwordEncoder.encode(&quot;rider123&quot;),</span>
+                rider2Location
+            );
+<span class="fc" id="L223">            riderRepository.save(rider2);</span>
+        }
+
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">        if (customerRepository.count() == 0) {</span>
+<span class="fc" id="L227">            Localization customerLocation = new Localization(</span>
+                &quot;Bilbao&quot;, &quot;Bizkaia&quot;, &quot;Spain&quot;, &quot;48003&quot;, &quot;5&quot;, -2.9200, 43.2600
+            );
+<span class="fc" id="L230">            Localization customerLocation2 = new Localization(</span>
+                &quot;Bilbao&quot;, &quot;Bizkaia&quot;, &quot;Spain&quot;, &quot;48003&quot;, &quot;5&quot;, -2.9200, 43.2600
+            );
+<span class="fc" id="L233">            Customer customer1 = new Customer(</span>
+                &quot;Test Customer&quot;, &quot;customer@test.com&quot;, &quot;+34 633 333 333&quot;,
+<span class="fc" id="L235">                passwordEncoder.encode(&quot;customer123&quot;), 30, &quot;11111111C&quot;,</span>
+<span class="fc" id="L236">                List.of(customerLocation), List.of(), List.of()</span>
+            );
+<span class="fc" id="L238">            Customer customer2 = new Customer(</span>
+                &quot;John Doe&quot;, &quot;john.doe@test.com&quot;, &quot;+34 644 444 444&quot;,
+<span class="fc" id="L240">                passwordEncoder.encode(&quot;customer123&quot;), 30, &quot;22222222D&quot;,</span>
+<span class="fc" id="L241">                List.of(customerLocation2), List.of(), List.of()</span>
+            );
+<span class="fc" id="L243">            customerRepository.save(customer1);</span>
+<span class="fc" id="L244">            customerRepository.save(customer2);</span>
+        }
+
+        // Orders depend on riders + customers existing, so we check both
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        if (orderRepository.count() == 0</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">                &amp;&amp; riderRepository.count() &gt; 0</span>
+<span class="pc bpc" id="L250" title="1 of 2 branches missed.">                &amp;&amp; customerRepository.count() &gt; 0) {</span>
+
+<span class="fc" id="L252">            Rider rider1        = riderRepository.findAll().get(0);</span>
+<span class="fc" id="L253">            Customer customer1  = customerRepository.findAll().get(0);</span>
+<span class="fc" id="L254">            OrderStatus pending = orderStatusRepository.findByStatus(&quot;Pending&quot;).orElseThrow();</span>
+<span class="fc" id="L255">            Dish dish1 = dishRepository.findAll().get(0);</span>
+
+            // Order 1 — for testing rejection + reassignment to Rider 2
+<span class="fc" id="L258">            Order order1 = new Order(customer1, List.of(dish1), pending, rider1, 23.0, passwordEncoder.encode(&quot;1234&quot;));</span>
+<span class="fc" id="L259">            orderRepository.save(order1);</span>
+
+            // Order 2 — for testing rejection + cancellation
+<span class="fc" id="L262">            Order order2 = new Order(customer1, List.of(dish1), pending, rider1, 14.0, passwordEncoder.encode(&quot;5678&quot;));</span>
+<span class="fc" id="L263">            orderRepository.save(order2);</span>
+        }
+<span class="fc" id="L265">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

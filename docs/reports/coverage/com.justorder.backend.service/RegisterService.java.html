@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RegisterService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.service</a> &gt; <span class="el_source">RegisterService.java</span></div><h1>RegisterService.java</h1><pre class="source lang-java linenums">package com.justorder.backend.service;
+
+import java.util.HashMap;
+import java.util.List;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.justorder.backend.dto.CustomerDTO;
+import com.justorder.backend.dto.LocalizationDTO;
+import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.dto.RiderDTO;
+import com.justorder.backend.model.Customer;
+import com.justorder.backend.model.Localization;
+import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.model.Rider;
+import com.justorder.backend.repository.AdminRepository;
+import com.justorder.backend.repository.AllergenRepository;
+import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.repository.RiderRepository;
+import com.justorder.backend.repository.LocalizationRepository;
+import com.justorder.backend.repository.CuisineCategoryRepository;
+import com.justorder.backend.model.Allergen;
+import com.justorder.backend.model.CuisineCategory;
+
+@Service
+public class RegisterService {
+
+	private final CustomerRepository customerRepository;
+	private final RiderRepository riderRepository;
+	private final RestaurantRepository restaurantRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final CuisineCategoryRepository cuisineCategoryRepository;
+	private final AllergenRepository allergenRepository;
+
+	public RegisterService(
+		CustomerRepository customerRepository,
+		RiderRepository riderRepository,
+		RestaurantRepository restaurantRepository,
+		AdminRepository adminRepository,
+		PasswordEncoder passwordEncoder,
+		CuisineCategoryRepository cuisineCategoryRepository,
+		AllergenRepository allergenRepository,
+		LocalizationRepository localizationRepository
+<span class="fc" id="L47">	) {</span>
+<span class="fc" id="L48">		this.customerRepository = customerRepository;</span>
+<span class="fc" id="L49">		this.riderRepository = riderRepository;</span>
+<span class="fc" id="L50">		this.restaurantRepository = restaurantRepository;</span>
+<span class="fc" id="L51">		this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L52">		this.cuisineCategoryRepository = cuisineCategoryRepository;</span>
+<span class="fc" id="L53">		this.allergenRepository = allergenRepository;</span>
+<span class="fc" id="L54">	}</span>
+	
+	@Transactional
+	public Customer registerCustomer(CustomerDTO request) {
+<span class="fc" id="L58">		validateDniNotInUse(request.getDni(), &quot;customer&quot;);</span>
+<span class="fc" id="L59">		validateEmailTypo(request.getEmail());</span>
+<span class="fc" id="L60">		validateEmailNotInUse(request.getEmail(), &quot;customer&quot;);</span>
+<span class="fc" id="L61">		validatePasswordTypo(request.getPassword());</span>
+
+<span class="fc" id="L63">		Customer customer = new Customer(</span>
+<span class="fc" id="L64">			request.getName(),</span>
+<span class="fc" id="L65">			normalizeEmail(request.getEmail()),</span>
+<span class="fc" id="L66">			request.getPhone(),</span>
+<span class="fc" id="L67">			passwordEncoder.encode(request.getPassword()),</span>
+<span class="fc" id="L68">			request.getAge(),</span>
+<span class="fc" id="L69">			request.getDni(),</span>
+<span class="fc" id="L70">			this.toLocalizationEntities(request.getLocalizations()),</span>
+<span class="fc" id="L71">			this.toCuisineCategoryEntities(request.getPreferenceNames()),</span>
+<span class="fc" id="L72">			this.toAllergenEntities(request.getAllergenNames())</span>
+		);
+<span class="fc" id="L74">		Customer savedCustomer = customerRepository.save(customer);</span>
+<span class="fc" id="L75">		return savedCustomer;</span>
+	}
+
+	@Transactional
+	public Rider registerRider(RiderDTO request) {
+<span class="fc" id="L80">		validateDniNotInUse(request.getDni(), &quot;rider&quot;);</span>
+<span class="fc" id="L81">		validateEmailTypo(request.getEmail());</span>
+<span class="fc" id="L82">		validateEmailNotInUse(request.getEmail(), &quot;rider&quot;);</span>
+<span class="fc" id="L83">		validatePasswordTypo(request.getPassword());</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">		if (request.getStarterPoint() == null) {</span>
+<span class="fc" id="L85">			throw new IllegalArgumentException(&quot;Starter point is required&quot;);</span>
+		}
+
+<span class="fc" id="L88">		Rider rider = new Rider(</span>
+<span class="fc" id="L89">			request.getName(),</span>
+<span class="fc" id="L90">			request.getDni(),</span>
+<span class="fc" id="L91">			request.getPhoneNumber(),</span>
+<span class="fc" id="L92">			normalizeEmail(request.getEmail()),</span>
+<span class="fc" id="L93">			passwordEncoder.encode(request.getPassword()),</span>
+<span class="fc" id="L94">			new Localization(request.getStarterPoint())</span>
+		);
+
+<span class="fc" id="L97">		Rider savedRider = riderRepository.save(rider);</span>
+<span class="fc" id="L98">		return savedRider;</span>
+	}
+
+	@Transactional
+	public RestaurantDTO registerRestaurant(RestaurantDTO request) {
+<span class="fc" id="L103">		validateEmailTypo(request.getEmail());</span>
+<span class="fc" id="L104">		validateEmailNotInUse(request.getEmail(), &quot;restaurant&quot;);</span>
+<span class="fc" id="L105">		validatePasswordTypo(request.getPassword());</span>
+<span class="fc" id="L106">		verifyWorkingHours(request.getMondayWorkingHours());</span>
+<span class="fc" id="L107">		verifyWorkingHours(request.getTuesdayWorkingHours());</span>
+<span class="fc" id="L108">		verifyWorkingHours(request.getWednesdayWorkingHours());</span>
+<span class="fc" id="L109">		verifyWorkingHours(request.getThursdayWorkingHours());</span>
+<span class="fc" id="L110">		verifyWorkingHours(request.getFridayWorkingHours());</span>
+<span class="fc" id="L111">		verifyWorkingHours(request.getSaturdayWorkingHours());</span>
+<span class="fc" id="L112">		verifyWorkingHours(request.getSundayWorkingHours());</span>
+
+<span class="fc" id="L114">		Restaurant restaurant = new Restaurant(</span>
+<span class="fc" id="L115">			request.getName(),</span>
+<span class="fc" id="L116">			request.getDescription(),</span>
+<span class="fc" id="L117">			request.getPhone(),</span>
+<span class="fc" id="L118">			normalizeEmail(request.getEmail()),</span>
+<span class="fc" id="L119">			passwordEncoder.encode(request.getPassword()),</span>
+<span class="fc" id="L120">			request.getMondayWorkingHours(),</span>
+<span class="fc" id="L121">			request.getTuesdayWorkingHours(),</span>
+<span class="fc" id="L122">			request.getWednesdayWorkingHours(),</span>
+<span class="fc" id="L123">			request.getThursdayWorkingHours(),</span>
+<span class="fc" id="L124">			request.getFridayWorkingHours(),</span>
+<span class="fc" id="L125">			request.getSaturdayWorkingHours(),</span>
+<span class="fc" id="L126">			request.getSundayWorkingHours()</span>
+		);
+<span class="fc" id="L128">		restaurant.setLocalizations(toLocalizationEntities(request.getLocalizations()));</span>
+<span class="fc" id="L129">		restaurant.setCuisineCategories(toCuisineCategoryEntities(request.getCuisineCategoryNames()));</span>
+
+<span class="fc" id="L131">		Restaurant savedRestaurant = restaurantRepository.save(restaurant);</span>
+<span class="fc" id="L132">		return savedRestaurant.toDTO();</span>
+	}
+
+	private void validateEmailTypo(String email) {
+<span class="pc bpc" id="L136" title="2 of 8 branches missed.">		if (email == null || email.isBlank() || !email.contains(&quot;@&quot;) || !email.contains(&quot;.&quot;)) {</span>
+<span class="fc" id="L137">			throw new IllegalArgumentException(&quot;Email void or invalid&quot;);</span>
+		}
+<span class="fc" id="L139">	}</span>
+
+	private void validatePasswordTypo(String password) {
+<span class="pc bpc" id="L142" title="3 of 6 branches missed.">		if (password == null || password.isBlank() || password.length() &lt; 18) {</span>
+<span class="nc" id="L143">			throw new IllegalArgumentException(&quot;Password is required and must be at least 18 characters long&quot;);</span>
+		}
+<span class="fc" id="L145">	}</span>
+
+	private void validateEmailNotInUse(String email, String type) {
+<span class="fc" id="L148">		String normalizedEmail = normalizeEmail(email);</span>
+<span class="fc" id="L149">		HashMap&lt;String, Boolean&gt; emailsInUse = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L150">		emailsInUse.put(&quot;customer&quot;, customerRepository.existsByEmail(normalizedEmail));</span>
+<span class="fc" id="L151">		emailsInUse.put(&quot;rider&quot;, riderRepository.existsByEmail(normalizedEmail));</span>
+<span class="fc" id="L152">		emailsInUse.put(&quot;restaurant&quot;, restaurantRepository.existsByEmail(normalizedEmail));</span>
+
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">		if (emailsInUse.get(type)) {</span>
+<span class="nc" id="L155">			throw new IllegalArgumentException(&quot;Email already exist in &quot; + type);</span>
+		}
+<span class="fc" id="L157">	}</span>
+
+	private void validateDniNotInUse(String dni, String type) {
+<span class="fc" id="L160">		HashMap&lt;String, Boolean&gt; dnisArray = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L161">		dnisArray.put(&quot;customer&quot;, customerRepository.existsByDni(dni));</span>
+<span class="fc" id="L162">		dnisArray.put(&quot;rider&quot;, riderRepository.existsByDni(dni));</span>
+
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">		if (dnisArray.get(type)) {</span>
+<span class="nc" id="L165">			throw new IllegalArgumentException(&quot;DNI already exist in &quot; + type);</span>
+		}
+<span class="fc" id="L167">	}</span>
+
+<span class="fc" id="L169">	private String normalizeEmail(String email) { return email.trim().toLowerCase(); }</span>
+
+	private List&lt;Localization&gt; toLocalizationEntities(List&lt;LocalizationDTO&gt; localizations) {
+<span class="pc bpc" id="L172" title="1 of 4 branches missed.">		if (localizations == null || localizations.isEmpty()) { </span>
+<span class="fc" id="L173">            throw new IllegalArgumentException(&quot;At least one localization is required&quot;);</span>
+        }
+<span class="fc" id="L175">		return localizations.stream().map(Localization::new).toList();</span>
+	}
+
+    private List&lt;CuisineCategory&gt; toCuisineCategoryEntities(List&lt;String&gt; cuisineCategories) {
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (cuisineCategories == null) {</span>
+<span class="nc" id="L180">            throw new IllegalArgumentException(&quot;Cuisine categories are required&quot;);</span>
+        }
+<span class="fc" id="L182">        return cuisineCategories.stream()</span>
+<span class="fc" id="L183">            .map(name -&gt; cuisineCategoryRepository.findByName(name)</span>
+<span class="pc" id="L184">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Unknown cuisine category: &quot; + name)))</span>
+<span class="fc" id="L185">            .toList();</span>
+	}
+
+	private List&lt;Allergen&gt; toAllergenEntities(List&lt;String&gt; allergenNames) {
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">        if (allergenNames == null) {</span>
+<span class="nc" id="L190">            throw new IllegalArgumentException(&quot;Allergen names are required&quot;);</span>
+        }
+<span class="fc" id="L192">		return allergenNames.stream()</span>
+<span class="fc" id="L193">			.map(name -&gt; allergenRepository.findByName(name)</span>
+<span class="pc" id="L194">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Unknown allergen: &quot; + name)))</span>
+<span class="fc" id="L195">			.toList();</span>
+	}
+
+	private void verifyWorkingHours(String workingHours) {
+<span class="pc bpc" id="L199" title="2 of 4 branches missed.">		if (workingHours == null || workingHours.isBlank()) {</span>
+<span class="nc" id="L200">			throw new IllegalArgumentException(&quot;Working hours is required&quot;);</span>
+		}
+		// Verify format &quot;HH:mm-HH:mm&quot;
+<span class="fc" id="L203">		String[] parts = workingHours.split(&quot;-&quot;);</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">		if (parts.length != 2) {</span>
+<span class="nc" id="L205">			throw new IllegalArgumentException(&quot;Working hours must be in format HH:mm-HH:mm&quot;);</span>
+		}
+<span class="fc bfc" id="L207" title="All 2 branches covered.">		for (String part : parts) {</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">			if (!part.matches(&quot;\\d{2}:\\d{2}&quot;)) {</span>
+<span class="fc" id="L209">				throw new IllegalArgumentException(&quot;Working hours must be in format HH:mm-HH:mm&quot;);</span>
+			}
+		}
+<span class="fc" id="L212">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

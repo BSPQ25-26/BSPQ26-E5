@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.service</a> &gt; <span class="el_source">MenuService.java</span></div><h1>MenuService.java</h1><pre class="source lang-java linenums">package com.justorder.backend.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+
+import com.justorder.backend.dto.DishDTO;
+import com.justorder.backend.exception.DishConflictException;
+import com.justorder.backend.exception.InvalidDishDataException;
+import com.justorder.backend.exception.ResourceNotFoundException;
+import com.justorder.backend.model.Allergen;
+import com.justorder.backend.model.Dish;
+import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.repository.AllergenRepository;
+import com.justorder.backend.repository.DishRepository;
+import com.justorder.backend.repository.RestaurantRepository;
+
+@Service
+<span class="fc" id="L22">public class MenuService {</span>
+
+    @Autowired
+    private DishRepository dishRepository;
+
+    @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    @Autowired
+    private AllergenRepository allergenRepository;
+
+    // This method is used by the GET /api/restaurants/{restaurantId}/menu endpoint
+    public List&lt;DishDTO&gt; getMenu(Long restaurantId) {
+<span class="fc" id="L35">        return dishRepository.findByRestaurantId(restaurantId)</span>
+<span class="fc" id="L36">                .stream()</span>
+<span class="fc" id="L37">                .map(Dish::toDTO)</span>
+<span class="fc" id="L38">                .collect(Collectors.toList());</span>
+    }
+
+    // This method is used by the POST /api/dishes/{restaurantId} endpoint
+    public DishDTO createDish(Long restaurantId, DishDTO dishDTO) {
+<span class="fc" id="L43">        validateDishData(dishDTO);</span>
+
+<span class="fc" id="L45">        Restaurant restaurant = restaurantRepository.findById(restaurantId)</span>
+<span class="fc" id="L46">            .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Restaurant not found: &quot; + restaurantId));</span>
+
+<span class="fc" id="L48">        Dish dish = new Dish(dishDTO.getName(), dishDTO.getDescription(), dishDTO.getPrice(), restaurant);</span>
+
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        if (dishDTO.getAllergenNames() != null) {</span>
+<span class="fc" id="L51">            List&lt;Allergen&gt; allergens = resolveExistingAllergens(dishDTO.getAllergenNames());</span>
+<span class="fc" id="L52">            dish.setAllergens(allergens);</span>
+        }
+
+        try {
+<span class="fc" id="L56">            return dishRepository.save(dish).toDTO();</span>
+<span class="nc" id="L57">        } catch (DataIntegrityViolationException e) {</span>
+<span class="nc" id="L58">            throw new DishConflictException(&quot;Could not create dish due to data conflict&quot;, e);</span>
+        }
+    }
+
+    // This method is used by the PUT /api/dishes/{dishId} endpoint
+    public DishDTO updateDish(Long dishId, DishDTO dishDTO) {
+<span class="fc" id="L64">        validateDishData(dishDTO);</span>
+
+<span class="fc" id="L66">        Dish dish = dishRepository.findById(dishId)</span>
+<span class="fc" id="L67">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Dish not found: &quot; + dishId));</span>
+
+<span class="fc" id="L69">        dish.setName(dishDTO.getName());</span>
+<span class="fc" id="L70">        dish.setDescription(dishDTO.getDescription());</span>
+<span class="fc" id="L71">        dish.setPrice(dishDTO.getPrice());</span>
+
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (dishDTO.getAllergenNames() != null) {</span>
+<span class="fc" id="L74">            List&lt;Allergen&gt; allergens = resolveExistingAllergens(dishDTO.getAllergenNames());</span>
+<span class="fc" id="L75">            dish.setAllergens(allergens);</span>
+        }
+
+        try {
+<span class="fc" id="L79">            return dishRepository.save(dish).toDTO();</span>
+<span class="nc" id="L80">        } catch (DataIntegrityViolationException e) {</span>
+<span class="nc" id="L81">            throw new DishConflictException(&quot;Could not update dish due to data conflict&quot;, e);</span>
+        }
+    }
+
+    // This method is used by the DELETE /api/dishes/{dishId} endpoint
+    public void deleteDish(Long dishId) {
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (!dishRepository.existsById(dishId)) {</span>
+<span class="fc" id="L88">            throw new ResourceNotFoundException(&quot;Dish not found: &quot; + dishId);</span>
+        }
+<span class="fc" id="L90">        dishRepository.deleteById(dishId);</span>
+<span class="fc" id="L91">    }</span>
+
+    // Validates the dish data and throws an exception if any required field is missing or invalid
+    private void validateDishData(DishDTO dishDTO) {
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (dishDTO == null) {</span>
+<span class="nc" id="L96">            throw new InvalidDishDataException(&quot;Dish payload is required&quot;);</span>
+        }
+<span class="pc bpc" id="L98" title="1 of 4 branches missed.">        if (dishDTO.getName() == null || dishDTO.getName().trim().isEmpty()) {</span>
+<span class="fc" id="L99">            throw new InvalidDishDataException(&quot;Dish name is required&quot;);</span>
+        }
+<span class="pc bpc" id="L101" title="1 of 4 branches missed.">        if (dishDTO.getDescription() == null || dishDTO.getDescription().trim().isEmpty()) {</span>
+<span class="fc" id="L102">            throw new InvalidDishDataException(&quot;Dish description is required&quot;);</span>
+        }
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (dishDTO.getPrice() &lt; 0) {</span>
+<span class="fc" id="L105">            throw new InvalidDishDataException(&quot;Dish price cannot be negative&quot;);</span>
+        }
+<span class="fc" id="L107">    }</span>
+
+    // Resolves the list of allergen names to a list of existing Allergen entities
+    private List&lt;Allergen&gt; resolveExistingAllergens(List&lt;String&gt; allergenNames) {
+<span class="fc" id="L111">        return allergenNames.stream()</span>
+<span class="fc" id="L112">                .map(name -&gt; allergenRepository.findByName(name)</span>
+<span class="fc" id="L113">                        .orElseThrow(() -&gt; new InvalidDishDataException(&quot;Allergen not found: &quot; + name)))</span>
+<span class="fc" id="L114">                .collect(Collectors.toList());</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
