@@ -65,7 +65,7 @@ function Home() {
                     <div className="home-header-right">
                         <nav className="home-nav-links" aria-label="Main navigation">
                             
-                            {/* ELIMINADO EL LINK SUELTO DE REGISTER RESTAURANT DE AQUÍ */}
+                   
 
                             <button 
                                 className="nav-link nav-link-button" 
@@ -150,7 +150,7 @@ function Home() {
                                             Log In
                                         </button>
 
-                                        {/* TEXTO DINÁMICO DE "¿NO TIENES CUENTA?" */}
+
                                         <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#666', borderTop: '1px solid #eaeaea', paddingTop: '15px' }}>
                                             <span>Don't have an account? </span>
                                             <br />
