@@ -103,10 +103,10 @@ public class RestaurantService {
         }
 
         if (request.getLocalizations() != null) {
-            restaurant.setLocalizations(toLocalizationEntities(request.getLocalizations()));
+            updateLocalizations(restaurant, toLocalizationEntities(request.getLocalizations()));
         }
         if (request.getCuisineCategoryNames() != null) {
-            restaurant.setCuisineCategories(toCuisineCategoryEntities(request.getCuisineCategoryNames()));
+            updateCuisineCategories(restaurant, toCuisineCategoryEntities(request.getCuisineCategoryNames()));
         }
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
@@ -208,6 +208,11 @@ public class RestaurantService {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
+    private void updateLocalizations(Restaurant restaurant, List<Localization> newLocalizations) {
+        restaurant.getLocalizations().clear();
+        restaurant.getLocalizations().addAll(newLocalizations);
+    }
+
     private List<CuisineCategory> toCuisineCategoryEntities(List<String> cuisineCategoryNames) {
         if (cuisineCategoryNames.isEmpty()) {
             throw new IllegalArgumentException("At least one cuisine category is required");
@@ -217,6 +222,11 @@ public class RestaurantService {
                 .map(name -> cuisineCategoryRepository.findByName(name)
                         .orElseThrow(() -> new IllegalArgumentException("Unknown cuisine category: " + name)))
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private void updateCuisineCategories(Restaurant restaurant, List<CuisineCategory> newCuisineCategories) {
+        restaurant.getCuisineCategories().clear();
+        restaurant.getCuisineCategories().addAll(newCuisineCategories);
     }
     private RestaurantDTO sanitizeRestaurantDTO(RestaurantDTO dto) {
         dto.setPassword(null);
