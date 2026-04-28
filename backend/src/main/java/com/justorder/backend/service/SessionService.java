@@ -74,6 +74,13 @@ public class SessionService {
         }
     }
 
+    public void deleteSession(String type, String authorizationHeader) {
+        String token = extractToken(authorizationHeader);
+        if (token != null && !token.isBlank() && activeTokens.containsKey(type)) {
+            activeTokens.get(type).remove(token);
+        }
+    }
+
     public LoginResponseDTO createSession(LoginRequest request) {
         LoginResponseDTO response = new LoginResponseDTO();
         // Implementation for creating a session
