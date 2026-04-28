@@ -14,6 +14,8 @@ import CustomerMarketplace from "./pages/CustomerMarketplace";
 import CustomerInformationPage from "./pages/CustomerInformationPage";
 import RestaurantDetail from './pages/RestaurantDetail';
 import RestaurantOrderConfirmationView from "./pages/RestaurantOrderConfirmationView";
+import RestaurantInformationPage from "./pages/RestaurantInformationPage";
+import RiderInformationPage from "./pages/RiderInformationPage";
 import { CartProvider } from "./store/CartContext";
 import "./assets/css/Home.css";
 import "./assets/css/Register.css";
@@ -43,10 +45,12 @@ function App() {
           <Route path="/orders" element={<OrderStatusPage />} />
           <Route path="/orders/confirmation" element={<RestaurantOrderConfirmationView />} />
 
-          {/* Rider and Customer Routes */}
+          {/* User Profile and Dashboard Routes */}
           <Route path="/rider-dashboard" element={<RiderDashboard />} />
           <Route path="/customer-marketplace" element={<CustomerMarketplace />} />
           <Route path="/customer/profile" element={<CustomerInformationPage />} />
+          <Route path="/restaurant/profile" element={<RestaurantInformationPage />} />
+          <Route path="/rider/profile" element={<RiderInformationPage />} />
 
           {/* Fallback: Redirect to home if the URL does not exist */}
           <Route path="*" element={<Navigate to="/" replace />} />

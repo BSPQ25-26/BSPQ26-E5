@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -70,18 +71,24 @@ public class SessionController {
     }
 
     @DeleteMapping("/users")
-    public HttpStatus deleteUserSession() {
-        return HttpStatus.NOT_IMPLEMENTED;
+    public ResponseEntity<Void> deleteUserSession(@RequestHeader(value = "Authorization", required = false) String token) {
+        logger.info("DELETE /sessions/users - delete user session");
+        sessionService.deleteSession("customer", token);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/riders")
-    public HttpStatus deleteRiderSession() {
-        return HttpStatus.NOT_IMPLEMENTED;
+    public ResponseEntity<Void> deleteRiderSession(@RequestHeader(value = "Authorization", required = false) String token) {
+        logger.info("DELETE /sessions/riders - delete rider session");
+        sessionService.deleteSession("rider", token);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/restaurants")
-    public HttpStatus deleteRestaurantSession() {
-        return HttpStatus.NOT_IMPLEMENTED;
+    public ResponseEntity<Void> deleteRestaurantSession(@RequestHeader(value = "Authorization", required = false) String token) {
+        logger.info("DELETE /sessions/restaurants - delete restaurant session");
+        sessionService.deleteSession("restaurant", token);
+        return ResponseEntity.ok().build();
     }
     
 }

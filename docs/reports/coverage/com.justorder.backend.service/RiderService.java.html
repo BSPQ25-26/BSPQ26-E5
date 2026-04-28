@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RiderService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.service</a> &gt; <span class="el_source">RiderService.java</span></div><h1>RiderService.java</h1><pre class="source lang-java linenums">package com.justorder.backend.service;
+
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RiderDashboardDTO;
+import com.justorder.backend.dto.RiderDTO;
+import com.justorder.backend.model.Order;
+import com.justorder.backend.model.OrderStatus;
+import com.justorder.backend.model.Rider;
+import com.justorder.backend.repository.OrderRepository;
+import com.justorder.backend.repository.OrderStatusRepository;
+import com.justorder.backend.repository.RiderRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class RiderService {
+
+    private static final int MAX_PIN_ATTEMPTS = 5;
+    private static final int PIN_LOCK_MINUTES = 10;
+
+    private final OrderRepository orderRepository;
+    private final RiderRepository riderRepository;
+    private final OrderStatusRepository orderStatusRepository;
+    private final OrderPinSecurityService orderPinSecurityService;
+
+
+    public RiderService(OrderRepository orderRepository,
+                        RiderRepository riderRepository,
+                        OrderStatusRepository orderStatusRepository,
+<span class="fc" id="L35">                        OrderPinSecurityService orderPinSecurityService) {</span>
+<span class="fc" id="L36">        this.orderRepository = orderRepository;</span>
+<span class="fc" id="L37">        this.riderRepository = riderRepository;</span>
+<span class="fc" id="L38">        this.orderStatusRepository = orderStatusRepository;</span>
+<span class="fc" id="L39">        this.orderPinSecurityService = orderPinSecurityService;</span>
+<span class="fc" id="L40">    }</span>
+
+        @Transactional(readOnly = true)
+        public RiderDTO getRider(Long riderId) {
+<span class="nc" id="L44">        Rider rider = riderRepository.findById(riderId)</span>
+<span class="nc" id="L45">                    .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Rider not found with id: &quot; + riderId));</span>
+<span class="nc" id="L46">        return rider.toDTO();</span>
+        }
+
+        @Transactional(readOnly = true)
+        public RiderDashboardDTO getRiderDashboard(Long riderId) {
+<span class="fc" id="L51">        Rider rider = riderRepository.findById(riderId)</span>
+<span class="fc" id="L52">                    .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Rider not found with id: &quot; + riderId));</span>
+
+<span class="fc" id="L54">        List&lt;Order&gt; riderOrders = orderRepository.findByRiderId(riderId);</span>
+
+<span class="fc" id="L56">        long pendingOrders = riderOrders.stream()</span>
+<span class="fc" id="L57">                    .filter(order -&gt; isStatus(order, &quot;Pending&quot;))</span>
+<span class="fc" id="L58">                    .count();</span>
+<span class="fc" id="L59">        long deliveredOrders = riderOrders.stream()</span>
+<span class="fc" id="L60">                    .filter(order -&gt; isStatus(order, &quot;Delivered&quot;))</span>
+<span class="fc" id="L61">                    .count();</span>
+<span class="fc" id="L62">        long cancelledOrders = riderOrders.stream()</span>
+<span class="fc" id="L63">                    .filter(order -&gt; isStatus(order, &quot;Cancelled&quot;))</span>
+<span class="fc" id="L64">                    .count();</span>
+<span class="fc" id="L65">        long inProgressOrders = riderOrders.size() - pendingOrders - deliveredOrders - cancelledOrders;</span>
+
+<span class="fc" id="L67">        List&lt;OrderDTO&gt; assignedOrders = riderOrders.stream()</span>
+<span class="fc" id="L68">                    .sorted(Comparator.comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))</span>
+<span class="fc" id="L69">                    .map(Order::toDTO)</span>
+<span class="fc" id="L70">                    .toList();</span>
+
+<span class="fc" id="L72">        return new RiderDashboardDTO(</span>
+                    riderId,
+<span class="fc" id="L74">                    rider.getName(),</span>
+<span class="fc" id="L75">                    riderOrders.size(),</span>
+                    pendingOrders,
+                    inProgressOrders,
+                    deliveredOrders,
+                    cancelledOrders,
+                    assignedOrders
+            );
+        }
+
+        private boolean isStatus(Order order, String expectedStatus) {
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        return order.getStatus() != null</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">                    &amp;&amp; expectedStatus.equalsIgnoreCase(order.getStatus().getStatus());</span>
+        }
+
+
+    @Transactional
+    public OrderDTO rejectOrder(Long riderId, Long orderId, String rejectionReason) {
+
+<span class="fc" id="L93">        Order order = orderRepository.findById(orderId)</span>
+<span class="fc" id="L94">                .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+                        &quot;Order not found with id: &quot; + orderId));
+
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        if (!order.getRider().getId().equals(riderId)) {</span>
+<span class="fc" id="L98">            throw new SecurityException(</span>
+                    &quot;Rider &quot; + riderId + &quot; is not assigned to order &quot; + orderId);
+        }
+
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        boolean alreadyRejectedOnce = order.getRejectionReason() != null;</span>
+
+<span class="fc" id="L104">        order.setRejectionReason(rejectionReason);</span>
+
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        Optional&lt;Rider&gt; otherRider = alreadyRejectedOnce</span>
+<span class="fc" id="L107">                ? Optional.empty()</span>
+<span class="fc" id="L108">                : riderRepository.findAll()</span>
+<span class="fc" id="L109">                        .stream()</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">                        .filter(r -&gt; !r.getId().equals(riderId))</span>
+<span class="fc" id="L111">                        .findFirst();</span>
+
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (otherRider.isPresent()) {</span>
+<span class="fc" id="L114">            order.setRider(otherRider.get());</span>
+        } else {
+<span class="fc" id="L116">            OrderStatus cancelledStatus = orderStatusRepository</span>
+<span class="fc" id="L117">                    .findByStatus(&quot;Cancelled&quot;)</span>
+<span class="pc" id="L118">                    .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+                            &quot;Order status 'Cancelled' not found. Check DataInitializer.&quot;));
+<span class="fc" id="L120">            order.setStatus(cancelledStatus);</span>
+        }
+
+<span class="fc" id="L123">        Order savedOrder = orderRepository.save(order);</span>
+<span class="fc" id="L124">        return savedOrder.toDTO();</span>
+    }
+
+
+    @Transactional(readOnly = true)
+    public List&lt;OrderDTO&gt; getRiderOrders(Long riderId) {
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        if (!riderRepository.existsById(riderId)) {</span>
+<span class="fc" id="L131">            throw new IllegalArgumentException(&quot;Rider not found with id: &quot; + riderId);</span>
+        }
+<span class="fc" id="L133">        return orderRepository.findByRiderId(riderId)</span>
+<span class="fc" id="L134">                .stream()</span>
+<span class="fc" id="L135">                .map(Order::toDTO)</span>
+<span class="fc" id="L136">                .toList();</span>
+    }
+
+
+    @Transactional
+    public OrderDTO verifyOrderPin(Long riderId, Long orderId, String pin) {
+<span class="pc bpc" id="L142" title="2 of 4 branches missed.">        if (pin == null || !pin.matches(&quot;\\d{6}&quot;)) {</span>
+<span class="nc" id="L143">            throw new IllegalArgumentException(&quot;PIN must be a 6-digit numeric code&quot;);</span>
+        }
+
+<span class="fc" id="L146">        Order order = orderRepository.findById(orderId)</span>
+<span class="pc" id="L147">                .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+                        &quot;Order not found with id: &quot; + orderId));
+
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (!order.getRider().getId().equals(riderId)) {</span>
+<span class="fc" id="L151">            throw new SecurityException(</span>
+                    &quot;Rider &quot; + riderId + &quot; is not assigned to order &quot; + orderId);
+        }
+
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        if (&quot;Delivered&quot;.equalsIgnoreCase(order.getStatus().getStatus())) {</span>
+<span class="nc" id="L156">            return order.toDTO();</span>
+        }
+
+<span class="fc" id="L159">        LocalDateTime now = LocalDateTime.now();</span>
+<span class="pc bpc" id="L160" title="3 of 4 branches missed.">        if (order.getPinLockedUntil() != null &amp;&amp; order.getPinLockedUntil().isAfter(now)) {</span>
+<span class="nc" id="L161">            throw new IllegalStateException(&quot;PIN verification is temporarily locked&quot;);</span>
+        }
+
+<span class="fc" id="L164">        boolean pinMatches = orderPinSecurityService.matches(pin, order.getSecretCodeHash());</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">        if (!pinMatches) {</span>
+<span class="fc" id="L166">            int failedAttempts = order.getPinFailedAttempts() + 1;</span>
+<span class="fc" id="L167">            order.setPinFailedAttempts(failedAttempts);</span>
+
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">            if (failedAttempts &gt;= MAX_PIN_ATTEMPTS) {</span>
+<span class="nc" id="L170">                order.setPinLockedUntil(now.plusMinutes(PIN_LOCK_MINUTES));</span>
+<span class="nc" id="L171">                order.setPinFailedAttempts(0);</span>
+            }
+
+<span class="fc" id="L174">            orderRepository.save(order);</span>
+<span class="fc" id="L175">            throw new IllegalArgumentException(&quot;Invalid verification PIN&quot;);</span>
+        }
+
+<span class="fc" id="L178">        OrderStatus deliveredStatus = orderStatusRepository.findByStatusIgnoreCase(&quot;Delivered&quot;)</span>
+<span class="pc" id="L179">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Delivered status not found&quot;));</span>
+
+<span class="fc" id="L181">        order.setStatus(deliveredStatus);</span>
+<span class="fc" id="L182">        order.setDeliveredAt(now);</span>
+<span class="fc" id="L183">        order.setPinVerifiedAt(now);</span>
+<span class="fc" id="L184">        order.setPinFailedAttempts(0);</span>
+<span class="fc" id="L185">        order.setPinLockedUntil(null);</span>
+
+<span class="fc" id="L187">        return orderRepository.save(order).toDTO();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
