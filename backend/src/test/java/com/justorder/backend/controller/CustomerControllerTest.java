@@ -307,13 +307,19 @@ class CustomerControllerTest {
 
     @Test
     void testGetCustomerDashboard() throws Exception {
-        // Le decimos a los Mocks cómo comportarse para que no de Error 404
-        when(repository.existsById(1L)).thenReturn(true);
+        // Create a mock Customer object
+        Customer mockCustomer = new Customer();
+        mockCustomer.setId(1L);
+        mockCustomer.setName("Test Customer");
+        
+        // Configure the mocks to return proper values
+        when(repository.findById(1L)).thenReturn(Optional.of(mockCustomer));
         when(orderRepository.findByCustomerId(1L)).thenReturn(new ArrayList<>());
 
         mockMvc.perform(get("/api/customers/1/dashboard"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.customerId").value(1))
+            .andExpect(jsonPath("$.customerName").value("Test Customer"))
             .andExpect(jsonPath("$.totalOrders").value(greaterThanOrEqualTo(0)))
             .andExpect(jsonPath("$.activeOrders").value(greaterThanOrEqualTo(0)))
             .andExpect(jsonPath("$.cancelledOrders").value(greaterThanOrEqualTo(0)))

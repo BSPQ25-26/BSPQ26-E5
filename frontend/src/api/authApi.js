@@ -109,6 +109,7 @@ export const deleteDish = async (dishId) => {
 };
 
 export const loginUser = async (loginType, payload) => {
+
     const BASE_URL = "http://localhost:8080";
     let endpoint = "";
 
@@ -123,7 +124,7 @@ export const loginUser = async (loginType, payload) => {
     });
 
     if (response.status === 501 || response.status === 403) {
-        return { isBypass: true, token: "dummy-dev-token" };
+        return { isBypass: true, token: "dummy-dev-token", user: null };
     }
 
     if (!response.ok) {
@@ -131,7 +132,15 @@ export const loginUser = async (loginType, payload) => {
     }
 
     const data = await response.json();
-    return { isBypass: false, token: data.token };
+
+    // The backend returns { token, customer or rider or restaurant }.
+    const user =
+        (loginType === "customer" && data.customer) ||
+        (loginType === "rider" && data.rider) ||
+        (loginType === "restaurant" && data.restaurant) ||
+        null;
+
+    return { isBypass: false, token: data.token, user };
 };
 
 export const loginAdmin = async (email, password) => {

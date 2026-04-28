@@ -1,6 +1,7 @@
 package com.justorder.backend.controller;
 
 import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RiderDashboardDTO;
 import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.dto.VerifyOrderPinRequestDTO;
 import com.justorder.backend.model.Rider;
@@ -111,8 +112,12 @@ public class RiderController {
      * Retrieves a specific rider by ID (placeholder from main).
      */
     @GetMapping("/{riderId}")
-    public ResponseEntity<RiderDTO> getRider(@PathVariable String riderId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
+    public ResponseEntity<RiderDTO> getRider(@PathVariable Long riderId) {
+        try {
+            return ResponseEntity.ok(riderService.getRider(riderId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     /**
@@ -123,6 +128,18 @@ public class RiderController {
         try {
             List<OrderDTO> orders = riderService.getRiderOrders(riderId);
             return ResponseEntity.ok(orders);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Retrieves the dashboard metrics for a specific rider.
+     */
+    @GetMapping("/{riderId}/dashboard")
+    public ResponseEntity<RiderDashboardDTO> getRiderDashboard(@PathVariable Long riderId) {
+        try {
+            return ResponseEntity.ok(riderService.getRiderDashboard(riderId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

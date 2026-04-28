@@ -36,6 +36,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
@@ -60,6 +65,12 @@
         </dependency>
 
         <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -76,7 +87,6 @@
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -94,7 +104,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <forkCount>1</forkCount> <reuseForks>true</reuseForks> <argLine>-Xmx1024m -XX:MaxMetaspaceSize=256m</argLine> </configuration>
+                    <forkCount>1</forkCount> 
+                    <reuseForks>true</reuseForks> 
+                    <argLine>-Xmx1024m -XX:MaxMetaspaceSize=256m</argLine> 
+                </configuration>
             </plugin>
         </plugins>
     </build>

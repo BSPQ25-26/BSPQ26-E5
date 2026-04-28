@@ -1,10 +1,12 @@
 package com.justorder.backend.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -12,10 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,6 +39,13 @@ public class RestaurantControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil;
+
+    @BeforeEach
+    public void setUp() {
+        // Configure the mocked JwtUtil to return a fixed token for testing
+        // This allows the AuthController to generate tokens that can be used in tests
+        when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("test-token-" + System.nanoTime());
+    }
 
     // ==========================================
     // TESTS DE LA RAMA 'HEAD' (CRUD BÁSICO)
@@ -207,7 +219,6 @@ public class RestaurantControllerTest {
                .andExpect(status().isOk());
     }
 
-
     @Test
     void testSearchAllRestaurants() throws Exception {
         mockMvc.perform(get("/api/restaurants/search"))
@@ -301,5 +312,321 @@ public class RestaurantControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isNotFound()); 
+    }
+
+    @Test
+    void testGetRestaurantProfileWithValidToken() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        mockMvc.perform(get("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.email").value("lamarina@justorder.com"))
+                .andExpect(jsonPath("$.password").doesNotExist());
+    }
+
+    @Test
+    void testUpdateRestaurantProfileWithValidToken() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "name": "La Marina Renewed",
+            "description": "Updated seafood and grilled specialties",
+            "phone": "600999888",
+            "mondayWorkingHours": "09:00-18:00",
+            "tuesdayWorkingHours": "09:30-18:30",
+            "wednesdayWorkingHours": "10:00-19:00",
+            "thursdayWorkingHours": "10:30-19:30",
+            "fridayWorkingHours": "11:00-20:00",
+            "saturdayWorkingHours": "11:30-20:30",
+            "sundayWorkingHours": "12:00-21:00"
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("La Marina Renewed"))
+                .andExpect(jsonPath("$.description").value("Updated seafood and grilled specialties"))
+                .andExpect(jsonPath("$.phone").value("600999888"))
+                .andExpect(jsonPath("$.mondayWorkingHours").value("09:00-18:00"))
+                .andExpect(jsonPath("$.tuesdayWorkingHours").value("09:30-18:30"))
+                .andExpect(jsonPath("$.wednesdayWorkingHours").value("10:00-19:00"))
+                .andExpect(jsonPath("$.thursdayWorkingHours").value("10:30-19:30"))
+                .andExpect(jsonPath("$.fridayWorkingHours").value("11:00-20:00"))
+                .andExpect(jsonPath("$.saturdayWorkingHours").value("11:30-20:30"))
+                .andExpect(jsonPath("$.sundayWorkingHours").value("12:00-21:00"))
+                .andExpect(jsonPath("$.password").doesNotExist());
+        
+    }
+
+    @Test
+    void testUpdateRestaurantProfileCuisineCategoriesWithValidToken() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "cuisineCategoryNames": ["Italian", "Japanese"]
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cuisineCategoryNames", hasSize(2)));
+    }
+
+    @Test
+    void testUpdateRestaurantProfileLocalizationsWithValidToken() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "localizations": [
+                {
+                    "city": "Bilbao",
+                    "province": "Bizkaia",
+                    "country": "Spain",
+                    "postalCode": "48002",
+                    "number": "99",
+                    "longitude": -2.934,
+                    "latitude": 43.262
+                }
+            ]
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.localizations", hasSize(1)))
+                .andExpect(jsonPath("$.localizations[0].city").value("Bilbao"))
+                .andExpect(jsonPath("$.localizations[0].province").value("Bizkaia"))
+                .andExpect(jsonPath("$.localizations[0].country").value("Spain"))
+                .andExpect(jsonPath("$.localizations[0].postalCode").value("48002"))
+                .andExpect(jsonPath("$.localizations[0].number").value("99"));
+    }
+
+    @Test
+    void testGetRestaurantDashboardWithValidToken() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        mockMvc.perform(get("/api/restaurants/dashboard")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.restaurantId").isNumber())
+                .andExpect(jsonPath("$.totalOrders").isNumber())
+                .andExpect(jsonPath("$.activeOrders").isNumber())
+                .andExpect(jsonPath("$.cancelledOrders").isNumber())
+                .andExpect(jsonPath("$.deliveredOrders").isNumber())
+                .andExpect(jsonPath("$.totalRevenue").isNumber())
+                .andExpect(jsonPath("$.totalRefunded").isNumber())
+                .andExpect(jsonPath("$.recentOrders").isArray());
+    }
+
+    @Test
+    void testGetRestaurantProfileWithoutAuthorizationHeader() throws Exception {
+        mockMvc.perform(get("/api/restaurants/profile"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetRestaurantProfileWithInvalidToken() throws Exception {
+        mockMvc.perform(get("/api/restaurants/profile")
+                .header("Authorization", "Bearer invalid-token"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetRestaurantDashboardWithInvalidToken() throws Exception {
+        mockMvc.perform(get("/api/restaurants/dashboard")
+                .header("Authorization", "Bearer invalid-token"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetRestaurantProfileWithMalformedAuthorizationHeader() throws Exception {
+        mockMvc.perform(get("/api/restaurants/profile")
+                .header("Authorization", "invalid-token-without-bearer"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testUpdateRestaurantProfileWithoutAuthorizationHeader() throws Exception {
+        String updateBody = """
+        {
+            "name": "No Token"
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateRestaurantProfileWithInvalidWorkingHoursFormat() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "mondayWorkingHours": "9:00-18:00"
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateRestaurantProfileWithUnknownCuisineCategory() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "cuisineCategoryNames": ["UnknownCategory"]
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateRestaurantProfileWithEmptyCuisineCategoryList() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "cuisineCategoryNames": []
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateRestaurantProfileWithEmptyLocalizationsList() throws Exception {
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "localizations": []
+        }
+        """;
+
+        mockMvc.perform(put("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateBody))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetRestaurantProfileWithTokenFromDeletedRestaurant() throws Exception {
+        String email = "temp-restaurant-delete@justorder.com";
+        String password = "temporaryRestaurantPass123";
+
+        String token = createTempRestaurantSessionAndGetToken(email, password);
+        Long restaurantId = repository.findByEmail(email).get().getId();
+        repository.deleteById(restaurantId);
+
+        mockMvc.perform(get("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isUnauthorized());
+    }
+
+    private String createRestaurantSessionAndGetToken() throws Exception {
+        String loginBody = """
+                {
+                    "type": "restaurant",
+                    "email": "lamarina@justorder.com",
+                    "password": "restaurant123"
+                }
+                """;
+
+        MvcResult result = mockMvc.perform(post("/sessions/restaurants")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
+    }
+
+    private String createTempRestaurantSessionAndGetToken(String email, String password) throws Exception {
+        String createBody = """
+        {
+            "name": "Temp Restaurant",
+            "description": "Temporary restaurant for tests",
+            "phone": "600123457",
+            "email": "%s",
+            "password": "%s",
+            "mondayWorkingHours": "10:00-22:00",
+            "tuesdayWorkingHours": "10:00-22:00",
+            "wednesdayWorkingHours": "10:00-22:00",
+            "thursdayWorkingHours": "10:00-22:00",
+            "fridayWorkingHours": "10:00-22:00",
+            "saturdayWorkingHours": "10:00-22:00",
+            "sundayWorkingHours": "10:00-22:00",
+            "dishes": [],
+            "cuisineCategoryNames": ["Italian"],
+            "localizations": [
+                {
+                    "city": "Bilbao",
+                    "province": "Bizkaia",
+                    "country": "Spain",
+                    "postalCode": "48001",
+                    "number": "10",
+                    "longitude": -2.9253,
+                    "latitude": 43.2630
+                }
+            ]
+        }
+        """.formatted(email, password);
+
+        mockMvc.perform(post("/api/restaurants/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createBody))
+            .andExpect(status().isCreated());
+
+        String loginBody = """
+        {
+            "type": "restaurant",
+            "email": "%s",
+            "password": "%s"
+        }
+        """.formatted(email, password);
+
+        MvcResult result = mockMvc.perform(post("/api/auth/restaurant/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
     }
 }

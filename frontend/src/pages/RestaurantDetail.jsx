@@ -2,19 +2,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import cartImage from '../assets/images/Shopping cart.png';
 import { useCart } from '../store/CartContext';
+import ConfirmReplaceCartModal from '../components/ConfirmReplaceCartModal';
 import '../assets/css/Home.css';
 import '../assets/css/CustomerMarketplace.css';
 
 function RestaurantDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, replaceCartWith } = useCart();
 
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const toastTimerRef = useRef(null);
+
+  const [pendingDish, setPendingDish] = useState(null);
+  const [modalInfo, setModalInfo] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:8080/api/restaurants/search')
@@ -42,16 +46,8 @@ function RestaurantDetail() {
     };
   }, []);
 
-  const handleSignOut = () => {
-    alert("Signing out and destroying JWT token...");
-    setIsProfileMenuOpen(false);
-    navigate("/");
-  };
-
-  const handleAddToCart = (dish) => {
-    addToCart(dish);
-    setToastMessage(`"${dish.name}" added to cart`);
-
+  const showToast = (message) => {
+    setToastMessage(message);
     if (toastTimerRef.current) {
       clearTimeout(toastTimerRef.current);
     }
@@ -59,6 +55,43 @@ function RestaurantDetail() {
       setToastMessage("");
       toastTimerRef.current = null;
     }, 2000);
+  };
+
+  const handleSignOut = () => {
+    alert("Signing out and destroying JWT token...");
+    setIsProfileMenuOpen(false);
+    navigate("/");
+  };
+
+  const handleAddToCart = (dish) => {
+    const result = addToCart(dish);
+
+    if (result.success) {
+      showToast(`"${dish.name}" added to cart`);
+      return;
+    }
+
+    if (result.reason === 'different_restaurant') {
+      setPendingDish(dish);
+      setModalInfo({
+        currentRestaurantName: result.currentRestaurantName,
+        newRestaurantName: result.attemptedRestaurantName,
+      });
+    }
+  };
+
+  const handleConfirmReplace = () => {
+    if (pendingDish) {
+      replaceCartWith(pendingDish);
+      showToast(`Cart cleared. "${pendingDish.name}" added to cart`);
+    }
+    setPendingDish(null);
+    setModalInfo(null);
+  };
+
+  const handleCancelReplace = () => {
+    setPendingDish(null);
+    setModalInfo(null);
   };
 
   if (!restaurant) {
@@ -92,7 +125,7 @@ function RestaurantDetail() {
 
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown">
-                    <Link to="/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
+                    <Link to="/customer/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>My Orders</Link>
                     <Link to="/customer/profile" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>Information</Link>
                     <button className="dropdown-item sign-out" onClick={handleSignOut}>Sign out</button>
                   </div>
@@ -123,7 +156,7 @@ function RestaurantDetail() {
           <section className="restaurant-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
             {menu.length > 0 ? (
               menu.map(dish => (
-                <div key={dish.id} style={{ border: '1px solid #eee', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', backgroundColor: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                <div key={dish.id} data-testid={`dish-${dish.id}`} style={{ border: '1px solid #eee', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', backgroundColor: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                   <div>
                     <h3 style={{ fontSize: '1.3rem', marginBottom: '10px' }}>{dish.name}</h3>
                     <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '15px', lineHeight: '1.4' }}>{dish.description}</p>
@@ -132,6 +165,7 @@ function RestaurantDetail() {
                     <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>€{dish.price.toFixed(2)}</span>
                     <button
                       type="button"
+                      data-testid={`add-${dish.id}`}
                       onClick={() => handleAddToCart(dish)}
                       style={{ backgroundColor: '#00cc66', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '30px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
@@ -171,6 +205,15 @@ function RestaurantDetail() {
         >
           ✓ {toastMessage}
         </div>
+      )}
+
+      {modalInfo && (
+        <ConfirmReplaceCartModal
+          currentRestaurantName={modalInfo.currentRestaurantName}
+          newRestaurantName={modalInfo.newRestaurantName}
+          onConfirm={handleConfirmReplace}
+          onCancel={handleCancelReplace}
+        />
       )}
     </main>
   );

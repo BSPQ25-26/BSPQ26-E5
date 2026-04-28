@@ -2,6 +2,8 @@ package com.justorder.backend.controller;
 
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,8 @@ import com.justorder.backend.service.OrderService;
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
+
+    private static final Logger logger = LogManager.getLogger(OrderController.class);
 
     private final OrderService orderService;
 
@@ -44,14 +48,19 @@ public class OrderController {
      */
     @PostMapping("/checkout")
     public ResponseEntity<OrderDTO> checkout(@RequestBody CheckoutOrderRequestDTO request) {
+        logger.info("POST /api/orders/checkout - checkout requested for customer {}", request != null ? request.getCustomerId() : "<null>");
         try {
             OrderDTO createdOrder = orderService.checkout(request);
+            logger.info("Order created with id {}", createdOrder != null ? createdOrder.getId() : "<null>");
             return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
         } catch (IllegalArgumentException e) {
+            logger.warn("Invalid checkout request: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (ResourceNotFoundException e) {
+            logger.warn("Resource not found during checkout: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
+            logger.error("Error during checkout", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

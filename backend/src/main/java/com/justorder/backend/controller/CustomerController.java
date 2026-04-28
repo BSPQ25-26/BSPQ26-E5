@@ -16,6 +16,8 @@ import com.justorder.backend.model.Order;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.service.RegisterService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * REST controller for managing Customer entities.
@@ -24,6 +26,8 @@ import com.justorder.backend.service.RegisterService;
 @RestController
 @RequestMapping("/api/customers")
 public class CustomerController {
+
+    private static final Logger logger = LogManager.getLogger(CustomerController.class);
 
     private final RegisterService registerService;
     private final CustomerRepository customerRepository;
@@ -62,9 +66,11 @@ public class CustomerController {
     @PostMapping("/create")
     public ResponseEntity<Void> createCustomer(@RequestBody CustomerDTO request) {
         try {
+            logger.info("POST /api/customers/create - register customer request: {}", request != null ? request.getEmail() : "<null>");
             this.registerService.registerCustomer(request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            logger.error("Error registering customer", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -111,7 +117,9 @@ public class CustomerController {
      */
     @GetMapping("/{customerId}/orders")
     public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
+        logger.info("GET /api/customers/{}/orders - fetching orders", customerId);
         if (!customerRepository.existsById(customerId)) {
+            logger.warn("Customer {} not found when requesting orders", customerId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         List<OrderDTO> orders = orderRepository.findByCustomerId(customerId)
@@ -126,7 +134,10 @@ public class CustomerController {
      */
     @GetMapping("/{customerId}/dashboard")
     public ResponseEntity<CustomerDashboardDTO> getCustomerDashboard(@PathVariable Long customerId) {
-        if (!customerRepository.existsById(customerId)) {
+        logger.info("GET /api/customers/{}/dashboard - dashboard requested", customerId);
+        Customer customer = customerRepository.findById(customerId).orElse(null);
+        if (customer == null) {
+            logger.warn("Customer {} not found for dashboard", customerId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
@@ -158,6 +169,7 @@ public class CustomerController {
 
         CustomerDashboardDTO dashboard = new CustomerDashboardDTO(
             customerId,
+            customer.getName(),
             totalOrders,
             activeOrders,
             cancelledOrders,
