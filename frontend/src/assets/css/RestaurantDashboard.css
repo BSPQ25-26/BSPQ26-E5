@@ -1,4 +1,4 @@
-/* RESET PARA OCUPAR TODA LA PANTALLA */
+
 .dashboard-container {
     display: flex;
     flex-direction: column;
@@ -12,7 +12,7 @@
     overflow-x: hidden;
 }
 
-/* HEADER AJUSTADO */
+
 .dashboard-container .home-navbar {
     width: 100%;
     max-width: 100%;
@@ -35,7 +35,7 @@
     align-items: stretch;
 }
 
-/* SIDEBAR FIJA A LA IZQUIERDA */
+
 .sidebar {
     width: 250px;
     min-width: 250px;
@@ -73,12 +73,12 @@
     border-left: 4px solid #00cc66;
 }
 
-/* CONTENIDO CON FIX DE TAMAÑO */
+
 .dashboard-content {
     flex: 1;
     min-width: 0;
     padding: 40px;
-    /* Forzamos el carril del scroll para que no haya saltos de 15px */
+   
     overflow-y: scroll; 
     background-color: #f4f7f6;
 }
@@ -139,16 +139,13 @@
     border-left: 5px solid #ffeeba; 
 }
 
-/* =========================================
-   HISTORIAL DE PEDIDOS (TABLA)
-   ========================================= */
 
    .table-container {
     background: #ffffff;
     border-radius: 12px;
     border: 1px solid #eaeaea;
     box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    overflow: hidden; /* Corta las esquinas de la tabla para que queden redondas */
+    overflow: hidden; 
 }
 
 .history-table {
@@ -183,7 +180,7 @@
     background-color: #fcfcfc;
 }
 
-/* Badges (Píldoras) de estado */
+
 .status-badge {
     padding: 6px 12px;
     border-radius: 20px;

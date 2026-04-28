@@ -14,38 +14,39 @@ function Home() {
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const trimmedIdentifier = identifier.trim();
-    const payload = { email: trimmedIdentifier, password };
+        const trimmedIdentifier = identifier.trim();
+        const payload = { email: trimmedIdentifier, password };
 
-    try {
-        const result = await loginUser(loginType, payload);
+        try {
+            const result = await loginUser(loginType, payload);
 
-        if (result.isBypass) {
-            alert("Backend endpoint is NOT IMPLEMENTED yet. Bypassing for UI testing.");
+            if (result.isBypass) {
+                alert("Backend endpoint is NOT IMPLEMENTED yet. Bypassing for UI testing.");
+            }
+
+            localStorage.setItem("token", result.token);
+
+            // Persist the logged-in user so the rest of the app can auto-fill things
+            if (result.user) {
+                localStorage.setItem("userType", loginType);
+                localStorage.setItem("user", JSON.stringify(result.user));
+            }
+
+            if (loginType === "customer") navigate("/customer-marketplace");
+            else if (loginType === "rider") navigate("/rider-dashboard");
+            else if (loginType === "restaurant") navigate("/restaurant-dashboard");
+            
+
+        } catch (error) {
+            if (error.message === "Failed to fetch" || error.message.includes("NetworkError")) {
+                alert("Could not connect to the server. Is Spring Boot running?");
+            } else {
+                alert(error.message);
+            }
         }
-
-        localStorage.setItem("token", result.token);
-
-        // Persist the logged-in user so the rest of the app can auto-fill things
-        if (result.user) {
-            localStorage.setItem("userType", loginType);
-            localStorage.setItem("user", JSON.stringify(result.user));
-        }
-
-        if (loginType === "customer") navigate("/customer-marketplace");
-        else if (loginType === "rider") navigate("/rider-dashboard");
-        else alert("Restaurant dashboard coming soon!");
-
-    } catch (error) {
-        if (error.message === "Failed to fetch" || error.message.includes("NetworkError")) {
-            alert("Could not connect to the server. Is Spring Boot running?");
-        } else {
-            alert(error.message);
-        }
-    }
-};
+    };
 
     const handleTabSwitch = (type) => {
         setLoginType(type);
@@ -63,10 +64,9 @@ function Home() {
 
                     <div className="home-header-right">
                         <nav className="home-nav-links" aria-label="Main navigation">
-                            <Link to="/register-restaurant" className="nav-link">
-                                Register your restaurant
-                            </Link>
                             
+                            {/* ELIMINADO EL LINK SUELTO DE REGISTER RESTAURANT DE AQUÍ */}
+
                             <button 
                                 className="nav-link nav-link-button" 
                                 type="button" 
@@ -149,6 +149,28 @@ function Home() {
                                         >
                                             Log In
                                         </button>
+
+                                        {/* TEXTO DINÁMICO DE "¿NO TIENES CUENTA?" */}
+                                        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#666', borderTop: '1px solid #eaeaea', paddingTop: '15px' }}>
+                                            <span>Don't have an account? </span>
+                                            <br />
+                                            {loginType === 'customer' && (
+                                                <Link to="/register-customer" style={{ color: '#00cc66', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginTop: '5px' }}>
+                                                    Sign up as customer
+                                                </Link>
+                                            )}
+                                            {loginType === 'rider' && (
+                                                <Link to="/register-rider" style={{ color: '#00cc66', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginTop: '5px' }}>
+                                                    Sign up as rider
+                                                </Link>
+                                            )}
+                                            {loginType === 'restaurant' && (
+                                                <Link to="/register-restaurant" style={{ color: '#00cc66', fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginTop: '5px' }}>
+                                                    Register your restaurant
+                                                </Link>
+                                            )}
+                                        </div>
+
                                     </form>
                                 </div>
                             )}

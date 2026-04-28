@@ -8,9 +8,6 @@ import {
   deleteDish 
 } from "../api/authApi";
 
-
-const RESTAURANT_ID = 1; //WE WILL CHANGE IT WHEN WE IMPLEMENT AUTH
-
 const EMPTY_FORM = {
   name: "",
   description: "",
@@ -29,10 +26,20 @@ function MenuEditor() {
   const [editingDishId, setEditingDishId] = useState(null);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const navigate = useNavigate();
 
-  // Load allergens and dishes on mount
+  
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const RESTAURANT_ID = storedUser?.id;
+
+ 
   useEffect(() => {
+    if (!RESTAURANT_ID) {
+        navigate("/");
+        return;
+    }
+
     const load = async () => {
       try {
         setAllergensLoading(true);
@@ -63,7 +70,7 @@ function MenuEditor() {
 
     load();
     loadDishes();
-  }, []);
+  }, [RESTAURANT_ID, navigate]); 
 
   const isEditing = editingDishId !== null;
 
@@ -75,7 +82,6 @@ function MenuEditor() {
   const onAllergenChange = (event) => {
     const { value, checked } = event.target;
 
-    // Keep allergen selection in sync with checkbox state.
     setForm((prev) => ({
       ...prev,
       allergenNames: checked
@@ -112,7 +118,6 @@ function MenuEditor() {
     setIsSubmitting(true);
 
     try {
-      // Normalize values before sending to the API.
       const dishPayload = {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -128,7 +133,6 @@ function MenuEditor() {
         setMessage("Dish created successfully");
       }
 
-      // Reload dishes from backend
       const menu = await getMenuByRestaurantId(RESTAURANT_ID);
       setDishes(Array.isArray(menu) ? menu : []);
       resetForm();
@@ -140,7 +144,6 @@ function MenuEditor() {
   };
 
   const onEditDish = (dish) => {
-    // Load selected dish into the form to edit it in place.
     setForm({
       name: dish.name,
       description: dish.description,
@@ -156,7 +159,6 @@ function MenuEditor() {
 
     try {
       await deleteDish(dishId);
-      // Update local list immediately after a successful deletion.
       setDishes((prev) => prev.filter((dish) => dish.id !== dishId));
 
       if (editingDishId === dishId) {
@@ -171,11 +173,14 @@ function MenuEditor() {
     }
   };
 
+  if (!RESTAURANT_ID) return null;
+
   return (
     <main className="menu-editor-page">
       <section className="menu-editor-panel">
         <div className="menu-editor-header">
-          <p className="menu-editor-kicker">Restaurant 1</p>
+       
+          <p className="menu-editor-kicker">{storedUser?.name || "Restaurant Dashboard"}</p>
           <h1>Menu Editor</h1>
           <p>Manage restaurant dishes.</p>
         </div>
@@ -327,4 +332,3 @@ function MenuEditor() {
 }
 
 export default MenuEditor;
-
