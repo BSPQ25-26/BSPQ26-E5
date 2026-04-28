@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerDashboardDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.dto</a> &gt; <span class="el_source">CustomerDashboardDTO.java</span></div><h1>CustomerDashboardDTO.java</h1><pre class="source lang-java linenums">package com.justorder.backend.dto;
+
+import java.util.List;
+
+public class CustomerDashboardDTO {
+
+    private Long customerId;
+    private String customerName;
+    private long totalOrders;
+    private long activeOrders;
+    private long cancelledOrders;
+    private long deliveredOrders;
+    private double totalSpent;
+    private double totalRefunded;
+    private List&lt;OrderDTO&gt; recentOrders;
+
+<span class="nc" id="L17">    public CustomerDashboardDTO() {</span>
+<span class="nc" id="L18">    }</span>
+
+    public CustomerDashboardDTO(Long customerId,
+                                String customerName,
+                                long totalOrders,
+                                long activeOrders,
+                                long cancelledOrders,
+                                long deliveredOrders,
+                                double totalSpent,
+                                double totalRefunded,
+<span class="fc" id="L28">                                List&lt;OrderDTO&gt; recentOrders) {</span>
+<span class="fc" id="L29">        this.customerId = customerId;</span>
+<span class="fc" id="L30">        this.customerName = customerName;</span>
+<span class="fc" id="L31">        this.totalOrders = totalOrders;</span>
+<span class="fc" id="L32">        this.activeOrders = activeOrders;</span>
+<span class="fc" id="L33">        this.cancelledOrders = cancelledOrders;</span>
+<span class="fc" id="L34">        this.deliveredOrders = deliveredOrders;</span>
+<span class="fc" id="L35">        this.totalSpent = totalSpent;</span>
+<span class="fc" id="L36">        this.totalRefunded = totalRefunded;</span>
+<span class="fc" id="L37">        this.recentOrders = recentOrders;</span>
+<span class="fc" id="L38">    }</span>
+
+    public Long getCustomerId() {
+<span class="fc" id="L41">        return customerId;</span>
+    }
+
+    public void setCustomerId(Long customerId) {
+<span class="nc" id="L45">        this.customerId = customerId;</span>
+<span class="nc" id="L46">    }</span>
+
+    public String getCustomerName() {
+<span class="fc" id="L49">        return customerName;</span>
+    }
+
+    public void setCustomerName(String customerName) {
+<span class="nc" id="L53">        this.customerName = customerName;</span>
+<span class="nc" id="L54">    }</span>
+
+    public long getTotalOrders() {
+<span class="fc" id="L57">        return totalOrders;</span>
+    }
+
+    public void setTotalOrders(long totalOrders) {
+<span class="nc" id="L61">        this.totalOrders = totalOrders;</span>
+<span class="nc" id="L62">    }</span>
+
+    public long getActiveOrders() {
+<span class="fc" id="L65">        return activeOrders;</span>
+    }
+
+    public void setActiveOrders(long activeOrders) {
+<span class="nc" id="L69">        this.activeOrders = activeOrders;</span>
+<span class="nc" id="L70">    }</span>
+
+    public long getCancelledOrders() {
+<span class="fc" id="L73">        return cancelledOrders;</span>
+    }
+
+    public void setCancelledOrders(long cancelledOrders) {
+<span class="nc" id="L77">        this.cancelledOrders = cancelledOrders;</span>
+<span class="nc" id="L78">    }</span>
+
+    public long getDeliveredOrders() {
+<span class="fc" id="L81">        return deliveredOrders;</span>
+    }
+
+    public void setDeliveredOrders(long deliveredOrders) {
+<span class="nc" id="L85">        this.deliveredOrders = deliveredOrders;</span>
+<span class="nc" id="L86">    }</span>
+
+    public double getTotalSpent() {
+<span class="fc" id="L89">        return totalSpent;</span>
+    }
+
+    public void setTotalSpent(double totalSpent) {
+<span class="nc" id="L93">        this.totalSpent = totalSpent;</span>
+<span class="nc" id="L94">    }</span>
+
+    public double getTotalRefunded() {
+<span class="fc" id="L97">        return totalRefunded;</span>
+    }
+
+    public void setTotalRefunded(double totalRefunded) {
+<span class="nc" id="L101">        this.totalRefunded = totalRefunded;</span>
+<span class="nc" id="L102">    }</span>
+
+    public List&lt;OrderDTO&gt; getRecentOrders() {
+<span class="fc" id="L105">        return recentOrders;</span>
+    }
+
+    public void setRecentOrders(List&lt;OrderDTO&gt; recentOrders) {
+<span class="nc" id="L109">        this.recentOrders = recentOrders;</span>
+<span class="nc" id="L110">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

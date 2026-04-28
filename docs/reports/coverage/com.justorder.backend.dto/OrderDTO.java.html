@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.dto</a> &gt; <span class="el_source">OrderDTO.java</span></div><h1>OrderDTO.java</h1><pre class="source lang-java linenums">package com.justorder.backend.dto;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+
+public class OrderDTO {
+
+    private Long id;
+    private Long customerId;
+    private List&lt;DishDTO&gt; dishes;
+    private String status;
+    private Long riderId;
+    private double totalPrice;
+    private String secretCode;
+    private String rejectionReason;
+    private LocalDateTime createdAt;
+    private LocalDateTime deliveredAt;
+
+<span class="nc" id="L20">    public OrderDTO() {}</span>
+
+    public OrderDTO(Long id, Long customerId, String status, Long riderId,
+<span class="fc" id="L23">                    double totalPrice, String secretCode) {</span>
+<span class="fc" id="L24">        this.id = id;</span>
+<span class="fc" id="L25">        this.customerId = customerId;</span>
+<span class="fc" id="L26">        this.status = status;</span>
+<span class="fc" id="L27">        this.riderId = riderId;</span>
+<span class="fc" id="L28">        this.totalPrice = totalPrice;</span>
+<span class="fc" id="L29">        this.secretCode = secretCode;</span>
+<span class="fc" id="L30">    }</span>
+
+<span class="fc" id="L32">    public Long getId() { return id; }</span>
+<span class="fc" id="L33">    public Long getCustomerId() { return customerId; }</span>
+<span class="nc" id="L34">    public List&lt;DishDTO&gt; getdishes() { return dishes; }</span>
+<span class="fc" id="L35">    public String getStatus() { return status; }</span>
+<span class="fc" id="L36">    public Long getRiderId() { return riderId; }</span>
+<span class="fc" id="L37">    public double getTotalPrice() { return totalPrice; }</span>
+<span class="fc" id="L38">    public String getSecretCode() { return secretCode; }</span>
+<span class="fc" id="L39">    public LocalDateTime getCreatedAt() { return createdAt; }</span>
+<span class="fc" id="L40">    public LocalDateTime getDeliveredAt() { return deliveredAt; }</span>
+<span class="fc" id="L41">    public String getRejectionReason() { return rejectionReason; }</span>
+
+<span class="nc" id="L43">    public void setId(Long id) { this.id = id; }</span>
+<span class="nc" id="L44">    public void setCustomerId(Long customerId) { this.customerId = customerId; }</span>
+<span class="fc" id="L45">    public void setdishes(List&lt;DishDTO&gt; dishes) { this.dishes = dishes; }</span>
+<span class="nc" id="L46">    public void setStatus(String status) { this.status = status; }</span>
+<span class="nc" id="L47">    public void setRiderId(Long riderId) { this.riderId = riderId; }</span>
+<span class="nc" id="L48">    public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }</span>
+<span class="fc" id="L49">    public void setSecretCode(String secretCode) { this.secretCode = secretCode; }</span>
+<span class="fc" id="L50">    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }</span>
+<span class="fc" id="L51">    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }</span>
+<span class="fc" id="L52">    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

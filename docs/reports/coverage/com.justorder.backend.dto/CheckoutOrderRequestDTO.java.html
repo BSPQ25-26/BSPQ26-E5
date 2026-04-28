@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CheckoutOrderRequestDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.dto</a> &gt; <span class="el_source">CheckoutOrderRequestDTO.java</span></div><h1>CheckoutOrderRequestDTO.java</h1><pre class="source lang-java linenums">package com.justorder.backend.dto;
+
+import java.util.List;
+
+public class CheckoutOrderRequestDTO {
+
+    private Long customerId;
+    private List&lt;Long&gt; dishIds;
+    private double clientTotal;
+    private String paymentToken;
+
+<span class="fc" id="L12">    public CheckoutOrderRequestDTO() {</span>
+<span class="fc" id="L13">    }</span>
+
+    public Long getCustomerId() {
+<span class="fc" id="L16">        return customerId;</span>
+    }
+
+    public void setCustomerId(Long customerId) {
+<span class="fc" id="L20">        this.customerId = customerId;</span>
+<span class="fc" id="L21">    }</span>
+
+    public List&lt;Long&gt; getDishIds() {
+<span class="fc" id="L24">        return dishIds;</span>
+    }
+
+    public void setDishIds(List&lt;Long&gt; dishIds) {
+<span class="fc" id="L28">        this.dishIds = dishIds;</span>
+<span class="fc" id="L29">    }</span>
+
+    public double getClientTotal() {
+<span class="fc" id="L32">        return clientTotal;</span>
+    }
+
+    public void setClientTotal(double clientTotal) {
+<span class="fc" id="L36">        this.clientTotal = clientTotal;</span>
+<span class="fc" id="L37">    }</span>
+
+    public String getPaymentToken() {
+<span class="fc" id="L40">        return paymentToken;</span>
+    }
+
+    public void setPaymentToken(String paymentToken) {
+<span class="fc" id="L44">        this.paymentToken = paymentToken;</span>
+<span class="fc" id="L45">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

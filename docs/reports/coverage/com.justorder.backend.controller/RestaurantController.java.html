@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RestaurantController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.controller</a> &gt; <span class="el_source">RestaurantController.java</span></div><h1>RestaurantController.java</h1><pre class="source lang-java linenums">package com.justorder.backend.controller;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.PutMapping;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.justorder.backend.dto.DishDTO;
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RejectionRequestDTO;
+import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.dto.RestaurantDashboardDTO;
+import com.justorder.backend.dto.RestaurantProfileUpdateDTO;
+import com.justorder.backend.exception.ResourceNotFoundException;
+import com.justorder.backend.service.MenuService;
+import com.justorder.backend.service.OrderService;
+import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.service.RegisterService;
+import com.justorder.backend.service.RestaurantService;
+import com.justorder.backend.service.SessionService;
+
+
+@RestController
+@RequestMapping(&quot;/api/restaurants&quot;)
+public class RestaurantController {
+
+<span class="fc" id="L41">    private static final Logger logger = LogManager.getLogger(RestaurantController.class);</span>
+
+    @Autowired
+    private MenuService menuService;
+    private final RegisterService registerService;
+    private final RestaurantRepository restaurantRepository;
+    private final RestaurantService restaurantService;
+    private final SessionService sessionService;
+
+
+    private final OrderService orderService;
+
+    /***
+     * @param registerService      
+     * @param restaurantRepository 
+     * @param restaurantService    
+     */
+    public RestaurantController(RegisterService registerService,
+                                RestaurantRepository restaurantRepository,
+                                RestaurantService restaurantService,
+                                OrderService orderService,
+<span class="fc" id="L62">                                SessionService sessionService) {    </span>
+<span class="fc" id="L63">        this.registerService = registerService;</span>
+<span class="fc" id="L64">        this.restaurantRepository = restaurantRepository;</span>
+<span class="fc" id="L65">        this.restaurantService = restaurantService;</span>
+<span class="fc" id="L66">        this.orderService = orderService;</span>
+<span class="fc" id="L67">        this.sessionService = sessionService;</span>
+<span class="fc" id="L68">    }</span>
+
+    @GetMapping(&quot;/hello&quot;)
+    public String hello() {
+<span class="nc" id="L72">        logger.info(&quot;GET /api/restaurants/hello - hello endpoint called&quot;);</span>
+<span class="nc" id="L73">        return &quot;Hello from JustOrder!&quot;;</span>
+    }
+
+    @PostMapping(&quot;/create&quot;)
+    public ResponseEntity&lt;HttpStatus&gt; createOrUpdateRestaurant(@RequestBody RestaurantDTO request) {
+        try {
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">            logger.info(&quot;POST /api/restaurants/create - register restaurant request: {}&quot;, request != null ? request.getName() : &quot;&lt;null&gt;&quot;);</span>
+<span class="fc" id="L80">            this.registerService.registerRestaurant(request);</span>
+<span class="fc" id="L81">            return ResponseEntity.ok().build();</span>
+<span class="fc" id="L82">        } catch (Exception e) {</span>
+<span class="fc" id="L83">            logger.error(&quot;Error registering restaurant&quot;, e);</span>
+<span class="fc" id="L84">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+
+    @PostMapping(&quot;/menu&quot;)
+    public ResponseEntity&lt;HttpStatus&gt; createOrUpdateMenu(@RequestBody List&lt;DishDTO&gt; request) {
+   
+<span class="nc" id="L92">        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();</span>
+    }
+
+    @GetMapping(&quot;/profile&quot;)
+    public ResponseEntity&lt;RestaurantDTO&gt; getMyProfile(@RequestHeader(&quot;Authorization&quot;) String authorization) {
+        try {
+<span class="fc" id="L98">            Long restaurantId = sessionService.getActiveRestaurantId(authorization);</span>
+<span class="fc" id="L99">            logger.info(&quot;GET /api/restaurants/profile - profile request for restaurant {}&quot;, restaurantId);</span>
+<span class="fc" id="L100">            RestaurantDTO profile = restaurantService.getRestaurantProfile(restaurantId);</span>
+<span class="fc" id="L101">            return ResponseEntity.ok(profile);</span>
+<span class="nc" id="L102">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L103">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+<span class="nc" id="L104">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L105">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+<span class="fc" id="L106">        } catch (SecurityException e) {</span>
+<span class="fc" id="L107">            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();</span>
+<span class="nc" id="L108">        } catch (Exception e) {</span>
+<span class="nc" id="L109">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    @PutMapping(&quot;/profile&quot;)
+    public ResponseEntity&lt;RestaurantDTO&gt; updateMyProfile(
+            @RequestHeader(&quot;Authorization&quot;) String authorization,
+            @RequestBody RestaurantProfileUpdateDTO request) {
+        try {
+<span class="fc" id="L118">            Long restaurantId = sessionService.getActiveRestaurantId(authorization);</span>
+<span class="fc" id="L119">            logger.info(&quot;PUT /api/restaurants/profile - update request for restaurant {}&quot;, restaurantId);</span>
+<span class="fc" id="L120">            RestaurantDTO updatedProfile = restaurantService.updateRestaurantProfile(restaurantId, request);</span>
+<span class="fc" id="L121">            return ResponseEntity.ok(updatedProfile);</span>
+<span class="nc" id="L122">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L123">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+<span class="fc" id="L124">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L125">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+<span class="nc" id="L126">        } catch (SecurityException e) {</span>
+<span class="nc" id="L127">            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();</span>
+<span class="nc" id="L128">        } catch (Exception e) {</span>
+<span class="nc" id="L129">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    @GetMapping(&quot;/dashboard&quot;)
+    public ResponseEntity&lt;RestaurantDashboardDTO&gt; getMyDashboard(@RequestHeader(&quot;Authorization&quot;) String authorization) {
+        try {
+<span class="fc" id="L136">            Long restaurantId = sessionService.getActiveRestaurantId(authorization);</span>
+<span class="fc" id="L137">            logger.info(&quot;GET /api/restaurants/dashboard - dashboard request for restaurant {}&quot;, restaurantId);</span>
+<span class="fc" id="L138">            RestaurantDashboardDTO dashboard = restaurantService.getRestaurantDashboard(restaurantId);</span>
+<span class="fc" id="L139">            return ResponseEntity.ok(dashboard);</span>
+<span class="nc" id="L140">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L141">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+<span class="nc" id="L142">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L143">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+<span class="fc" id="L144">        } catch (SecurityException e) {</span>
+<span class="fc" id="L145">            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();</span>
+<span class="nc" id="L146">        } catch (Exception e) {</span>
+<span class="nc" id="L147">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    @GetMapping(&quot;/{restaurantId}&quot;)
+    public ResponseEntity&lt;RestaurantDTO&gt; getRestaurant(@PathVariable String restaurantId) {
+   
+<span class="nc" id="L154">        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();</span>
+    }
+
+    @GetMapping(&quot;/{restaurantId}/menu&quot;)
+    public ResponseEntity&lt;List&lt;DishDTO&gt;&gt; getMenu(@PathVariable Long restaurantId) {
+<span class="fc" id="L159">        return ResponseEntity.ok(menuService.getMenu(restaurantId));</span>
+    }
+
+    @DeleteMapping()
+    public ResponseEntity&lt;HttpStatus&gt; deleteAllRestaurants() {
+<span class="fc" id="L164">        restaurantRepository.deleteAll();</span>
+<span class="fc" id="L165">        return ResponseEntity.ok().build();</span>
+    }
+
+    @GetMapping(&quot;/search&quot;)
+    public ResponseEntity&lt;List&lt;RestaurantDTO&gt;&gt; searchRestaurants(
+            @RequestParam(required = false) String cuisine,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice) {
+
+<span class="fc" id="L175">        List&lt;RestaurantDTO&gt; results = restaurantService.searchRestaurants(</span>
+                cuisine, minRating, minPrice, maxPrice
+        );
+<span class="fc" id="L178">        return ResponseEntity.ok(results);</span>
+    }
+    @PostMapping(&quot;/{restaurantId}/orders/{orderId}/reject&quot;)
+    public ResponseEntity&lt;OrderDTO&gt; rejectOrder(
+            @PathVariable Long restaurantId,
+            @PathVariable Long orderId,
+            @RequestBody RejectionRequestDTO rejectionRequest) {
+        
+<span class="fc" id="L186">        OrderDTO updatedOrder = orderService.rejectOrder(restaurantId, orderId, rejectionRequest.getReason());</span>
+<span class="fc" id="L187">        return ResponseEntity.ok(updatedOrder);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

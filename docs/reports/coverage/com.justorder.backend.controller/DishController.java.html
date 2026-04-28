@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DishController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.controller</a> &gt; <span class="el_source">DishController.java</span></div><h1>DishController.java</h1><pre class="source lang-java linenums">package com.justorder.backend.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.justorder.backend.dto.DishDTO;
+import com.justorder.backend.exception.DishConflictException;
+import com.justorder.backend.exception.InvalidDishDataException;
+import com.justorder.backend.exception.ResourceNotFoundException;
+import com.justorder.backend.service.MenuService;
+
+@RestController
+@RequestMapping(&quot;/api/dishes&quot;)
+<span class="fc" id="L22">public class DishController {</span>
+
+    @Autowired
+    private MenuService menuService;
+
+    // POST /api/dishes/{restaurantId} creates a new dish for the restaurant with the given id
+    @PostMapping(&quot;/{restaurantId}&quot;)
+    public ResponseEntity&lt;DishDTO&gt; createDish(@PathVariable Long restaurantId,
+                                               @RequestBody DishDTO dishDTO) {
+        try {
+<span class="pc bpc" id="L32" title="1 of 4 branches missed.">            if (dishDTO.getRestaurantId() != null &amp;&amp; !dishDTO.getRestaurantId().equals(restaurantId)) {</span>
+<span class="fc" id="L33">                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+            }
+<span class="fc" id="L35">            DishDTO created = menuService.createDish(restaurantId, dishDTO);</span>
+<span class="fc" id="L36">            return ResponseEntity.status(HttpStatus.CREATED).body(created);</span>
+<span class="fc" id="L37">        } catch (InvalidDishDataException e) {</span>
+<span class="fc" id="L38">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+<span class="fc" id="L39">        } catch (ResourceNotFoundException e) {</span>
+<span class="fc" id="L40">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+<span class="nc" id="L41">        } catch (DishConflictException e) {</span>
+<span class="nc" id="L42">            return ResponseEntity.status(HttpStatus.CONFLICT).build();</span>
+<span class="nc" id="L43">        } catch (Exception e) {</span>
+<span class="nc" id="L44">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    // PUT /api/dishes/{dishId} updates an existing dish
+    @PutMapping(&quot;/{dishId}&quot;)
+    public ResponseEntity&lt;DishDTO&gt; updateDish(@PathVariable Long dishId,
+                                               @RequestBody DishDTO dishDTO) {
+        try {
+<span class="fc" id="L53">            DishDTO updated = menuService.updateDish(dishId, dishDTO);</span>
+<span class="fc" id="L54">            return ResponseEntity.ok(updated);</span>
+<span class="fc" id="L55">        } catch (InvalidDishDataException e) {</span>
+<span class="fc" id="L56">            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();</span>
+<span class="fc" id="L57">        } catch (ResourceNotFoundException e) {</span>
+<span class="fc" id="L58">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+<span class="nc" id="L59">        } catch (DishConflictException e) {</span>
+<span class="nc" id="L60">            return ResponseEntity.status(HttpStatus.CONFLICT).build();</span>
+<span class="nc" id="L61">        } catch (Exception e) {</span>
+<span class="nc" id="L62">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+
+    // DELETE /api/dishes/{dishId} deletes the dish with the given id
+    @DeleteMapping(&quot;/{dishId}&quot;)
+    public ResponseEntity&lt;Void&gt; deleteDish(@PathVariable Long dishId) {
+        try {
+<span class="fc" id="L70">            menuService.deleteDish(dishId);</span>
+<span class="fc" id="L71">            return ResponseEntity.noContent().build();</span>
+<span class="fc" id="L72">        } catch (ResourceNotFoundException e) {</span>
+<span class="fc" id="L73">            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();</span>
+<span class="nc" id="L74">        } catch (Exception e) {</span>
+<span class="nc" id="L75">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
