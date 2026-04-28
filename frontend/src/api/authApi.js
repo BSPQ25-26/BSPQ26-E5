@@ -209,3 +209,25 @@ export const getRestaurantDashboard = async (token) => {
     if (!response.ok) throw new Error(text || "Error fetching restaurant dashboard");
     return text ? JSON.parse(text) : null;
 };
+
+export const getRiderById = async (riderId, token) => {
+    const response = await fetch(`${API_URL}/riders/${riderId}`, {
+        method: "GET",
+        headers: buildAuthHeaders(token),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching rider profile");
+    return text ? JSON.parse(text) : null;
+};
+
+export const getRiderDashboard = async (token) => {
+    const response = await fetch(`${API_URL}/riders/dashboard`, {
+        method: "GET",
+        headers: buildAuthHeaders(token),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching rider dashboard");
+    return text ? JSON.parse(text) : null;
+};
