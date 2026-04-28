@@ -7,6 +7,7 @@ import com.justorder.backend.dto.VerifyOrderPinRequestDTO;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RiderService;
+import com.justorder.backend.service.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +22,16 @@ public class RiderController {
     private final RegisterService registerService;
     private final RiderRepository riderRepository;
     private final RiderService riderService;
+    private final SessionService sessionService;
 
     public RiderController(RegisterService registerService,
                            RiderRepository riderRepository,
-                           RiderService riderService) {
+                           RiderService riderService,
+                           SessionService sessionService) {
         this.registerService = registerService;
         this.riderRepository = riderRepository;
         this.riderService = riderService;
+        this.sessionService = sessionService;
     }
 
 
@@ -71,10 +75,13 @@ public class RiderController {
         }
     }
 
-    @GetMapping("/{riderId}/dashboard")
-    public ResponseEntity<RiderDashboardDTO> getRiderDashboard(@PathVariable Long riderId) {
+    @GetMapping("/dashboard")
+    public ResponseEntity<RiderDashboardDTO> getRiderDashboard(@RequestHeader("Authorization") String authorization) {
         try {
+            Long riderId = sessionService.getActiveRiderId(authorization);
             return ResponseEntity.ok(riderService.getRiderDashboard(riderId));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
