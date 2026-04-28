@@ -1,5 +1,12 @@
 const API_URL = "http://localhost:8080/api";
 
+const resolveToken = (token) => token || localStorage.getItem("token") || "";
+
+const buildAuthHeaders = (token) => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${resolveToken(token)}`,
+});
+
 export const registerCustomer = async (CustomerData) => {
     const response = await fetch(`${API_URL}/customers/create`, {
         method: 'POST',
@@ -166,5 +173,61 @@ export const getCustomerDashboard = async (customerId) => {
 
     const text = await response.text();
     if (!response.ok) throw new Error(text || "Error fetching customer dashboard");
+    return text ? JSON.parse(text) : null;
+};
+
+export const getRestaurantProfile = async (token) => {
+    const response = await fetch(`${API_URL}/restaurants/profile`, {
+        method: "GET",
+        headers: buildAuthHeaders(token),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching restaurant profile");
+    return text ? JSON.parse(text) : null;
+};
+
+export const updateRestaurantProfile = async (profileData, token) => {
+    const response = await fetch(`${API_URL}/restaurants/profile`, {
+        method: "PUT",
+        headers: buildAuthHeaders(token),
+        body: JSON.stringify(profileData),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error updating restaurant profile");
+    return text ? JSON.parse(text) : null;
+};
+
+export const getRestaurantDashboard = async (token) => {
+    const response = await fetch(`${API_URL}/restaurants/dashboard`, {
+        method: "GET",
+        headers: buildAuthHeaders(token),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching restaurant dashboard");
+    return text ? JSON.parse(text) : null;
+};
+
+export const getRiderById = async (riderId, token) => {
+    const response = await fetch(`${API_URL}/riders/${riderId}`, {
+        method: "GET",
+        headers: buildAuthHeaders(token),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching rider profile");
+    return text ? JSON.parse(text) : null;
+};
+
+export const getRiderDashboard = async (token) => {
+    const response = await fetch(`${API_URL}/riders/dashboard`, {
+        method: "GET",
+        headers: buildAuthHeaders(token),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching rider dashboard");
     return text ? JSON.parse(text) : null;
 };

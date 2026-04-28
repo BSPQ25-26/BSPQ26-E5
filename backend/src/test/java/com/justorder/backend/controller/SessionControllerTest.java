@@ -94,4 +94,25 @@ class SessionControllerTest {
                 .content(requestBody))
             .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void testDeleteCustomerSession() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/sessions/users")
+                .header("Authorization", "Bearer random-token"))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteRiderSession() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/sessions/riders")
+                .header("Authorization", "Bearer random-token"))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteRestaurantSession() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/sessions/restaurants")
+                .header("Authorization", "Bearer random-token"))
+            .andExpect(status().isOk());
+    }
 }

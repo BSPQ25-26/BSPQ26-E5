@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Order.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.model</a> &gt; <span class="el_source">Order.java</span></div><h1>Order.java</h1><pre class="source lang-java linenums">package com.justorder.backend.model;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.justorder.backend.dto.OrderDTO;
+
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+
+@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = &quot;customer_id&quot;)
+    private Customer customer;
+
+<span class="fc" id="L37">    @ManyToMany</span>
+    @JoinTable(
+        name = &quot;order_dishes&quot;,
+        joinColumns = @JoinColumn(name = &quot;order_id&quot;),
+        inverseJoinColumns = @JoinColumn(name = &quot;dish_id&quot;)
+    )
+    private List&lt;Dish&gt; dishes = new ArrayList&lt;&gt;();
+
+    /**
+     * The current status of the order (e.g. Pending, Confirmed, Cancelled).
+     * Updated throughout the order lifecycle by restaurant, rider, and system.
+     */
+    @ManyToOne
+    @JoinColumn(name = &quot;status_id&quot;, nullable = false)
+    private OrderStatus status;
+
+    /**
+     * The rider assigned to deliver this order.
+     */
+    @ManyToOne
+    @JoinColumn(name = &quot;rider_id&quot;, nullable = false)
+    private Rider rider;
+
+    /** Pre-calculated total price of all dishes in the order, in euros. */
+    private double totalPrice;
+
+    /** BCrypt hash of the delivery verification PIN. */
+    @Column(name = &quot;secret_code&quot;, nullable = false)
+    private String secretCodeHash;
+
+    /** Failed verification attempts by the assigned rider. */
+    private int pinFailedAttempts;
+
+    /** When present and in the future, PIN verification is temporarily locked. */
+    private LocalDateTime pinLockedUntil;
+
+    /** Timestamp when rider successfully verified the PIN and marked delivery complete. */
+    private LocalDateTime pinVerifiedAt;
+
+    /**
+     * &lt;p&gt;Null if the order has not been rejected by a rider.&lt;/p&gt;
+     */
+    private String rejectionReason;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    private LocalDateTime deliveredAt;
+
+<span class="fc" id="L85">    public Order() {</span>
+<span class="fc" id="L86">    }</span>
+
+
+    public Order(Customer customer, List&lt;Dish&gt; dishes, OrderStatus status, Rider rider,
+<span class="fc" id="L90">                 double totalPrice, String secretCodeHash) {</span>
+<span class="fc" id="L91">        this.customer = customer;</span>
+<span class="fc" id="L92">        this.dishes = dishes;</span>
+<span class="fc" id="L93">        this.status = status;</span>
+<span class="fc" id="L94">        this.rider = rider;</span>
+<span class="fc" id="L95">        this.totalPrice = totalPrice;</span>
+<span class="fc" id="L96">        this.secretCodeHash = secretCodeHash;</span>
+<span class="fc" id="L97">    }</span>
+
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
+
+<span class="fc" id="L103">    public Long getId() { return id; }</span>
+<span class="nc" id="L104">    public Customer getCustomer() { return customer; }</span>
+<span class="fc" id="L105">    public List&lt;Dish&gt; getDishes() { return dishes; }</span>
+<span class="fc" id="L106">    public OrderStatus getStatus() { return status; }</span>
+<span class="fc" id="L107">    public Rider getRider() { return rider; }</span>
+<span class="fc" id="L108">    public double getTotalPrice() { return totalPrice; }</span>
+<span class="fc" id="L109">    public String getSecretCodeHash() { return secretCodeHash; }</span>
+<span class="fc" id="L110">    public int getPinFailedAttempts() { return pinFailedAttempts; }</span>
+<span class="fc" id="L111">    public LocalDateTime getPinLockedUntil() { return pinLockedUntil; }</span>
+<span class="nc" id="L112">    public LocalDateTime getPinVerifiedAt() { return pinVerifiedAt; }</span>
+<span class="fc" id="L113">    public String getRejectionReason() { return rejectionReason; }</span>
+<span class="fc" id="L114">    public LocalDateTime getCreatedAt() { return createdAt; }</span>
+<span class="nc" id="L115">    public LocalDateTime getDeliveredAt() { return deliveredAt; }</span>
+
+    // -------------------------------------------------------------------------
+    // Setters
+    // -------------------------------------------------------------------------
+
+<span class="nc" id="L121">    public void setId(Long id) { this.id = id; }</span>
+<span class="fc" id="L122">    public void setCustomer(Customer customer) { this.customer = customer; }</span>
+<span class="fc" id="L123">    public void setDishes(List&lt;Dish&gt; dishes) { this.dishes = dishes; }</span>
+<span class="fc" id="L124">    public void setStatus(OrderStatus status) { this.status = status; }</span>
+<span class="fc" id="L125">    public void setRider(Rider rider) { this.rider = rider; }</span>
+<span class="fc" id="L126">    public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }</span>
+<span class="fc" id="L127">    public void setSecretCodeHash(String secretCodeHash) { this.secretCodeHash = secretCodeHash; }</span>
+<span class="fc" id="L128">    public void setPinFailedAttempts(int pinFailedAttempts) { this.pinFailedAttempts = pinFailedAttempts; }</span>
+<span class="fc" id="L129">    public void setPinLockedUntil(LocalDateTime pinLockedUntil) { this.pinLockedUntil = pinLockedUntil; }</span>
+<span class="fc" id="L130">    public void setPinVerifiedAt(LocalDateTime pinVerifiedAt) { this.pinVerifiedAt = pinVerifiedAt; }</span>
+<span class="fc" id="L131">    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }</span>
+<span class="nc" id="L132">    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }</span>
+<span class="fc" id="L133">    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }</span>
+
+    // -------------------------------------------------------------------------
+    // Conversion
+    // -------------------------------------------------------------------------
+
+    public OrderDTO toDTO() {
+<span class="fc" id="L140">        OrderDTO dto = new OrderDTO(</span>
+<span class="fc" id="L141">            this.id, this.customer.getId(), this.status.getStatus(),</span>
+<span class="fc" id="L142">            this.rider.getId(), this.totalPrice, null</span>
+        );
+<span class="fc" id="L144">        dto.setRejectionReason(this.rejectionReason);</span>
+<span class="fc" id="L145">        dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));</span>
+<span class="fc" id="L146">        dto.setCreatedAt(this.createdAt);</span>
+<span class="fc" id="L147">        dto.setDeliveredAt(this.deliveredAt);</span>
+<span class="fc" id="L148">        dto.setRejectionReason(this.rejectionReason);</span>
+<span class="fc" id="L149">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

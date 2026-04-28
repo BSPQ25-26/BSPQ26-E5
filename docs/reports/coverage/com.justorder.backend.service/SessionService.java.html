@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SessionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.service</a> &gt; <span class="el_source">SessionService.java</span></div><h1>SessionService.java</h1><pre class="source lang-java linenums">package com.justorder.backend.service;
+
+import java.util.HashMap;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.justorder.backend.dto.LoginRequest;
+import com.justorder.backend.dto.LoginResponseDTO;
+import com.justorder.backend.model.Customer;
+import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.model.Rider;
+import com.justorder.backend.repository.CustomerRepository;
+import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.repository.RiderRepository;
+
+@Service
+public class SessionService {
+    
+<span class="fc" id="L20">    private HashMap&lt;String, HashMap&lt;String, Long&gt;&gt; activeTokens = new HashMap&lt;&gt;();</span>
+    private final CustomerRepository customerRepository;
+    private final RiderRepository riderRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final PasswordEncoder passwordEncoder;
+    
+<span class="fc" id="L26">    public SessionService(CustomerRepository customerRepository, RiderRepository riderRepository, RestaurantRepository restaurantRepository, PasswordEncoder passwordEncoder) {</span>
+<span class="fc" id="L27">        this.customerRepository = customerRepository;</span>
+<span class="fc" id="L28">        this.riderRepository = riderRepository;</span>
+<span class="fc" id="L29">        this.restaurantRepository = restaurantRepository;</span>
+<span class="fc" id="L30">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L31">        activeTokens.put(&quot;rider&quot;, new HashMap&lt;&gt;());</span>
+<span class="fc" id="L32">        activeTokens.put(&quot;customer&quot;, new HashMap&lt;&gt;());</span>
+<span class="fc" id="L33">        activeTokens.put(&quot;restaurant&quot;, new HashMap&lt;&gt;());</span>
+<span class="fc" id="L34">    }</span>
+
+    public Long getActiveRestaurantId(String authorizationHeader) {
+<span class="fc" id="L37">        String token = extractToken(authorizationHeader);</span>
+<span class="pc bpc" id="L38" title="2 of 4 branches missed.">        if (token == null || token.isBlank()) {</span>
+<span class="nc" id="L39">            throw new SecurityException(&quot;Authorization token is required&quot;);</span>
+        }
+
+<span class="fc" id="L42">        Long restaurantId = activeTokens.get(&quot;restaurant&quot;).get(token);</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (restaurantId == null) {</span>
+<span class="fc" id="L44">            throw new SecurityException(&quot;Invalid or expired restaurant token&quot;);</span>
+        }
+
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (!restaurantRepository.existsById(restaurantId)) {</span>
+<span class="fc" id="L48">            activeTokens.get(&quot;restaurant&quot;).remove(token);</span>
+<span class="fc" id="L49">            throw new SecurityException(&quot;Restaurant not found for token&quot;);</span>
+        }
+
+<span class="fc" id="L52">        return restaurantId;</span>
+    }
+
+    private String extractToken(String authorizationHeader) {
+<span class="pc bpc" id="L56" title="2 of 4 branches missed.">        if (authorizationHeader == null || authorizationHeader.isBlank()) {</span>
+<span class="nc" id="L57">            return null;</span>
+        }
+
+<span class="fc" id="L60">        String trimmedHeader = authorizationHeader.trim();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (trimmedHeader.regionMatches(true, 0, &quot;Bearer &quot;, 0, 7)) {</span>
+<span class="fc" id="L62">            return trimmedHeader.substring(7).trim();</span>
+        }
+
+<span class="fc" id="L65">        return trimmedHeader;</span>
+    }
+
+    private String generateToken(String type) {
+        while (true) { // Bullshit way to ensure token uniqueness, but it works for this example
+<span class="fc" id="L70">            String token = java.util.UUID.randomUUID().toString();</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">            if (!activeTokens.get(type).containsKey(token)) {</span>
+<span class="fc" id="L72">                return token;</span>
+            }
+<span class="nc" id="L74">        }</span>
+    }
+
+    public LoginResponseDTO createSession(LoginRequest request) {
+<span class="fc" id="L78">        LoginResponseDTO response = new LoginResponseDTO();</span>
+        // Implementation for creating a session
+<span class="fc bfc" id="L80" title="All 4 branches covered.">        switch (request.getType()) {</span>
+<span class="fc" id="L81">            case &quot;customer&quot; -&gt; createCustomerSession(request, response);</span>
+<span class="fc" id="L82">            case &quot;rider&quot; -&gt; createRiderSession(request, response);</span>
+<span class="fc" id="L83">            case &quot;restaurant&quot; -&gt; createRestaurantSession(request, response);</span>
+<span class="fc" id="L84">            default -&gt; throw new RuntimeException(&quot;Invalid user type&quot;);</span>
+        }
+<span class="fc" id="L86">        return response;</span>
+    }
+
+    private void createRiderSession(LoginRequest request, LoginResponseDTO response) {
+        // Validate rider credentials and create session
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (riderRepository.existsByEmail(request.getEmail())) {</span>
+<span class="fc" id="L92">            Rider rider = riderRepository.findByEmail(request.getEmail());</span>
+<span class="pc bpc" id="L93" title="2 of 4 branches missed.">            if (rider != null &amp;&amp; passwordEncoder.matches(request.getPassword(), rider.getPassword())) {</span>
+<span class="fc" id="L94">                String token = generateToken(request.getType());</span>
+<span class="fc" id="L95">                activeTokens.get(&quot;rider&quot;).put(token, rider.getId());</span>
+<span class="fc" id="L96">                response.setToken(token);</span>
+<span class="fc" id="L97">                response.setRider(rider.toDTO());</span>
+<span class="fc" id="L98">            }</span>
+            else {
+<span class="nc" id="L100">                throw new RuntimeException(&quot;Invalid credentials&quot;);</span>
+            }
+<span class="fc" id="L102">        }</span>
+        else {
+<span class="nc" id="L104">            throw new RuntimeException(&quot;User not found&quot;);</span>
+        }
+<span class="fc" id="L106">    }</span>
+
+    private void createRestaurantSession(LoginRequest request, LoginResponseDTO response) {
+        // Validate restaurant credentials and create session
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (restaurantRepository.existsByEmail(request.getEmail())) {</span>
+<span class="fc" id="L111">            Restaurant restaurant = restaurantRepository.findByEmail(request.getEmail());</span>
+<span class="pc bpc" id="L112" title="2 of 4 branches missed.">            if (restaurant != null &amp;&amp; passwordEncoder.matches(request.getPassword(), restaurant.getPassword())) {</span>
+<span class="fc" id="L113">                String token = generateToken(request.getType());</span>
+<span class="fc" id="L114">                activeTokens.get(&quot;restaurant&quot;).put(token, restaurant.getId());</span>
+<span class="fc" id="L115">                response.setToken(token);</span>
+<span class="fc" id="L116">                response.setRestaurant(restaurant.toDTO());</span>
+<span class="fc" id="L117">            }</span>
+            else {
+<span class="nc" id="L119">                throw new RuntimeException(&quot;Invalid credentials&quot;);</span>
+            }
+<span class="fc" id="L121">        }</span>
+        else {
+<span class="nc" id="L123">            throw new RuntimeException(&quot;User not found&quot;);</span>
+        }
+<span class="fc" id="L125">    }</span>
+
+    private void createCustomerSession(LoginRequest request, LoginResponseDTO response) {
+        // Validate customer credentials and create session
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (customerRepository.existsByEmail(request.getEmail())) {</span>
+<span class="fc" id="L130">            Customer customer = customerRepository.findByEmail(request.getEmail());</span>
+<span class="pc bpc" id="L131" title="2 of 4 branches missed.">            if (customer != null &amp;&amp; passwordEncoder.matches(request.getPassword(), customer.getPassword())) {</span>
+<span class="fc" id="L132">                String token = generateToken(request.getType());</span>
+<span class="fc" id="L133">                activeTokens.get(&quot;customer&quot;).put(token, customer.getId());</span>
+<span class="fc" id="L134">                response.setToken(token);</span>
+<span class="fc" id="L135">                response.setCustomer(customer.toDTO());</span>
+<span class="fc" id="L136">            }</span>
+            else {
+<span class="nc" id="L138">                throw new RuntimeException(&quot;Invalid credentials&quot;);</span>
+            }
+<span class="fc" id="L140">        }</span>
+        else {
+<span class="nc" id="L142">            throw new RuntimeException(&quot;User not found&quot;);</span>
+        }
+<span class="fc" id="L144">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

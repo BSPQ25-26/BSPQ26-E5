@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState, useCallback } from "react";
 
 const CartContext = createContext(undefined);
 
@@ -18,7 +18,7 @@ export const CartProvider = ({ children }) => {
    * Returns { success: false, reason: 'different_restaurant', ... } if the dish
    * belongs to a restaurant different from the one currently in the cart.
    */
-  const addToCart = (dish) => {
+  const addToCart = useCallback((dish) => {
     if (!dish || dish.id == null) {
       return { success: false, reason: "invalid_dish" };
     }
@@ -64,13 +64,13 @@ export const CartProvider = ({ children }) => {
     }
 
     return { success: true };
-  };
+  }, [items, restaurantId, restaurantName]);
 
   /**
    * Clears the cart and replaces it with a single dish. Used when the user
    * confirms switching restaurants.
    */
-  const replaceCartWith = (dish) => {
+  const replaceCartWith = useCallback((dish) => {
     if (!dish || dish.id == null) {
       return { success: false, reason: "invalid_dish" };
     }
@@ -87,18 +87,18 @@ export const CartProvider = ({ children }) => {
     setRestaurantName(dish.restaurantName ?? null);
 
     return { success: true };
-  };
+  }, []);
 
-  const removeFromCart = (dishId) => {
+  const removeFromCart = useCallback((dishId) => {
     const next = items.filter((item) => item.id !== dishId);
     setItems(next);
     if (next.length === 0) {
       setRestaurantId(null);
       setRestaurantName(null);
     }
-  };
+  }, [items]);
 
-  const decreaseQuantity = (dishId) => {
+  const decreaseQuantity = useCallback((dishId) => {
     const next = items
       .map((item) =>
         item.id === dishId
@@ -111,13 +111,21 @@ export const CartProvider = ({ children }) => {
       setRestaurantId(null);
       setRestaurantName(null);
     }
-  };
+  }, [items]);
 
   const clearCart = () => {
     setItems([]);
     setRestaurantId(null);
     setRestaurantName(null);
   };
+
+  // Test helper: seed the cart synchronously with items and restaurant info.
+  const seedCart = useCallback((seededItems, restId = null, restName = null) => {
+    if (!Array.isArray(seededItems)) return;
+    setItems(seededItems.map(i => ({ id: i.id, name: i.name, price: Number(i.price) || 0, quantity: i.quantity || 1 })));
+    setRestaurantId(restId);
+    setRestaurantName(restName);
+  }, []);
 
   const totalPrice = useMemo(
     () =>
@@ -142,6 +150,7 @@ export const CartProvider = ({ children }) => {
     removeFromCart,
     decreaseQuantity,
     clearCart,
+    seedCart,
     totalPrice,
     totalItems,
   };

@@ -1,11 +1,13 @@
 package com.justorder.backend.controller;
 
 import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RiderDashboardDTO;
 import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.dto.VerifyOrderPinRequestDTO;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RiderService;
+import com.justorder.backend.service.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +22,16 @@ public class RiderController {
     private final RegisterService registerService;
     private final RiderRepository riderRepository;
     private final RiderService riderService;
+    private final SessionService sessionService;
 
     public RiderController(RegisterService registerService,
                            RiderRepository riderRepository,
-                           RiderService riderService) {
+                           RiderService riderService,
+                           SessionService sessionService) {
         this.registerService = registerService;
         this.riderRepository = riderRepository;
         this.riderService = riderService;
+        this.sessionService = sessionService;
     }
 
 
@@ -52,8 +57,12 @@ public class RiderController {
     }
 
     @GetMapping("/{riderId}")
-    public ResponseEntity<RiderDTO> getRider(@PathVariable String riderId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
+    public ResponseEntity<RiderDTO> getRider(@PathVariable Long riderId) {
+        try {
+            return ResponseEntity.ok(riderService.getRider(riderId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @GetMapping("/{riderId}/orders")
@@ -61,6 +70,18 @@ public class RiderController {
         try {
             List<OrderDTO> orders = riderService.getRiderOrders(riderId);
             return ResponseEntity.ok(orders);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<RiderDashboardDTO> getRiderDashboard(@RequestHeader("Authorization") String authorization) {
+        try {
+            Long riderId = sessionService.getActiveRiderId(authorization);
+            return ResponseEntity.ok(riderService.getRiderDashboard(riderId));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

@@ -13,6 +13,8 @@ import CustomerInformationPage from "./pages/CustomerInformationPage";
 import RestaurantDetail from './pages/RestaurantDetail';
 import RestaurantOrderConfirmationView from "./pages/RestaurantOrderConfirmationView";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
+import RestaurantInformationPage from "./pages/RestaurantInformationPage";
+import RiderInformationPage from "./pages/RiderInformationPage";
 import { CartProvider } from "./store/CartContext";
 import "./assets/css/Home.css";
 import "./assets/css/Register.css";
@@ -34,6 +36,8 @@ function App() {
           <Route path="/rider-dashboard" element={<RiderDashboard />} />
           <Route path="/customer-marketplace" element={<CustomerMarketplace />} />
           <Route path="/customer/profile" element={<CustomerInformationPage />} />
+          <Route path="/restaurant/profile" element={<RestaurantInformationPage />} />
+          <Route path="/rider/profile" element={<RiderInformationPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetail />} />
           <Route path="/restaurant-dashboard" element={<RestaurantDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />

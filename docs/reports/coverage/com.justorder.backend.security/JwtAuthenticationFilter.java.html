@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtAuthenticationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.security</a> &gt; <span class="el_source">JwtAuthenticationFilter.java</span></div><h1>JwtAuthenticationFilter.java</h1><pre class="source lang-java linenums">package com.justorder.backend.security;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import io.jsonwebtoken.JwtException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Collections;
+
+@Component
+<span class="fc" id="L20">public class JwtAuthenticationFilter extends OncePerRequestFilter {</span>
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        
+        // 1. Obtener la cabecera de Autorización
+<span class="nc" id="L30">        final String authHeader = request.getHeader(&quot;Authorization&quot;);</span>
+        final String jwt;
+        final String userEmail;
+
+        // Si no hay token o no empieza por &quot;Bearer &quot;, seguimos con el filtro normal (se bloqueará luego)
+<span class="nc bnc" id="L35" title="All 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L36">            filterChain.doFilter(request, response);</span>
+<span class="nc" id="L37">            return;</span>
+        }
+
+        // 2. Extraer el token (quitando la palabra &quot;Bearer &quot;)
+<span class="nc" id="L41">        jwt = authHeader.substring(7);</span>
+
+        // This application mixes JWT auth and session-token auth (UUID tokens).
+        // Ignore non-JWT Bearer values so session-based flows can continue.
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (!looksLikeJwt(jwt)) {</span>
+<span class="nc" id="L46">            filterChain.doFilter(request, response);</span>
+<span class="nc" id="L47">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L51">            userEmail = jwtUtil.extractEmail(jwt);</span>
+<span class="nc" id="L52">        } catch (JwtException | IllegalArgumentException ex) {</span>
+            // Invalid JWT should not crash request processing for permitAll/session endpoints.
+<span class="nc" id="L54">            filterChain.doFilter(request, response);</span>
+<span class="nc" id="L55">            return;</span>
+<span class="nc" id="L56">        }</span>
+
+        // 3. Si hay un email y aún no está autenticado en este contexto
+<span class="nc bnc" id="L59" title="All 4 branches missed.">        if (userEmail != null &amp;&amp; SecurityContextHolder.getContext().getAuthentication() == null) {</span>
+            
+            // Validamos que el token no haya caducado
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (jwtUtil.isTokenValid(jwt, userEmail)) {</span>
+                
+                // Extraemos el rol (ej. ROLE_ADMIN)
+<span class="nc" id="L65">                String role = jwtUtil.extractRole(jwt);</span>
+                
+                // Creamos la credencial temporal para Spring con su rol
+<span class="nc" id="L68">                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(</span>
+                        userEmail, 
+                        null, 
+<span class="nc" id="L71">                        Collections.singletonList(new SimpleGrantedAuthority(role))</span>
+                );
+                
+<span class="nc" id="L74">                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));</span>
+                
+                // Le decimos a Spring: &quot;Este usuario ya ha pasado el control&quot;
+<span class="nc" id="L77">                SecurityContextHolder.getContext().setAuthentication(authToken);</span>
+            }
+        }
+        
+<span class="nc" id="L81">        filterChain.doFilter(request, response);</span>
+<span class="nc" id="L82">    }</span>
+
+    private boolean looksLikeJwt(String token) {
+<span class="nc bnc" id="L85" title="All 4 branches missed.">        if (token == null || token.isBlank()) {</span>
+<span class="nc" id="L86">            return false;</span>
+        }
+
+<span class="nc" id="L89">        int dotCount = 0;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (int i = 0; i &lt; token.length(); i++) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (token.charAt(i) == '.') {</span>
+<span class="nc" id="L92">                dotCount++;</span>
+            }
+        }
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        return dotCount == 2;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

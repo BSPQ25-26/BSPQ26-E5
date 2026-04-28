@@ -1,13 +1,15 @@
 package com.justorder.backend.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -25,7 +27,6 @@ import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RiderRepository;
-import com.justorder.backend.security.JwtUtil;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -52,11 +53,9 @@ class RiderControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @MockitoBean
-    private JwtUtil jwtUtil;
-
     private Long orderId1;
     private Long orderId2;
+    private static final String INVALID_TOKEN = "Bearer invalid-rider-token";
 
     @BeforeEach
     void setUp() {
@@ -174,6 +173,55 @@ class RiderControllerTest {
     void testGetRiderOrdersRiderNotFound() throws Exception {
         mockMvc.perform(get("/api/riders/999/orders"))
                 .andExpect(status().isNotFound());
+    }
+
+    /**
+         * GET /api/riders/dashboard → 200 OK with rider summary and orders.
+     * Verifies that the dashboard exposes the rider name and order metrics.
+     */
+    @Test
+    void testGetRiderDashboard() throws Exception {
+        ensureOrdersLoaded();
+        String token = createRiderSessionAndGetToken();
+
+        Rider rider = riderRepository.findById(1L).orElseThrow();
+        long expectedTotalOrders = orderRepository.findByRiderId(rider.getId()).size();
+
+        mockMvc.perform(get("/api/riders/dashboard")
+            .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.riderId").value(1))
+                .andExpect(jsonPath("$.riderName").value(rider.getName()))
+                .andExpect(jsonPath("$.totalOrders").value((int) expectedTotalOrders))
+                .andExpect(jsonPath("$.pendingOrders").value((int) expectedTotalOrders))
+                .andExpect(jsonPath("$.inProgressOrders").value(0))
+                .andExpect(jsonPath("$.deliveredOrders").value(0))
+                .andExpect(jsonPath("$.cancelledOrders").value(0))
+                .andExpect(jsonPath("$.assignedOrders").isArray());
+    }
+
+    /**
+     * GET /api/riders/dashboard → 401 when token belongs to a deleted rider.
+     */
+    @Test
+    void testGetRiderDashboardWithTokenFromDeletedRider() throws Exception {
+        String email = "temp-rider-delete@justorder.com";
+        String password = "temporaryRiderPass123";
+
+        String token = createTempRiderSessionAndGetToken(email, password);
+        Long riderId = riderRepository.findByEmail(email).getId();
+        riderRepository.deleteById(riderId);
+
+        mockMvc.perform(get("/api/riders/dashboard")
+            .header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetRiderDashboardUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/riders/dashboard")
+            .header("Authorization", INVALID_TOKEN))
+            .andExpect(status().isUnauthorized());
     }
 
     /**
@@ -320,5 +368,69 @@ class RiderControllerTest {
                         }
                         """))
                 .andExpect(status().isForbidden());
+    }
+
+    private String createRiderSessionAndGetToken() throws Exception {
+        String loginBody = """
+                {
+                    "type": "rider",
+                    "email": "carlos.rider@test.com",
+                    "password": "rider123"
+                }
+                """;
+
+        MvcResult result = mockMvc.perform(post("/sessions/riders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
+    }
+
+    private String createTempRiderSessionAndGetToken(String email, String password) throws Exception {
+        String createBody = """
+        {
+            "name": "Temp Rider",
+            "dni": "99999998Z",
+            "phoneNumber": "600123458",
+            "email": "%s",
+            "password": "%s",
+            "starterPoint":{
+                "city": "Bilbao",
+                "province": "Bizkaia",
+                "country": "Spain",
+                "postalCode": "48001",
+                "number": "8",
+                "longitude": -2.9253,
+                "latitude": 43.2630
+            }
+        }
+        """.formatted(email, password);
+
+        mockMvc.perform(post("/api/riders/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createBody))
+            .andExpect(status().isOk());
+
+        String loginBody = """
+        {
+            "type": "rider",
+            "email": "%s",
+            "password": "%s"
+        }
+        """.formatted(email, password);
+
+        MvcResult result = mockMvc.perform(post("/sessions/riders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
     }
 }

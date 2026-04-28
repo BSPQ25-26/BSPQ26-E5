@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Dish.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.justorder.backend.model</a> &gt; <span class="el_source">Dish.java</span></div><h1>Dish.java</h1><pre class="source lang-java linenums">package com.justorder.backend.model;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.justorder.backend.dto.DishDTO;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = &quot;dishes&quot;)
+public class Dish {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String description;
+    private double price;
+
+    @ManyToOne
+    @JoinColumn(name = &quot;restaurant_id&quot;)
+    private Restaurant restaurant;
+
+<span class="fc" id="L35">    @ManyToMany</span>
+    @JoinTable(
+        name = &quot;dish_allergens&quot;,
+        joinColumns = @JoinColumn(name = &quot;dish_id&quot;),
+        inverseJoinColumns = @JoinColumn(name = &quot;allergen_id&quot;)
+    )
+    private List&lt;Allergen&gt; allergens = new ArrayList&lt;&gt;();
+
+    // Constructors
+<span class="fc" id="L44">    public Dish() {</span>
+<span class="fc" id="L45">    }</span>
+<span class="fc" id="L46">    public Dish(String name, String description, double price, Restaurant restaurant) {</span>
+<span class="fc" id="L47">        this.name = name;</span>
+<span class="fc" id="L48">        this.description = description;</span>
+<span class="fc" id="L49">        this.price = price;</span>
+<span class="fc" id="L50">        this.restaurant = restaurant;</span>
+<span class="fc" id="L51">    }</span>
+
+    // Getters
+<span class="fc" id="L54">    public Long getId() { return id; }</span>
+<span class="nc" id="L55">    public String getName() { return name; }</span>
+<span class="nc" id="L56">    public String getDescription() { return description; }</span>
+<span class="fc" id="L57">    public double getPrice() { return price; }</span>
+<span class="fc" id="L58">    public Restaurant getRestaurant() { return restaurant; }</span>
+<span class="nc" id="L59">    public List&lt;Allergen&gt; getAllergens() { return allergens; }</span>
+
+    // Setters
+<span class="nc" id="L62">    public void setId(Long id) { this.id = id; }</span>
+<span class="fc" id="L63">    public void setName(String name) { this.name = name; }</span>
+<span class="fc" id="L64">    public void setDescription(String description) { this.description = description; }</span>
+<span class="fc" id="L65">    public void setPrice(double price) { this.price = price; }</span>
+<span class="nc" id="L66">    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }</span>
+<span class="fc" id="L67">    public void setAllergens(List&lt;Allergen&gt; allergens) { this.allergens = allergens; }</span>
+
+    // toDTO
+    public DishDTO toDTO() {
+<span class="fc" id="L71">        DishDTO dto = new DishDTO(this.id, this.name, this.description, this.price, this.restaurant.getId(), this.restaurant.getName());</span>
+<span class="fc" id="L72">        dto.setAllergenNames(this.allergens.stream().map(Allergen::getName).collect(Collectors.toList()));</span>
+<span class="fc" id="L73">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

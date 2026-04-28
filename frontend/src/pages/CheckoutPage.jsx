@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cart from "../components/Cart";
 import { useCart } from "../store/CartContext";
+import { readLoggedInCustomer } from "../utils/auth";
 import "../assets/css/Checkout.css";
 
 const formatPrice = (value) => `${value.toFixed(2)} EUR`;
@@ -25,20 +26,6 @@ const storeVerificationCode = (orderId, secretCode) => {
   const currentCodes = readVerificationCodes();
   currentCodes[String(orderId)] = secretCode;
   localStorage.setItem(ORDER_CODE_STORAGE_KEY, JSON.stringify(currentCodes));
-};
-
-const readLoggedInCustomer = () => {
-  try {
-    const userType = localStorage.getItem("userType");
-    const rawUser = localStorage.getItem("user");
-    if (userType !== "customer" || !rawUser) {
-      return null;
-    }
-    const user = JSON.parse(rawUser);
-    return user && user.id ? user : null;
-  } catch {
-    return null;
-  }
 };
 
 const CheckoutPage = () => {
