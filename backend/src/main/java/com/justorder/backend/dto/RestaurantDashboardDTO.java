@@ -2,55 +2,44 @@ package com.justorder.backend.dto;
 
 import java.util.List;
 
-public class CustomerDashboardDTO {
+public class RestaurantDashboardDTO {
 
-    private Long customerId;
-    private String customerName;
+    private Long restaurantId;
     private long totalOrders;
     private long activeOrders;
     private long cancelledOrders;
     private long deliveredOrders;
-    private double totalSpent;
+    private double totalRevenue;
     private double totalRefunded;
     private List<OrderDTO> recentOrders;
 
-    public CustomerDashboardDTO() {
+    public RestaurantDashboardDTO() {
     }
 
-    public CustomerDashboardDTO(Long customerId,
-                                String customerName,
-                                long totalOrders,
-                                long activeOrders,
-                                long cancelledOrders,
-                                long deliveredOrders,
-                                double totalSpent,
-                                double totalRefunded,
-                                List<OrderDTO> recentOrders) {
-        this.customerId = customerId;
-        this.customerName = customerName;
+    public RestaurantDashboardDTO(Long restaurantId,
+                                  long totalOrders,
+                                  long activeOrders,
+                                  long cancelledOrders,
+                                  long deliveredOrders,
+                                  double totalRevenue,
+                                  double totalRefunded,
+                                  List<OrderDTO> recentOrders) {
+        this.restaurantId = restaurantId;
         this.totalOrders = totalOrders;
         this.activeOrders = activeOrders;
         this.cancelledOrders = cancelledOrders;
         this.deliveredOrders = deliveredOrders;
-        this.totalSpent = totalSpent;
+        this.totalRevenue = totalRevenue;
         this.totalRefunded = totalRefunded;
         this.recentOrders = recentOrders;
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public Long getRestaurantId() {
+        return restaurantId;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setRestaurantId(Long restaurantId) {
+        this.restaurantId = restaurantId;
     }
 
     public long getTotalOrders() {
@@ -85,12 +74,12 @@ public class CustomerDashboardDTO {
         this.deliveredOrders = deliveredOrders;
     }
 
-    public double getTotalSpent() {
-        return totalSpent;
+    public double getTotalRevenue() {
+        return totalRevenue;
     }
 
-    public void setTotalSpent(double totalSpent) {
-        this.totalSpent = totalSpent;
+    public void setTotalRevenue(double totalRevenue) {
+        this.totalRevenue = totalRevenue;
     }
 
     public double getTotalRefunded() {

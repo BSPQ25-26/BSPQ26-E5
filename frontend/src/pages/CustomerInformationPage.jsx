@@ -2,11 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import cartImage from "../assets/images/Shopping cart.png";
 import { getCustomerDashboard } from "../api/authApi";
+import { readLoggedInCustomer } from "../utils/auth";
 import "../assets/css/Home.css";
 import "../assets/css/CustomerMarketplace.css";
 import "../assets/css/CustomerInformationPage.css";
-
-const CUSTOMER_ID = 1;
 
 const formatPrice = (value) => `${Number(value || 0).toFixed(2)} EUR`;
 
@@ -23,6 +22,7 @@ const formatDate = (dateString) => {
 
 function CustomerInformationPage() {
     const [dashboard, setDashboard] = useState(null);
+    const [loggedInCustomer, setLoggedInCustomer] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -30,7 +30,16 @@ function CustomerInformationPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        getCustomerDashboard(CUSTOMER_ID)
+        const customer = readLoggedInCustomer();
+        setLoggedInCustomer(customer);
+
+        if (!customer) {
+            setErrorMessage("You must be logged in as a customer to see this dashboard.");
+            setIsLoading(false);
+            return;
+        }
+
+        getCustomerDashboard(customer.id)
             .then((data) => setDashboard(data))
             .catch(() => setErrorMessage("Could not load your information dashboard. Please try again later."))
             .finally(() => setIsLoading(false));
@@ -103,31 +112,33 @@ function CustomerInformationPage() {
                     {!isLoading && !errorMessage && dashboard && (
                         <>
                             <div className="customer-info-meta">
-                                <span>Customer ID: {dashboard.customerId}</span>
+                                <span data-testid="customer-meta">
+                                    Customer: {dashboard.customerName || loggedInCustomer?.name || "Unknown"}
+                                </span>
                             </div>
 
                             <div className="customer-info-stats-grid">
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-total-orders">
                                     <h3>Total orders</h3>
                                     <p>{dashboard.totalOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-active-orders">
                                     <h3>Active orders</h3>
                                     <p>{dashboard.activeOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-delivered-orders">
                                     <h3>Delivered orders</h3>
                                     <p>{dashboard.deliveredOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-cancelled-orders">
                                     <h3>Cancelled orders</h3>
                                     <p>{dashboard.cancelledOrders}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-total-spent">
                                     <h3>Total spent</h3>
                                     <p>{formatPrice(dashboard.totalSpent)}</p>
                                 </article>
-                                <article className="customer-info-stat-card">
+                                <article className="customer-info-stat-card" data-testid="stat-total-refunded">
                                     <h3>Total refunded</h3>
                                     <p>{formatPrice(dashboard.totalRefunded)}</p>
                                 </article>

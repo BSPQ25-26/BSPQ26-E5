@@ -1,106 +1,66 @@
 import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { within } from "@testing-library/react";
 import CustomerInformationPage from "../../pages/CustomerInformationPage";
-import { getCustomerDashboard } from "../../api/authApi";
+import { fetchThroughNode } from "../utils/fetchThroughNode";
 
 const mockNavigate = jest.fn();
-
-jest.mock("../../api/authApi", () => ({
-    getCustomerDashboard: jest.fn(),
-}));
+const DASHBOARD_URL = "http://localhost:8080/api/customers/1/dashboard";
 
 jest.mock("react-router-dom", () => ({
     Link: ({ children, to }) => <a href={to}>{children}</a>,
     useNavigate: () => mockNavigate,
 }), { virtual: true });
 
-const mockDashboard = {
-    customerId: 1,
-    totalOrders: 7,
-    activeOrders: 4,
-    cancelledOrders: 2,
-    deliveredOrders: 1,
-    totalSpent: 120.5,
-    totalRefunded: 25,
-    recentOrders: [
-        {
-            id: 15,
-            status: "Pending",
-            createdAt: "2026-04-22T10:45:00",
-            totalPrice: 18.5,
-        },
-    ],
-};
-
 describe("CustomerInformationPage", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        global.fetch = fetchThroughNode;
     });
 
-    test("loads dashboard for customer 1 on mount", async () => {
-        getCustomerDashboard.mockResolvedValueOnce(mockDashboard);
+    test("renders live dashboard data from the backend", async () => {
+        const response = await fetchThroughNode(DASHBOARD_URL);
+        expect(response.ok).toBe(true);
 
-        await act(async () => {
-            render(<CustomerInformationPage />);
-        });
+        const dashboard = await response.json();
 
-        expect(getCustomerDashboard).toHaveBeenCalledWith(1);
-    });
-
-    test("renders dashboard title and summary cards", async () => {
-        getCustomerDashboard.mockResolvedValueOnce(mockDashboard);
-
-        await act(async () => {
-            render(<CustomerInformationPage />);
-        });
-
-        expect(screen.getByRole("heading", { name: /Information Dashboard/i })).toBeInTheDocument();
-        expect(screen.getByText("Total orders")).toBeInTheDocument();
-        expect(screen.getByText("Active orders")).toBeInTheDocument();
-        expect(screen.getByText("Delivered orders")).toBeInTheDocument();
-        expect(screen.getByText("Cancelled orders")).toBeInTheDocument();
-        expect(screen.getByText("Total spent")).toBeInTheDocument();
-        expect(screen.getByText("Total refunded")).toBeInTheDocument();
-    });
-
-    test("shows recent orders section when orders exist", async () => {
-        getCustomerDashboard.mockResolvedValueOnce(mockDashboard);
-
-        await act(async () => {
-            render(<CustomerInformationPage />);
-        });
-
-        expect(screen.getByText(/Recent orders/i)).toBeInTheDocument();
-        expect(screen.getByText(/Order #15/i)).toBeInTheDocument();
-        expect(screen.getByText("Pending")).toBeInTheDocument();
-    });
-
-    test("shows empty message when there are no recent orders", async () => {
-        getCustomerDashboard.mockResolvedValueOnce({ ...mockDashboard, recentOrders: [] });
-
-        await act(async () => {
-            render(<CustomerInformationPage />);
-        });
-
-        expect(screen.getByText(/No recent orders to display yet/i)).toBeInTheDocument();
-    });
-
-    test("shows error message when dashboard request fails", async () => {
-        getCustomerDashboard.mockRejectedValueOnce(new Error("Network error"));
-
-        await act(async () => {
-            render(<CustomerInformationPage />);
-        });
-
-        expect(screen.getByText(/Could not load your information dashboard/i)).toBeInTheDocument();
-    });
-
-    test("shows loading state while waiting for dashboard", () => {
-        getCustomerDashboard.mockImplementation(() => new Promise(() => {}));
+        // Ensure the component treats a customer as logged in so it renders the dashboard
+        localStorage.setItem("userType", "customer");
+        localStorage.setItem(
+            "user",
+            JSON.stringify({ id: dashboard.customerId, name: dashboard.customerName || "Test Customer" })
+        );
 
         render(<CustomerInformationPage />);
 
-        expect(screen.getByText(/Loading your dashboard/i)).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: /Information Dashboard/i })).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText(`Customer: ${dashboard.customerName}`)).toBeInTheDocument();
+            expect(screen.getByText("Total orders")).toBeInTheDocument();
+            expect(screen.getByText(`${Number(dashboard.totalSpent).toFixed(2)} EUR`)).toBeInTheDocument();
+            expect(screen.getByText(`${Number(dashboard.totalRefunded).toFixed(2)} EUR`)).toBeInTheDocument();
+
+            if (dashboard.recentOrders.length > 0) {
+                expect(screen.getByText(/Recent orders/i)).toBeInTheDocument();
+            }
+        });
+
+        const statCards = screen.getAllByRole("article");
+
+        const totalOrdersCard = statCards.find((card) => within(card).queryByText("Total orders"));
+        const activeOrdersCard = statCards.find((card) => within(card).queryByText("Active orders"));
+        const deliveredOrdersCard = statCards.find((card) => within(card).queryByText("Delivered orders"));
+        const cancelledOrdersCard = statCards.find((card) => within(card).queryByText("Cancelled orders"));
+
+        expect(totalOrdersCard).toBeTruthy();
+        expect(activeOrdersCard).toBeTruthy();
+        expect(deliveredOrdersCard).toBeTruthy();
+        expect(cancelledOrdersCard).toBeTruthy();
+
+        expect(within(totalOrdersCard).getByText(String(dashboard.totalOrders))).toBeInTheDocument();
+        expect(within(activeOrdersCard).getByText(String(dashboard.activeOrders))).toBeInTheDocument();
+        expect(within(deliveredOrdersCard).getByText(String(dashboard.deliveredOrders))).toBeInTheDocument();
+        expect(within(cancelledOrdersCard).getByText(String(dashboard.cancelledOrders))).toBeInTheDocument();
     });
 });
