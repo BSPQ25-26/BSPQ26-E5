@@ -47,7 +47,7 @@ public class RestaurantControllerTest {
     private OrderRepository orderRepository; 
 
     @Autowired
-    private OrderStatusRepository orderStatusRepository; // Añadido para asegurar estados
+    private OrderStatusRepository orderStatusRepository;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -282,6 +282,11 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
+        
+        if (orderStatusRepository.findByStatusIgnoreCase("Cancelled").isEmpty()) {
+            orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
+        }
+
         // Find an actual order to reject dynamically
         List<Order> orders = orderRepository.findAll();
         assertTrue(orders.size() > 0, "No orders found to test rejection");
@@ -289,11 +294,6 @@ public class RestaurantControllerTest {
         Order targetOrder = orders.get(0);
         Long orderId = targetOrder.getId();
         Long restaurantId = targetOrder.getDishes().get(0).getRestaurant().getId();
-
-        // Asegurarnos de que el estado "Cancelled" existe por si DataInitializer se lo saltó en este contexto
-        if (orderStatusRepository.findByStatusIgnoreCase("Cancelled").isEmpty()) {
-            orderStatusRepository.save(new OrderStatus("Cancelled"));
-        }
 
         String requestBody = """
         {
