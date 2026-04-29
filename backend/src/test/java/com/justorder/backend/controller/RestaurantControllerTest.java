@@ -2,13 +2,10 @@ package com.justorder.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.dto.RestaurantDTO;
-import com.justorder.backend.model.Restaurant;
-import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.model.*;
+import com.justorder.backend.repository.*;
 import com.justorder.backend.security.JwtUtil;
-import com.justorder.backend.service.OrderService;
-import com.justorder.backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +17,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -33,16 +31,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class RestaurantControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
+    @Autowired private MockMvc mockMvc;
     private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    @Autowired
-    private RestaurantRepository repository;
-
-    @MockitoBean
-    private OrderService orderService;
+    @Autowired private RestaurantRepository repository;
+    @Autowired private OrderRepository orderRepository;
+    @Autowired private OrderStatusRepository orderStatusRepository;
+    @Autowired private DishRepository dishRepository;
+    @Autowired private CustomerRepository customerRepository;
+    @Autowired private RiderRepository riderRepository;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -276,19 +273,50 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        OrderDTO mockOrderDTO = new OrderDTO();
-        mockOrderDTO.setId(1L);
-        mockOrderDTO.setStatus("Cancelled");
-        mockOrderDTO.setRejectionReason("Out of pizza dough");
+        // 1. Creamos TODOS los datos reales, vinculados a la perfección para que el OrderService real esté contento.
+        Restaurant rest = new Restaurant();
+        rest.setName("Pizza Palace Test");
+        rest.setEmail("test" + System.nanoTime() + "@test.com");
+        rest.setPassword("pass123");
+        rest = repository.saveAndFlush(rest);
 
-        when(orderService.rejectOrder(any(), any(), any())).thenReturn(mockOrderDTO);
+        Dish dish = new Dish("Pizza", "Good pizza", 10.0, rest);
+        dish = dishRepository.saveAndFlush(dish);
 
-        String requestBody = "{\"reason\":\"Out of pizza dough\"}";
+        Customer customer = new Customer();
+        customer.setName("Test Cust");
+        customer.setEmail("cust" + System.nanoTime() + "@test.com");
+        customer.setPhone("600123456");
+        customer.setPassword("pass");
+        customer.setAge(20);
+        customer.setDni("12345678A");
+        customer = customerRepository.saveAndFlush(customer);
 
-        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
+        Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
+        Rider rider = new Rider("Test Rider", "12345678B", "+34 612345678", "rider" + System.nanoTime() + "@test.com", "pass", loc);
+        rider = riderRepository.saveAndFlush(rider);
+
+        OrderStatus pending = orderStatusRepository.findByStatus("Pending")
+                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Pending")));
+        
+        OrderStatus cancelled = orderStatusRepository.findByStatus("Cancelled")
+                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled")));
+
+        Order order = new Order();
+        order.setCustomer(customer);
+        order.setDishes(List.of(dish));
+        order.setStatus(pending);
+        order.setRider(rider);
+        order.setTotalPrice(10.0);
+        order.setSecretCodeHash("hash123");
+        order = orderRepository.saveAndFlush(order);
+
+        String requestBody = "{\"reason\": \"Out of pizza dough\"}";
+
+        // 2. Ejecutamos la petición. Como todo existe en BD, el servicio real devolverá 200 sin lanzar excepciones.
+        mockMvc.perform(post("/api/restaurants/" + rest.getId() + "/orders/" + order.getId() + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)
-                .accept(MediaType.APPLICATION_JSON))
+                .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("Cancelled"))
                 .andExpect(jsonPath("$.rejectionReason").value("Out of pizza dough"));
@@ -296,15 +324,18 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderNotFound() throws Exception {
-        when(orderService.rejectOrder(any(), any(), any()))
-            .thenThrow(new ResourceNotFoundException("Order not found"));
+        Restaurant rest = new Restaurant();
+        rest.setName("Pizza Palace Not Found");
+        rest.setEmail("notfound" + System.nanoTime() + "@test.com");
+        rest.setPassword("pass123");
+        rest = repository.saveAndFlush(rest);
 
-        String requestBody = "{\"reason\":\"This order does not exist\"}";
+        String requestBody = "{\"reason\": \"This order does not exist\"}";
 
-        mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
+        // Como usamos el servicio real, si pedimos una orden que no existe (999999), el mismo servicio lanza ResourceNotFoundException -> 404
+        mockMvc.perform(post("/api/restaurants/" + rest.getId() + "/orders/999999/reject")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody)
-                .accept(MediaType.APPLICATION_JSON))
+                .content(requestBody))
                 .andExpect(status().isNotFound()); 
     }
 
