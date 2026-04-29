@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -13,8 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
-
 import org.springframework.http.MediaType;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -172,14 +173,12 @@ public class RestaurantControllerTest {
                .andExpect(status().isOk());
     }
 
-
     @Test
     void testSearchAllRestaurants() throws Exception {
         mockMvc.perform(get("/api/restaurants/search"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
-
     
     @Test
     void testSearchByCuisine() throws Exception {
@@ -190,7 +189,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
     }
 
-   
     @Test
     void testSearchByCuisineCaseInsensitive() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -209,7 +207,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[*].averageRating", everyItem(greaterThanOrEqualTo(4.0))));
     }
 
-   
     @Test
     void testSearchByMaxPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -219,7 +216,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-   
     @Test
     void testSearchByMinPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -229,7 +225,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$", hasSize(3)));
     }
 
-   
     @Test
     void testSearchByCuisineAndMinRating() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -241,7 +236,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Sushi Tokyo"));
     }
 
-  
     @Test
     void testSearchReturnsEmptyListWhenNoMatch() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -250,7 +244,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
- 
+
     @Test
     void testRejectOrderSuccess() throws Exception {
         String requestBody = """
@@ -258,7 +252,6 @@ public class RestaurantControllerTest {
             "reason": "Out of pizza dough"
         }
         """;
-
         mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -266,7 +259,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.status").value("Cancelled"))
                 .andExpect(jsonPath("$.rejectionReason").value("Out of pizza dough"));
     }
-
 
     @Test
     void testRejectOrderNotFound() throws Exception {
@@ -284,7 +276,6 @@ public class RestaurantControllerTest {
     @Test
     void testGetRestaurantProfileWithValidToken() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         mockMvc.perform(get("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -296,7 +287,6 @@ public class RestaurantControllerTest {
     @Test
     void testUpdateRestaurantProfileWithValidToken() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         String updateBody = """
         {
             "name": "La Marina Renewed",
@@ -311,7 +301,6 @@ public class RestaurantControllerTest {
             "sundayWorkingHours": "12:00-21:00"
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -327,20 +316,17 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.fridayWorkingHours").value("11:00-20:00"))
                 .andExpect(jsonPath("$.saturdayWorkingHours").value("11:30-20:30"))
                 .andExpect(jsonPath("$.sundayWorkingHours").value("12:00-21:00"))
-                .andExpect(jsonPath("$.password").doesNotExist());
-        
+                .andExpect(jsonPath("$.password").doesNotExist());         
     }
 
     @Test
     void testUpdateRestaurantProfileCuisineCategoriesWithValidToken() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         String updateBody = """
         {
             "cuisineCategoryNames": ["Italian", "Japanese"]
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -352,7 +338,6 @@ public class RestaurantControllerTest {
     @Test
     void testUpdateRestaurantProfileLocalizationsWithValidToken() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         String updateBody = """
         {
             "localizations": [
@@ -368,7 +353,6 @@ public class RestaurantControllerTest {
             ]
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -385,7 +369,6 @@ public class RestaurantControllerTest {
     @Test
     void testGetRestaurantDashboardWithValidToken() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         mockMvc.perform(get("/api/restaurants/dashboard")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -433,7 +416,6 @@ public class RestaurantControllerTest {
             "name": "No Token"
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateBody))
@@ -443,13 +425,11 @@ public class RestaurantControllerTest {
     @Test
     void testUpdateRestaurantProfileWithInvalidWorkingHoursFormat() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         String updateBody = """
         {
             "mondayWorkingHours": "9:00-18:00"
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -460,13 +440,11 @@ public class RestaurantControllerTest {
     @Test
     void testUpdateRestaurantProfileWithUnknownCuisineCategory() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         String updateBody = """
         {
             "cuisineCategoryNames": ["UnknownCategory"]
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -477,13 +455,11 @@ public class RestaurantControllerTest {
     @Test
     void testUpdateRestaurantProfileWithEmptyCuisineCategoryList() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         String updateBody = """
         {
             "cuisineCategoryNames": []
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -494,13 +470,11 @@ public class RestaurantControllerTest {
     @Test
     void testUpdateRestaurantProfileWithEmptyLocalizationsList() throws Exception {
         String token = createRestaurantSessionAndGetToken();
-
         String updateBody = """
         {
             "localizations": []
         }
         """;
-
         mockMvc.perform(put("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -509,21 +483,18 @@ public class RestaurantControllerTest {
     }
 
     @Test
-void testGetRestaurantProfileWithTokenFromDeletedRestaurant() throws Exception {
-    String email = "temp-restaurant-delete@justorder.com";
-    String password = "temporaryRestaurantPass123";
-
-    String token = createTempRestaurantSessionAndGetToken(email, password);
-    
-    
-    Long restaurantId = restaurantRepository.findByEmail(email).get().getId(); 
-    
-    restaurantRepository.deleteById(restaurantId);
-
-    mockMvc.perform(get("/api/restaurants/profile")
-            .header("Authorization", "Bearer " + token))
-        .andExpect(status().isUnauthorized());
-}
+    void testGetRestaurantProfileWithTokenFromDeletedRestaurant() throws Exception {
+        String email = "temp-restaurant-delete@justorder.com";
+        String password = "temporaryRestaurantPass123";
+        String token = createTempRestaurantSessionAndGetToken(email, password);
+        
+        Long restaurantId = restaurantRepository.findByEmail(email).get().getId();
+        restaurantRepository.deleteById(restaurantId);
+        
+        mockMvc.perform(get("/api/restaurants/profile")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isUnauthorized());
+    }
 
     private String createRestaurantSessionAndGetToken() throws Exception {
         String loginBody = """
@@ -579,7 +550,7 @@ void testGetRestaurantProfileWithTokenFromDeletedRestaurant() throws Exception {
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(createBody))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk()); 
 
         String loginBody = """
         {
