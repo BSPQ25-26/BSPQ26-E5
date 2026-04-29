@@ -2,7 +2,6 @@ package com.justorder.backend.controller;
 
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import com.justorder.backend.service.OrderService;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
@@ -12,6 +11,7 @@ import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Order;
 import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +43,9 @@ public class RestaurantControllerTest {
 
     @Autowired
     private RestaurantRepository repository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @MockitoSpyBean
     private OrderService orderService;
@@ -279,12 +282,22 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
+        
+        Order realOrder = orderRepository.findAll().stream()
+                .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No orders found for test. Ensure DataInitializer is working."));
+        
+        Long realOrderId = realOrder.getId();
+        Long realRestaurantId = realOrder.getDishes().get(0).getRestaurant().getId();
+
+       
         Order mockOrder = new Order();
-        mockOrder.setId(1L);
+        mockOrder.setId(realOrderId);
         mockOrder.setStatus(new OrderStatus("Cancelled"));
         mockOrder.setRejectionReason("Out of pizza dough");
 
-        doReturn(mockOrder).when(orderService).rejectOrder(anyLong(), anyLong(), anyString());
+        doReturn(mockOrder).when(orderService).rejectOrder(realRestaurantId, realOrderId, "Out of pizza dough");
 
         String requestBody = """
         {
@@ -292,7 +305,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
+        mockMvc.perform(post("/api/restaurants/" + realRestaurantId + "/orders/" + realOrderId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
