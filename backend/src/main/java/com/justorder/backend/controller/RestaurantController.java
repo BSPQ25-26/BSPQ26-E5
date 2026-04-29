@@ -229,8 +229,8 @@ public class RestaurantController {
      */
     @PostMapping("/{restaurantId}/orders/{orderId}/reject")
     public ResponseEntity<OrderDTO> rejectOrder(
-            @PathVariable Long restaurantId,
-            @PathVariable Long orderId,
+            @PathVariable("restaurantId") Long restaurantId, 
+            @PathVariable("orderId") Long orderId,
             @RequestBody RejectionRequestDTO rejectionRequest) {
         
         OrderDTO updatedOrder = orderService.rejectOrder(restaurantId, orderId, rejectionRequest.getReason());
