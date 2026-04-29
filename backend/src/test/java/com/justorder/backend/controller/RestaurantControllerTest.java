@@ -3,12 +3,9 @@ package com.justorder.backend.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.RestaurantDTO;
-import com.justorder.backend.model.Order;
-import com.justorder.backend.model.OrderStatus;
-import com.justorder.backend.model.Restaurant;
-import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.model.*;
+import com.justorder.backend.repository.*;
 import com.justorder.backend.security.JwtUtil;
-import com.justorder.backend.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,16 +13,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -43,8 +39,17 @@ public class RestaurantControllerTest {
     @Autowired
     private RestaurantRepository repository;
 
-    @MockitoSpyBean
-    private OrderService orderService;
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private DishRepository dishRepository;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -278,23 +283,28 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // 1. Creamos un Restaurante REAL para que el controlador lo encuentre sin dar 404
-        Restaurant realRest = new Restaurant();
-        realRest.setName("Pizza Palace Valid");
-        realRest.setEmail("valid@palace.com");
-        realRest = repository.save(realRest);
-        
-        Long restId = realRest.getId();
-        Long orderId = 999L; // El ID de la orden da igual porque la vamos a interceptar
-        
-        // 2. Preparamos el mock de la orden (la salida esperada)
-        Order mockOrder = new Order();
-        mockOrder.setId(orderId);
-        mockOrder.setStatus(new OrderStatus("Cancelled"));
-        mockOrder.setRejectionReason("Out of pizza dough");
-        
-        // 3. Interceptamos la lógica estricta del servicio de órdenes para que siempre nos devuelva nuestra orden
-        doReturn(mockOrder).when(orderService).rejectOrder(eq(restId), eq(orderId), anyString());
+        // 1. Creamos TODO el estado desde cero para garantizar un pedido perfecto.
+        Restaurant rest = new Restaurant();
+        rest.setName("Pizza Palace Perfect");
+        rest.setEmail("perfect" + System.nanoTime() + "@palace.com");
+        rest = repository.saveAndFlush(rest);
+
+        Dish dish = new Dish("Pizza", "Good pizza", 10.0, rest);
+        dish = dishRepository.saveAndFlush(dish);
+
+        Customer customer = new Customer("Test Cust", "test" + System.nanoTime() + "@cust.com", "600123456", "pass", 20, "12345678A", List.of(), List.of(), List.of());
+        customer = customerRepository.saveAndFlush(customer);
+
+        OrderStatus pending = orderStatusRepository.findByStatus("Pending")
+                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Pending")));
+
+        if (orderStatusRepository.findByStatus("Cancelled").isEmpty()) {
+            orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
+        }
+
+        // 2. Creamos la orden perfectamente vinculada
+        Order order = new Order(customer, List.of(dish), pending, null, 10.0, "1234");
+        order = orderRepository.saveAndFlush(order);
 
         String requestBody = """
         {
@@ -302,8 +312,8 @@ public class RestaurantControllerTest {
         }
         """;
 
-        // 4. Lanzamos la petición usando el ID del restaurante real
-        mockMvc.perform(post("/api/restaurants/" + restId + "/orders/" + orderId + "/reject")
+        // 3. Ya no usamos mocks. Ejecutamos contra el OrderService REAL de Spring Boot.
+        mockMvc.perform(post("/api/restaurants/" + rest.getId() + "/orders/" + order.getId() + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
