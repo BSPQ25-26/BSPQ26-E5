@@ -16,6 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +53,13 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/admin/login")
-    public ResponseEntity<?> loginAdmin(@RequestBody LoginRequest request) {
+    @Operation(summary = "Admin login", description = "Authenticate admin and return JWT token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Authenticated"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public ResponseEntity<?> loginAdmin(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Login credentials") @RequestBody LoginRequest request) {
+        // 1. Buscamos al admin por su email
         Optional<Admin> adminOptional = adminRepository.findByEmail(request.getEmail());
 
         if (adminOptional.isPresent()) {

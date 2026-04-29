@@ -4,6 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Protected REST controller for exclusive Administrator operations.
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/admin")
+@Tag(name = "Admin")
 public class AdminController {
 
     /**
@@ -22,6 +25,7 @@ public class AdminController {
      * * @return ResponseEntity containing a welcome message for the administrator.
      */
     @GetMapping("/dashboard")
+    @Operation(summary = "Admin dashboard (requires admin role)")
     public ResponseEntity<String> getAdminDashboard() {
         return ResponseEntity.ok("¡Acceso concedido! Estás en el panel de control exclusivo para Administradores.");
     }

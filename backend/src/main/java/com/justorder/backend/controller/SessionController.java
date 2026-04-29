@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.justorder.backend.dto.LoginRequest;
 import com.justorder.backend.dto.LoginResponseDTO;
@@ -18,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 @RestController
 @RequestMapping("/sessions")
+@Tag(name = "Sessions")
 public class SessionController {
 
     private final SessionService sessionService;    
@@ -28,8 +33,13 @@ public class SessionController {
         this.sessionService = sessionService;
     }
     
+    @Operation(summary = "Create a customer session (login)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Session created"),
+        @ApiResponse(responseCode = "400", description = "Invalid credentials")
+    })
     @PostMapping("/users")
-    public ResponseEntity<LoginResponseDTO> createUserSession(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponseDTO> createUserSession(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Login payload") @RequestBody LoginRequest request) {
         logger.info("POST /sessions/users - create user session for {}", request != null ? request.getEmail() : "<null>");
         try {
             LoginResponseDTO response = sessionService.createSession(request);
@@ -41,13 +51,15 @@ public class SessionController {
     }
 
     @GetMapping("/hello")
+    @Operation(summary = "Health check for sessions")
     public String hello() {
         logger.info("GET /sessions/hello - hello endpoint called");
         return "Hello from JustOrder!";
     }
 
+    @Operation(summary = "Create a rider session (login)")
     @PostMapping("/riders")
-    public ResponseEntity<LoginResponseDTO> createRiderSession(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponseDTO> createRiderSession(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Login payload") @RequestBody LoginRequest request) {
         logger.info("POST /sessions/riders - create rider session for {}", request != null ? request.getEmail() : "<null>");
         try {
             LoginResponseDTO response = sessionService.createSession(request);
@@ -58,8 +70,9 @@ public class SessionController {
         }
     }
 
+    @Operation(summary = "Create a restaurant session (login)")
     @PostMapping("/restaurants")
-    public ResponseEntity<LoginResponseDTO> createRestaurantSession(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponseDTO> createRestaurantSession(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Login payload") @RequestBody LoginRequest request) {
         logger.info("POST /sessions/restaurants - create restaurant session for {}", request != null ? request.getEmail() : "<null>");
         try {
             LoginResponseDTO response = sessionService.createSession(request);
@@ -70,22 +83,25 @@ public class SessionController {
         }
     }
 
+    @Operation(summary = "Delete customer session")
     @DeleteMapping("/users")
-    public ResponseEntity<Void> deleteUserSession(@RequestHeader(value = "Authorization", required = false) String token) {
+    public ResponseEntity<Void> deleteUserSession(@io.swagger.v3.oas.annotations.Parameter(description = "Authorization header: Bearer <token>") @RequestHeader(value = "Authorization", required = false) String token) {
         logger.info("DELETE /sessions/users - delete user session");
         sessionService.deleteSession("customer", token);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Delete rider session")
     @DeleteMapping("/riders")
-    public ResponseEntity<Void> deleteRiderSession(@RequestHeader(value = "Authorization", required = false) String token) {
+    public ResponseEntity<Void> deleteRiderSession(@io.swagger.v3.oas.annotations.Parameter(description = "Authorization header: Bearer <token>") @RequestHeader(value = "Authorization", required = false) String token) {
         logger.info("DELETE /sessions/riders - delete rider session");
         sessionService.deleteSession("rider", token);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Delete restaurant session")
     @DeleteMapping("/restaurants")
-    public ResponseEntity<Void> deleteRestaurantSession(@RequestHeader(value = "Authorization", required = false) String token) {
+    public ResponseEntity<Void> deleteRestaurantSession(@io.swagger.v3.oas.annotations.Parameter(description = "Authorization header: Bearer <token>") @RequestHeader(value = "Authorization", required = false) String token) {
         logger.info("DELETE /sessions/restaurants - delete restaurant session");
         sessionService.deleteSession("restaurant", token);
         return ResponseEntity.ok().build();

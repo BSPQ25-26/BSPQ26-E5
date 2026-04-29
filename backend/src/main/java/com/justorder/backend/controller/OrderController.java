@@ -12,6 +12,10 @@ import com.justorder.backend.dto.CheckoutOrderRequestDTO;
 import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.exception.ResourceNotFoundException;
 import com.justorder.backend.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 
 /**
  * REST controller for managing Order entities.
@@ -46,8 +50,14 @@ public class OrderController {
      * @param request the checkout details.
      * @return the created {@link OrderDTO} with status 201 Created.
      */
+    @Operation(summary = "Create an order (checkout)", description = "Creates an order from checkout payload; returns created order with id")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Order created"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "404", description = "Resource not found")
+    })
     @PostMapping("/checkout")
-    public ResponseEntity<OrderDTO> checkout(@RequestBody CheckoutOrderRequestDTO request) {
+    public ResponseEntity<OrderDTO> checkout(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Checkout payload") @RequestBody CheckoutOrderRequestDTO request) {
         logger.info("POST /api/orders/checkout - checkout requested for customer {}", request != null ? request.getCustomerId() : "<null>");
         try {
             OrderDTO createdOrder = orderService.checkout(request);

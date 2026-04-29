@@ -7,7 +7,19 @@ import java.util.stream.Collectors;
 import com.justorder.backend.dto.CustomerDashboardDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.justorder.backend.dto.CustomerDTO;
 import com.justorder.backend.dto.OrderDTO;
@@ -25,6 +37,7 @@ import org.apache.logging.log4j.Logger;
  */
 @RestController
 @RequestMapping("/api/customers")
+@Tag(name = "Customers")
 public class CustomerController {
 
     private static final Logger logger = LogManager.getLogger(CustomerController.class);
@@ -45,6 +58,7 @@ public class CustomerController {
     }
 
     @GetMapping("/hello")
+    @Operation(summary = "Health check for customer endpoints")
     public String hello() {
         return "Hello from JustOrder!";
     }
@@ -53,6 +67,7 @@ public class CustomerController {
      * Retrieves all customers. To avoid recursion issues, we return DTOs.
      */
     @GetMapping
+    @Operation(summary = "Get all customers")
     public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
         List<CustomerDTO> customers = customerRepository.findAll().stream()
                 .map(Customer::toDTO)
@@ -63,8 +78,13 @@ public class CustomerController {
     /**
      * Creates a new customer using the RegisterService.
      */
+    @Operation(summary = "Create or update a customer")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Customer created/updated"),
+        @ApiResponse(responseCode = "500", description = "Internal error")
+    })
     @PostMapping("/create")
-    public ResponseEntity<Void> createCustomer(@RequestBody CustomerDTO request) {
+    public ResponseEntity<HttpStatus> createOrUpdateCustomer(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Customer payload") @RequestBody CustomerDTO request) {
         try {
             logger.info("POST /api/customers/create - register customer request: {}", request != null ? request.getEmail() : "<null>");
             this.registerService.registerCustomer(request);
@@ -79,7 +99,8 @@ public class CustomerController {
      * Updates an existing customer.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerDTO> updateCustomer(@PathVariable Long id, @RequestBody CustomerDTO request) {
+    @Operation(summary = "Update an existing customer")
+    public ResponseEntity<CustomerDTO> updateCustomer(@Parameter(description = "Customer id") @PathVariable Long id, @RequestBody CustomerDTO request) {
         return customerRepository.findById(id).map(existing -> {
             existing.setName(request.getName());
             existing.setAge(request.getAge());
@@ -99,24 +120,27 @@ public class CustomerController {
     /**
      * Retrieves a specific customer by ID.
      */
+    @Operation(summary = "Get customer by id")
     @GetMapping("/{customerId}")
-    public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long customerId) {
+    public ResponseEntity<CustomerDTO> getCustomer(@Parameter(description = "Customer id") @PathVariable Long customerId) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     /**
      * Creates or updates an order for a customer.
      */
+    @Operation(summary = "Create or update an order (placeholder)")
     @PostMapping("/order")
-    public ResponseEntity<HttpStatus> createOrUpdateOrder(@RequestBody OrderDTO request) { 
+    public ResponseEntity<HttpStatus> createOrUpdateOrder(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Order payload") @RequestBody OrderDTO request) { 
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     /**
      * Retrieves all orders for a specific customer.
      */
+    @Operation(summary = "Get orders for a customer")
     @GetMapping("/{customerId}/orders")
-    public ResponseEntity<List<OrderDTO>> getCustomerOrders(@PathVariable Long customerId) {
+    public ResponseEntity<List<OrderDTO>> getCustomerOrders(@Parameter(description = "Customer id") @PathVariable Long customerId) {
         logger.info("GET /api/customers/{}/orders - fetching orders", customerId);
         if (!customerRepository.existsById(customerId)) {
             logger.warn("Customer {} not found when requesting orders", customerId);
@@ -132,8 +156,9 @@ public class CustomerController {
     /**
      * Retrieves the dashboard metrics for a specific customer.
      */
+    @Operation(summary = "Get customer dashboard")
     @GetMapping("/{customerId}/dashboard")
-    public ResponseEntity<CustomerDashboardDTO> getCustomerDashboard(@PathVariable Long customerId) {
+    public ResponseEntity<CustomerDashboardDTO> getCustomerDashboard(@Parameter(description = "Customer id") @PathVariable Long customerId) {
         logger.info("GET /api/customers/{}/dashboard - dashboard requested", customerId);
         Customer customer = customerRepository.findById(customerId).orElse(null);
         if (customer == null) {
@@ -185,7 +210,8 @@ public class CustomerController {
      * Deletes a specific customer by ID.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+    @Operation(summary = "Delete customer by id")
+    public ResponseEntity<Void> deleteCustomer(@Parameter(description = "Customer id") @PathVariable Long id) {
         if (customerRepository.existsById(id)) {
             customerRepository.deleteById(id);
             return ResponseEntity.ok().build();
@@ -196,7 +222,8 @@ public class CustomerController {
     /**
      * Deletes all customers and their orders from the database.
      */
-    @DeleteMapping
+    @Operation(summary = "Delete all customers and their orders")
+    @DeleteMapping()
     public ResponseEntity<HttpStatus> deleteAllCustomers() {
         orderRepository.deleteAll();
         customerRepository.deleteAll();

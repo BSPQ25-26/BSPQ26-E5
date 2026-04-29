@@ -5,6 +5,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * REST controller for basic API health checks and greetings.
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api")
+@Tag(name = "General")
 public class HelloController {
 
     private static final Logger logger = LogManager.getLogger(HelloController.class);
@@ -24,6 +27,7 @@ public class HelloController {
      * @return a simple greeting {@link String} confirming the API is active.
      */
     @GetMapping("/hello")
+    @Operation(summary = "API health check")
     public String hello() {
         logger.info("GET /api/hello - hello endpoint called");
         return "Hello from JustOrder!";
