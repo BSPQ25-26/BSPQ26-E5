@@ -313,7 +313,7 @@ public class RestaurantControllerTest {
         """;
 
         // 3. Ya no usamos mocks. Ejecutamos contra el OrderService REAL de Spring Boot.
-        mockMvc.perform(post("/api/restaurants/" + rest.getId() + "/orders/" + order.getId() + "/reject")
+        mockMvc.perform(put("/api/restaurants/" + rest.getId() + "/orders/" + order.getId() + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
