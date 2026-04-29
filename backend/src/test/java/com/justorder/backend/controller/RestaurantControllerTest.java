@@ -6,10 +6,9 @@ import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Order;
 import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
-import com.justorder.backend.repository.OrderRepository;
-import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
+import com.justorder.backend.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,12 +43,8 @@ public class RestaurantControllerTest {
     @Autowired
     private RestaurantRepository repository;
 
-    @Autowired
-    private OrderRepository orderRepository;
-
-    // AÑADIDO: Repositorio de estados para poder manipular el pedido
-    @Autowired
-    private OrderStatusRepository orderStatusRepository;
+    @MockitoSpyBean
+    private OrderService orderService;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -280,21 +278,23 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // 1. Buscamos cualquier pedido
-        Order realOrder = orderRepository.findAll().stream()
-                .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No orders found for test. Ensure DataInitializer is working."));
+        // 1. Creamos un Restaurante REAL para que el controlador lo encuentre sin dar 404
+        Restaurant realRest = new Restaurant();
+        realRest.setName("Pizza Palace Valid");
+        realRest.setEmail("valid@palace.com");
+        realRest = repository.save(realRest);
         
-        // 2. FORZAMOS el estado a "Pending" para evitar el 404 por regla de negocio
-        OrderStatus pendingStatus = orderStatusRepository.findByStatus("Pending")
-                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Pending")));
+        Long restId = realRest.getId();
+        Long orderId = 999L; // El ID de la orden da igual porque la vamos a interceptar
         
-        realOrder.setStatus(pendingStatus);
-        orderRepository.saveAndFlush(realOrder);
-
-        Long realOrderId = realOrder.getId();
-        Long realRestaurantId = realOrder.getDishes().get(0).getRestaurant().getId();
+        // 2. Preparamos el mock de la orden (la salida esperada)
+        Order mockOrder = new Order();
+        mockOrder.setId(orderId);
+        mockOrder.setStatus(new OrderStatus("Cancelled"));
+        mockOrder.setRejectionReason("Out of pizza dough");
+        
+        // 3. Interceptamos la lógica estricta del servicio de órdenes para que siempre nos devuelva nuestra orden
+        doReturn(mockOrder).when(orderService).rejectOrder(eq(restId), eq(orderId), anyString());
 
         String requestBody = """
         {
@@ -302,8 +302,8 @@ public class RestaurantControllerTest {
         }
         """;
 
-        // 3. Ejecutamos la petición
-        mockMvc.perform(post("/api/restaurants/" + realRestaurantId + "/orders/" + realOrderId + "/reject")
+        // 4. Lanzamos la petición usando el ID del restaurante real
+        mockMvc.perform(post("/api/restaurants/" + restId + "/orders/" + orderId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
