@@ -86,13 +86,11 @@ public class RestaurantController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/create")
-    public ResponseEntity<HttpStatus> createOrUpdateRestaurant(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Restaurant payload") @RequestBody RestaurantDTO request) {
+    public ResponseEntity<HttpStatus> createOrUpdateRestaurant(@RequestBody RestaurantDTO request) {
         try {
-            logger.info("POST /api/restaurants/create - register restaurant request: {}", request != null ? request.getName() : "<null>");
             this.registerService.registerRestaurant(request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error("Error registering restaurant", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
