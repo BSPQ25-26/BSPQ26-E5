@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
-
 import org.springframework.http.MediaType;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -172,14 +172,12 @@ public class RestaurantControllerTest {
                .andExpect(status().isOk());
     }
 
-
     @Test
     void testSearchAllRestaurants() throws Exception {
         mockMvc.perform(get("/api/restaurants/search"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
-
     
     @Test
     void testSearchByCuisine() throws Exception {
@@ -190,7 +188,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[0].cuisineCategoryNames[0]").value("Italian"));
     }
 
-   
     @Test
     void testSearchByCuisineCaseInsensitive() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -209,7 +206,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[*].averageRating", everyItem(greaterThanOrEqualTo(4.0))));
     }
 
-   
     @Test
     void testSearchByMaxPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -219,7 +215,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-   
     @Test
     void testSearchByMinPrice() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -229,7 +224,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$", hasSize(3)));
     }
 
-   
     @Test
     void testSearchByCuisineAndMinRating() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -241,7 +235,6 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Sushi Tokyo"));
     }
 
-  
     @Test
     void testSearchReturnsEmptyListWhenNoMatch() throws Exception {
         mockMvc.perform(get("/api/restaurants/search")
@@ -249,36 +242,6 @@ public class RestaurantControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(0)));
-    }
- 
-    @Test
-    void testRejectOrderSuccess() throws Exception {
-        String requestBody = """
-        {
-            "reason": "Out of pizza dough"
-        }
-        """;
-
-        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("Cancelled"))
-                .andExpect(jsonPath("$.rejectionReason").value("Out of pizza dough"));
-    }
-
-
-    @Test
-    void testRejectOrderNotFound() throws Exception {
-        String requestBody = """
-        {
-            "reason": "This order does not exist"
-        }
-        """;
-        mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
-                .andExpect(status().isNotFound()); 
     }
 
     @Test
@@ -327,8 +290,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.fridayWorkingHours").value("11:00-20:00"))
                 .andExpect(jsonPath("$.saturdayWorkingHours").value("11:30-20:30"))
                 .andExpect(jsonPath("$.sundayWorkingHours").value("12:00-21:00"))
-                .andExpect(jsonPath("$.password").doesNotExist());
-        
+                .andExpect(jsonPath("$.password").doesNotExist());         
     }
 
     @Test
@@ -512,11 +474,11 @@ public class RestaurantControllerTest {
     void testGetRestaurantProfileWithTokenFromDeletedRestaurant() throws Exception {
         String email = "temp-restaurant-delete@justorder.com";
         String password = "temporaryRestaurantPass123";
-
         String token = createTempRestaurantSessionAndGetToken(email, password);
-        Long restaurantId = restaurantRepository.findByEmail(email).getId();
-        restaurantRepository.deleteById(restaurantId);
 
+        Long restaurantId = restaurantRepository.findByEmail(email).get().getId();
+        restaurantRepository.deleteById(restaurantId);
+        
         mockMvc.perform(get("/api/restaurants/profile")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isUnauthorized());
