@@ -11,6 +11,7 @@ import com.justorder.backend.service.OrderService;
 import com.justorder.backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -22,8 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,7 +44,6 @@ public class RestaurantControllerTest {
     @Autowired
     private RestaurantRepository repository;
 
-    // Nuestro guardián. Cortará el flujo antes de que la lógica real falle.
     @MockitoBean
     private OrderService orderService;
 
@@ -50,6 +52,8 @@ public class RestaurantControllerTest {
 
     @BeforeEach
     public void setUp() {
+        // MUY IMPORTANTE: Limpiamos el mock antes de CADA test para evitar que el 404 del otro test contamine este.
+        Mockito.reset(orderService);
         when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("test-token-" + System.nanoTime());
     }
 
@@ -277,18 +281,13 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // 1. Extraemos un ID de restaurante REAL (clave para evitar el 404 del validador de URL de Spring)
-        Long realRestId = repository.findAll().get(0).getId();
-        Long orderId = 1L; // Este da igual, el mock lo atrapará todo.
-
-        // 2. Preparamos la respuesta exitosa del mock
         OrderDTO mockOrderDTO = new OrderDTO();
-        mockOrderDTO.setId(orderId);
+        mockOrderDTO.setId(1L);
         mockOrderDTO.setStatus("Cancelled");
         mockOrderDTO.setRejectionReason("Out of pizza dough");
 
-        // 3. Mock hiper-robusto: uses lo que uses en los parámetros, devolverá el DTO.
-        when(orderService.rejectOrder(any(), any(), any())).thenReturn(mockOrderDTO);
+        // Usamos doReturn para una sobreescritura estricta y segura del mock
+        doReturn(mockOrderDTO).when(orderService).rejectOrder(anyLong(), anyLong(), anyString());
 
         String requestBody = """
         {
@@ -296,8 +295,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        // 4. Usamos el ID de restaurante real en la URL
-        mockMvc.perform(post("/api/restaurants/" + realRestId + "/orders/" + orderId + "/reject")
+        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
@@ -307,12 +305,9 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderNotFound() throws Exception {
-        // 1. Extraemos el ID de restaurante REAL para pasar el filtro inicial
-        Long realRestId = repository.findAll().get(0).getId();
-
-        // 2. Forzamos la excepción 404 simulando que la orden no se encuentra
-        when(orderService.rejectOrder(any(), any(), any()))
-            .thenThrow(new ResourceNotFoundException("Order not found"));
+        // Usamos doThrow para asegurar que lanza la excepción
+        doThrow(new ResourceNotFoundException("Order not found"))
+            .when(orderService).rejectOrder(anyLong(), anyLong(), anyString());
 
         String requestBody = """
         {
@@ -320,8 +315,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        // 3. Usamos el ID real en la URL
-        mockMvc.perform(post("/api/restaurants/" + realRestId + "/orders/9999/reject")
+        mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isNotFound()); 
