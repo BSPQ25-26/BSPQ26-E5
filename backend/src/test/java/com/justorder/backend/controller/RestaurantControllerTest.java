@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -91,7 +90,6 @@ public class RestaurantControllerTest {
 
     @Test
     public void testGetMenu() throws Exception {
-        // Fetch the first restaurant to get a valid ID dynamically
         Long restId = repository.findAll().get(0).getId();
         
         mockMvc.perform(get("/api/restaurants/" + restId + "/menu"))
@@ -281,12 +279,12 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // Garantizamos explícitamente que el estado Cancelled exista para el OrderService
+        // Garantizamos explícitamente que el estado Cancelled exista en este contexto
         if (orderStatusRepository.findByStatusIgnoreCase("Cancelled").isEmpty()) {
             orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
         }
 
-        // Filtramos para obtener de forma segura una orden que sí contenga Platos (Dishes) y Restaurante
+        // Filtramos para obtener de forma segura una orden que sí contenga Platos y Restaurante
         Order targetOrder = orderRepository.findAll().stream()
                 .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
                 .findFirst()
