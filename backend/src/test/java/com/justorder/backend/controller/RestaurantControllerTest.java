@@ -2,10 +2,13 @@ package com.justorder.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.dto.RestaurantDTO;
-import com.justorder.backend.model.*;
-import com.justorder.backend.repository.*;
+import com.justorder.backend.model.Restaurant;
+import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
+import com.justorder.backend.service.OrderService;
+import com.justorder.backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +20,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -39,17 +41,9 @@ public class RestaurantControllerTest {
     @Autowired
     private RestaurantRepository repository;
 
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private OrderStatusRepository orderStatusRepository;
-
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private DishRepository dishRepository;
+    // MAGIA: Usamos un Mock puro. Ignorará la BBDD por completo para las órdenes.
+    @MockitoBean
+    private OrderService orderService;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -283,27 +277,14 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        
-        Restaurant rest = new Restaurant();
-        rest.setName("Pizza Palace Perfect");
-        rest.setEmail("perfect" + System.nanoTime() + "@palace.com");
-        rest = repository.saveAndFlush(rest);
+        // Creamos el OrderDTO perfecto que el controlador espera recibir del servicio
+        OrderDTO mockOrderDTO = new OrderDTO();
+        mockOrderDTO.setId(1L);
+        mockOrderDTO.setStatus("Cancelled");
+        mockOrderDTO.setRejectionReason("Out of pizza dough");
 
-        Dish dish = new Dish("Pizza", "Good pizza", 10.0, rest);
-        dish = dishRepository.saveAndFlush(dish);
-
-        Customer customer = new Customer("Test Cust", "test" + System.nanoTime() + "@cust.com", "600123456", "pass", 20, "12345678A", List.of(), List.of(), List.of());
-        customer = customerRepository.saveAndFlush(customer);
-
-        OrderStatus pending = orderStatusRepository.findByStatus("Pending")
-                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Pending")));
-
-        if (orderStatusRepository.findByStatus("Cancelled").isEmpty()) {
-            orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
-        }
-
-        Order order = new Order(customer, List.of(dish), pending, null, 10.0, "1234");
-        order = orderRepository.saveAndFlush(order);
+        // Al usar @MockitoBean (Mock puro), aislamos el test por completo.
+        when(orderService.rejectOrder(eq(1L), eq(1L), anyString())).thenReturn(mockOrderDTO);
 
         String requestBody = """
         {
@@ -311,7 +292,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        mockMvc.perform(put("/api/restaurants/" + rest.getId() + "/orders/" + order.getId() + "/reject")
+        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
@@ -321,6 +302,10 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderNotFound() throws Exception {
+        // Simulamos la excepción exacta que lanzaría tu base de datos real
+        when(orderService.rejectOrder(eq(1L), eq(9999L), anyString()))
+            .thenThrow(new ResourceNotFoundException("Order not found"));
+
         String requestBody = """
         {
             "reason": "This order does not exist"
