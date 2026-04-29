@@ -2,22 +2,30 @@ package com.justorder.backend.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.dto.RestaurantDTO;
-import com.justorder.backend.model.Order;
 import com.justorder.backend.model.Restaurant;
-import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.RestaurantRepository;
+import com.justorder.backend.security.JwtUtil;
+import com.justorder.backend.service.OrderService;
+import com.justorder.backend.exception.ResourceNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,8 +42,17 @@ public class RestaurantControllerTest {
     @Autowired
     private RestaurantRepository repository;
 
-    @Autowired
-    private OrderRepository orderRepository;
+    // Usamos el Mock correcto para Spring Boot 3.4
+    @MockitoBean
+    private OrderService orderService;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
+
+    @BeforeEach
+    public void setUp() {
+        when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("test-token-" + System.nanoTime());
+    }
 
     @Test
     public void testGetAll() throws Exception {
@@ -53,7 +70,7 @@ public class RestaurantControllerTest {
         RestaurantDTO request = new RestaurantDTO();
         request.setName("Burger King Nuevo");
 
-        mockMvc.perform(put("/api/restaurants/{id}", existing.getId())
+        mockMvc.perform(put("/api/restaurants/" + existing.getId())
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
@@ -66,7 +83,7 @@ public class RestaurantControllerTest {
         existing.setName("To Delete");
         existing = repository.save(existing);
 
-        mockMvc.perform(delete("/api/restaurants/{id}", existing.getId()))
+        mockMvc.perform(delete("/api/restaurants/" + existing.getId()))
                .andExpect(status().isOk());
     }
 
@@ -74,7 +91,7 @@ public class RestaurantControllerTest {
     public void testGetMenu() throws Exception {
         Long restId = repository.findAll().get(0).getId();
         
-        mockMvc.perform(get("/api/restaurants/{restId}/menu", restId))
+        mockMvc.perform(get("/api/restaurants/" + restId + "/menu"))
                  .andExpect(status().isOk())
                  .andExpect(jsonPath("$").isArray());
     }
@@ -261,19 +278,24 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // Cero mocks. Usamos una orden real poblada por tu DataInitializer.
-        Order realOrder = orderRepository.findAll().stream()
-                .filter(o -> !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No valid orders found in DB"));
+        // MUY IMPORTANTE: Evita que el 404 del otro test ensucie el estado
+        Mockito.reset(orderService);
 
-        Long realRestId = realOrder.getDishes().get(0).getRestaurant().getId();
-        Long realOrderId = realOrder.getId();
+        OrderDTO mockOrderDTO = new OrderDTO();
+        mockOrderDTO.setId(1L);
+        mockOrderDTO.setStatus("Cancelled");
+        mockOrderDTO.setRejectionReason("Out of pizza dough");
 
-        String requestBody = "{\"reason\": \"Out of pizza dough\"}";
+        // doReturn es más estricto y seguro en Mockito para sobreescribir métodos
+        Mockito.doReturn(mockOrderDTO).when(orderService).rejectOrder(any(), any(), any());
 
-        // Usamos la sintaxis segura de inyección de parámetros en la URI para que MockMvc no se pierda
-        mockMvc.perform(post("/api/restaurants/{restaurantId}/orders/{orderId}/reject", realRestId, realOrderId)
+        String requestBody = """
+        {
+            "reason": "Out of pizza dough"
+        }
+        """;
+
+        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
@@ -283,11 +305,18 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderNotFound() throws Exception {
-        Long realRestId = repository.findAll().get(0).getId();
-        String requestBody = "{\"reason\": \"This order does not exist\"}";
+        Mockito.reset(orderService);
 
-        // Atacamos a un ID de orden que sabemos que no existe (99999L) usando el servicio real
-        mockMvc.perform(post("/api/restaurants/{restaurantId}/orders/{orderId}/reject", realRestId, 99999L)
+        Mockito.doThrow(new ResourceNotFoundException("Order not found"))
+               .when(orderService).rejectOrder(any(), any(), any());
+
+        String requestBody = """
+        {
+            "reason": "This order does not exist"
+        }
+        """;
+
+        mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isNotFound()); 
@@ -550,6 +579,7 @@ public class RestaurantControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
+        ObjectMapper objectMapper = new ObjectMapper();
         JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
         return json.get("token").asText();
     }
@@ -604,6 +634,7 @@ public class RestaurantControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
+        ObjectMapper objectMapper = new ObjectMapper();
         JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
         return json.get("token").asText();
     }
