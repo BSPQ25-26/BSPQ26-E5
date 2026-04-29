@@ -283,7 +283,7 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // 1. Creamos TODO el estado desde cero para garantizar un pedido perfecto.
+        
         Restaurant rest = new Restaurant();
         rest.setName("Pizza Palace Perfect");
         rest.setEmail("perfect" + System.nanoTime() + "@palace.com");
@@ -302,7 +302,6 @@ public class RestaurantControllerTest {
             orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
         }
 
-        // 2. Creamos la orden perfectamente vinculada
         Order order = new Order(customer, List.of(dish), pending, null, 10.0, "1234");
         order = orderRepository.saveAndFlush(order);
 
@@ -312,7 +311,6 @@ public class RestaurantControllerTest {
         }
         """;
 
-        // 3. Ya no usamos mocks. Ejecutamos contra el OrderService REAL de Spring Boot.
         mockMvc.perform(put("/api/restaurants/" + rest.getId() + "/orders/" + order.getId() + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
