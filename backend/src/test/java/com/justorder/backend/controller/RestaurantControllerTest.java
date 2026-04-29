@@ -1,15 +1,9 @@
 package com.justorder.backend.controller;
 
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import com.justorder.backend.service.OrderService;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Order;
-import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.RestaurantRepository;
@@ -17,16 +11,17 @@ import com.justorder.backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -46,9 +41,6 @@ public class RestaurantControllerTest {
 
     @Autowired
     private OrderRepository orderRepository;
-
-    @MockitoSpyBean
-    private OrderService orderService;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -282,7 +274,8 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        
+        // En lugar de mocks, vamos a usar integración total real.
+        // Buscamos cualquier pedido que el DataInitializer haya creado
         Order realOrder = orderRepository.findAll().stream()
                 .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
                 .findFirst()
@@ -291,20 +284,13 @@ public class RestaurantControllerTest {
         Long realOrderId = realOrder.getId();
         Long realRestaurantId = realOrder.getDishes().get(0).getRestaurant().getId();
 
-       
-        Order mockOrder = new Order();
-        mockOrder.setId(realOrderId);
-        mockOrder.setStatus(new OrderStatus("Cancelled"));
-        mockOrder.setRejectionReason("Out of pizza dough");
-
-        doReturn(mockOrder).when(orderService).rejectOrder(realRestaurantId, realOrderId, "Out of pizza dough");
-
         String requestBody = """
         {
             "reason": "Out of pizza dough"
         }
         """;
 
+        // Lanzamos la petición real que ejecutará el código completo de punta a punta
         mockMvc.perform(post("/api/restaurants/" + realRestaurantId + "/orders/" + realOrderId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
