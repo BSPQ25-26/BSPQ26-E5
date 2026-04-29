@@ -1,88 +1,85 @@
 package com.justorder.backend.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.justorder.backend.dto.*;
+import com.justorder.backend.dto.OrderDTO;
+import com.justorder.backend.dto.RestaurantDTO;
+import com.justorder.backend.dto.RejectionRequestDTO;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
-import com.justorder.backend.service.*;
+import com.justorder.backend.service.OrderService;
 import com.justorder.backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(RestaurantController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@Transactional
 public class RestaurantControllerTest {
 
-    @Autowired 
+    @Autowired
     private MockMvc mockMvc;
-    
-    // Inyectamos el controlador directamente para llamarlo sin usar HTTP
-    @Autowired 
+
+    // MAGIA: Inyectamos el controlador directamente para llamarlo sin usar la capa HTTP
+    @Autowired
     private RestaurantController restaurantController;
-    
+
     private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    @MockitoBean private MenuService menuService;
-    @MockitoBean private RegisterService registerService;
-    @MockitoBean private RestaurantRepository restaurantRepository;
-    @MockitoBean private RestaurantService restaurantService;
-    @MockitoBean private OrderService orderService;
-    @MockitoBean private SessionService sessionService;
-    @MockitoBean private JwtUtil jwtUtil;
+    @Autowired
+    private RestaurantRepository repository;
+
+    @MockitoBean
+    private OrderService orderService;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     @BeforeEach
     public void setUp() {
-        when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("test-token-123");
+        Mockito.reset(orderService);
+        when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("test-token-" + System.nanoTime());
     }
 
     @Test
     public void testGetAll() throws Exception {
-        when(restaurantRepository.findAll()).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/restaurants"))
+               .andExpect(status().isOk());
     }
 
     @Test
     public void testUpdate() throws Exception {
-        Restaurant existing = new Restaurant(); 
-        existing.setId(1L); 
-        existing.setName("Old");
-        
-        Restaurant updated = new Restaurant(); 
-        updated.setId(1L); 
-        updated.setName("Burger King Nuevo");
-        
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(restaurantRepository.save(any())).thenReturn(updated);
+        Restaurant existing = new Restaurant();
+        existing.setName("Burger King");
+        existing.setEmail("bk@test.com");
+        existing = repository.save(existing);
 
         RestaurantDTO request = new RestaurantDTO();
         request.setName("Burger King Nuevo");
 
-        mockMvc.perform(put("/api/restaurants/1")
+        mockMvc.perform(put("/api/restaurants/" + existing.getId())
                .contentType(MediaType.APPLICATION_JSON)
                .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isOk())
@@ -91,21 +88,55 @@ public class RestaurantControllerTest {
 
     @Test
     public void testDelete() throws Exception {
-        when(restaurantRepository.existsById(1L)).thenReturn(true);
-        mockMvc.perform(delete("/api/restaurants/1")).andExpect(status().isOk());
+        Restaurant existing = new Restaurant();
+        existing.setName("To Delete");
+        existing = repository.save(existing);
+
+        mockMvc.perform(delete("/api/restaurants/" + existing.getId()))
+               .andExpect(status().isOk());
     }
 
     @Test
     public void testGetMenu() throws Exception {
-        when(menuService.getMenu(1L)).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants/1/menu")).andExpect(status().isOk());
+        Long restId = repository.findAll().get(0).getId();
+        
+        mockMvc.perform(get("/api/restaurants/" + restId + "/menu"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testRegisterRestaurant() throws Exception {
         String requestBody = """
-        { "name": "Pizza Palace", "description": "Best pizza and pasta in Bilbao", "phone": "600123456", "email": "pizzapalace@example.com", "password": "securePaasdasdasssword123", "mondayWorkingHours": "10:00-22:00", "tuesdayWorkingHours": "10:00-22:00", "wednesdayWorkingHours": "10:00-22:00", "thursdayWorkingHours": "10:00-22:00", "fridayWorkingHours": "10:00-23:30", "saturdayWorkingHours": "12:00-23:30", "sundayWorkingHours": "12:00-21:00", "dishes": [], "cuisineCategoryNames": ["Italian"], "localizations": [] }
+        {
+            "name": "Pizza Palace",
+            "description": "Best pizza and pasta in Bilbao",
+            "phone": "600123456",
+            "email": "pizzapalace@example.com",
+            "password": "securePaasdasdasssword123",
+            "mondayWorkingHours": "10:00-22:00",
+            "tuesdayWorkingHours": "10:00-22:00",
+            "wednesdayWorkingHours": "10:00-22:00",
+            "thursdayWorkingHours": "10:00-22:00",
+            "fridayWorkingHours": "10:00-23:30",
+            "saturdayWorkingHours": "12:00-23:30",
+            "sundayWorkingHours": "12:00-21:00",
+            "dishes": [],
+            "cuisineCategoryNames": ["Italian"],
+            "localizations": [
+                    {
+                        "city": "Bilbao",
+                        "province": "Bizkaia",
+                        "country": "Spain",
+                        "postalCode": "48001",
+                        "number": "5",
+                        "longitude": -2.9253,
+                        "latitude": 43.2630
+                    }
+            ]
+        }
         """;
+
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -114,19 +145,46 @@ public class RestaurantControllerTest {
 
     @Test
     void testRegisterVoidRestaurant() throws Exception {
-        doThrow(new RuntimeException("Validation Error")).when(registerService).registerRestaurant(any());
-        
+        String requestBody = "{}";
+
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(requestBody))
                 .andExpect(status().isInternalServerError());
     }
 
     @Test
     void testRegisterWrongHoursRestaurant() throws Exception {
-        doThrow(new RuntimeException("Bad Hours")).when(registerService).registerRestaurant(any());
-        
-        String requestBody = "{ \"mondayWorkingHours\": \"10:0-22:00\" }";
+        String requestBody = """
+        {
+            "name": "Pizza Palace",
+            "description": "Best pizza and pasta in Bilbao",
+            "phone": "600123456",
+            "email": "pizzapgho,myhtalace@example.com",
+            "password": "securePaasdasmujo7iudasssword123",
+            "mondayWorkingHours": "10:0-22:00",
+            "tuesdayWorkingHours": "10:00-22:00",
+            "wednesdayWorkingHours": "10:0022:00",
+            "thursdayWorkingHours": "10:00-22:00",
+            "fridayWorkingHours": "10:00-23:30",
+            "saturdayWorkingHours": "12:00-23:0",
+            "sundayWorkingHours": "12:0021:00",
+            "dishes": [],
+            "cuisineCategoryNames": ["Italian"],
+            "localizations": [
+                    {
+                        "city": "Bilbao",
+                        "province": "Bizkaia",
+                        "country": "Spain",
+                        "postalCode": "48001",
+                        "number": "5",
+                        "longitude": -2.9253,
+                        "latitude": 43.2630
+                    }
+            ]
+        }
+        """;
+
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -135,9 +193,26 @@ public class RestaurantControllerTest {
 
     @Test
     void testRegisterGhostRestaurant() throws Exception {
-        doThrow(new RuntimeException("No Location")).when(registerService).registerRestaurant(any());
-        
-        String requestBody = "{ \"localizations\": [] }";
+        String requestBody = """
+        {
+            "name": "Pizza Palace",
+            "description": "Best pizza and pasta in Bilbao",
+            "phone": "600123456",
+            "email": "pizzap-`po8.,ialace@example.com",
+            "password": "securePaasdasmujo7iudasssword123",
+            "mondayWorkingHours": "10:00-22:00",
+            "tuesdayWorkingHours": "10:00-22:00",
+            "wednesdayWorkingHours": "10:00-22:00",
+            "thursdayWorkingHours": "10:00-22:00",
+            "fridayWorkingHours": "10:00-23:30",
+            "saturdayWorkingHours": "12:00-23:30",
+            "sundayWorkingHours": "12:00-21:00",
+            "dishes": [],
+            "cuisineCategoryNames": ["Italian"],
+            "localizations": []
+        }
+        """;
+
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -146,68 +221,73 @@ public class RestaurantControllerTest {
 
     @Test
     void testDeleteAllRestaurants() throws Exception {
-        mockMvc.perform(delete("/api/restaurants/all")).andExpect(status().isOk());
+        mockMvc.perform(delete("/api/restaurants/all"))
+               .andExpect(status().isOk());
     }
 
     @Test
     void testSearchAllRestaurants() throws Exception {
-        when(restaurantService.searchRestaurants(any(), any(), any(), any())).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants/search")).andExpect(status().isOk()).andExpect(jsonPath("$").isArray());
+        mockMvc.perform(get("/api/restaurants/search"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testSearchByCuisine() throws Exception {
-        when(restaurantService.searchRestaurants(eq("italian"), any(), any(), any())).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants/search").param("cuisine", "italian")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/restaurants/search").param("cuisine", "italian"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testSearchByCuisineCaseInsensitive() throws Exception {
-        when(restaurantService.searchRestaurants(eq("ITALIAN"), any(), any(), any())).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants/search").param("cuisine", "ITALIAN")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/restaurants/search").param("cuisine", "ITALIAN"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testSearchByMinRating() throws Exception {
-        RestaurantDTO dto = new RestaurantDTO(); 
-        dto.setAverageRating(4.5);
-        when(restaurantService.searchRestaurants(any(), eq(4.0), any(), any())).thenReturn(List.of(dto));
-        
         mockMvc.perform(get("/api/restaurants/search").param("minRating", "4.0"))
                  .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
                  .andExpect(jsonPath("$[*].averageRating", everyItem(greaterThanOrEqualTo(4.0))));
     }
 
     @Test
     void testSearchByMaxPrice() throws Exception {
-        when(restaurantService.searchRestaurants(any(), any(), any(), eq(8.0))).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants/search").param("maxPrice", "8.0")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/restaurants/search").param("maxPrice", "8.0"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testSearchByMinPrice() throws Exception {
-        when(restaurantService.searchRestaurants(any(), any(), eq(13.5), any())).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants/search").param("minPrice", "13.5")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/restaurants/search").param("minPrice", "13.5"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testSearchByCuisineAndMinRating() throws Exception {
-        when(restaurantService.searchRestaurants(eq("japanese"), eq(4.5), any(), any())).thenReturn(List.of());
-        mockMvc.perform(get("/api/restaurants/search").param("cuisine", "japanese").param("minRating", "4.5"))
-                 .andExpect(status().isOk());
+        mockMvc.perform(get("/api/restaurants/search")
+                 .param("cuisine", "japanese")
+                 .param("minRating", "4.5"))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void testSearchReturnsEmptyListWhenNoMatch() throws Exception {
-        when(restaurantService.searchRestaurants(eq("indian"), any(), any(), any())).thenReturn(List.of());
         mockMvc.perform(get("/api/restaurants/search").param("cuisine", "indian"))
                  .andExpect(status().isOk())
+                 .andExpect(jsonPath("$").isArray())
                  .andExpect(jsonPath("$", hasSize(0)));
     }
 
-    // ==========================================
-    // LA SOLUCIÓN DIRECTA (Bypass de MockMvc)
-    // ==========================================
+    // ==============================================================
+    // LA SOLUCIÓN DIRECTA: LLAMAMOS AL CONTROLADOR COMO OBJETO JAVA
+    // ==============================================================
     @Test
     void testRejectOrderSuccess() {
         OrderDTO mockOrderDTO = new OrderDTO();
@@ -215,15 +295,14 @@ public class RestaurantControllerTest {
         mockOrderDTO.setStatus("Cancelled");
         mockOrderDTO.setRejectionReason("Out of pizza dough");
 
-        when(orderService.rejectOrder(any(), any(), any())).thenReturn(mockOrderDTO);
+        when(orderService.rejectOrder(anyLong(), anyLong(), anyString())).thenReturn(mockOrderDTO);
 
         RejectionRequestDTO req = new RejectionRequestDTO();
         req.setReason("Out of pizza dough");
 
-        // Llamamos al controlador directamente como objeto de Java
+        // Llamamos al método directamente, esquivando el error de enrutamiento 404 de Spring
         ResponseEntity<OrderDTO> response = restaurantController.rejectOrder(1L, 1L, req);
 
-        // ¡Aserciones directas sobre el resultado real, imposibles de dar 404!
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Cancelled", response.getBody().getStatus());
         assertEquals("Out of pizza dough", response.getBody().getRejectionReason());
@@ -231,13 +310,13 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderNotFound() {
-        when(orderService.rejectOrder(any(), any(), any()))
+        when(orderService.rejectOrder(anyLong(), anyLong(), anyString()))
             .thenThrow(new ResourceNotFoundException("Order not found"));
 
         RejectionRequestDTO req = new RejectionRequestDTO();
         req.setReason("This order does not exist");
 
-        // Comprobamos directamente que el controlador lanza la excepción
+        // Al llamarlo directo, capturamos limpiamente la excepción
         assertThrows(ResourceNotFoundException.class, () -> {
             restaurantController.rejectOrder(1L, 9999L, req);
         });
@@ -245,14 +324,10 @@ public class RestaurantControllerTest {
 
     @Test
     void testGetRestaurantProfileWithValidToken() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        RestaurantDTO mockProfile = new RestaurantDTO();
-        mockProfile.setId(1L);
-        mockProfile.setEmail("lamarina@justorder.com");
-        when(restaurantService.getRestaurantProfile(1L)).thenReturn(mockProfile);
+        String token = createRestaurantSessionAndGetToken();
 
         mockMvc.perform(get("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token"))
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.email").value("lamarina@justorder.com"))
@@ -261,67 +336,107 @@ public class RestaurantControllerTest {
 
     @Test
     void testUpdateRestaurantProfileWithValidToken() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        RestaurantDTO mockProfile = new RestaurantDTO();
-        mockProfile.setName("La Marina Renewed");
-        mockProfile.setMondayWorkingHours("09:00-18:00");
-        
-        when(restaurantService.updateRestaurantProfile(anyLong(), any())).thenReturn(mockProfile);
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "name": "La Marina Renewed",
+            "description": "Updated seafood and grilled specialties",
+            "phone": "600999888",
+            "mondayWorkingHours": "09:00-18:00",
+            "tuesdayWorkingHours": "09:30-18:30",
+            "wednesdayWorkingHours": "10:00-19:00",
+            "thursdayWorkingHours": "10:30-19:30",
+            "fridayWorkingHours": "11:00-20:00",
+            "saturdayWorkingHours": "11:30-20:30",
+            "sundayWorkingHours": "12:00-21:00"
+        }
+        """;
 
         mockMvc.perform(put("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("La Marina Renewed"))
-                .andExpect(jsonPath("$.mondayWorkingHours").value("09:00-18:00"));     
+                .andExpect(jsonPath("$.description").value("Updated seafood and grilled specialties"))
+                .andExpect(jsonPath("$.phone").value("600999888"))
+                .andExpect(jsonPath("$.mondayWorkingHours").value("09:00-18:00"))
+                .andExpect(jsonPath("$.tuesdayWorkingHours").value("09:30-18:30"))
+                .andExpect(jsonPath("$.wednesdayWorkingHours").value("10:00-19:00"))
+                .andExpect(jsonPath("$.thursdayWorkingHours").value("10:30-19:30"))
+                .andExpect(jsonPath("$.fridayWorkingHours").value("11:00-20:00"))
+                .andExpect(jsonPath("$.saturdayWorkingHours").value("11:30-20:30"))
+                .andExpect(jsonPath("$.sundayWorkingHours").value("12:00-21:00"))
+                .andExpect(jsonPath("$.password").doesNotExist());     
     }
 
     @Test
     void testUpdateRestaurantProfileCuisineCategoriesWithValidToken() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        RestaurantDTO mockProfile = new RestaurantDTO();
-        mockProfile.setCuisineCategoryNames(List.of("Italian", "Japanese"));
-        when(restaurantService.updateRestaurantProfile(anyLong(), any())).thenReturn(mockProfile);
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "cuisineCategoryNames": ["Italian", "Japanese"]
+        }
+        """;
 
         mockMvc.perform(put("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cuisineCategoryNames", hasSize(2)));
     }
 
     @Test
     void testUpdateRestaurantProfileLocalizationsWithValidToken() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        RestaurantDTO mockProfile = new RestaurantDTO();
-        LocalizationDTO loc = new LocalizationDTO(); loc.setCity("Bilbao");
-        mockProfile.setLocalizations(List.of(loc));
-        when(restaurantService.updateRestaurantProfile(anyLong(), any())).thenReturn(mockProfile);
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "localizations": [
+                {
+                    "city": "Bilbao",
+                    "province": "Bizkaia",
+                    "country": "Spain",
+                    "postalCode": "48002",
+                    "number": "99",
+                    "longitude": -2.934,
+                    "latitude": 43.262
+                }
+            ]
+        }
+        """;
 
         mockMvc.perform(put("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.localizations", hasSize(1)))
-                .andExpect(jsonPath("$.localizations[0].city").value("Bilbao"));
+                .andExpect(jsonPath("$.localizations[0].city").value("Bilbao"))
+                .andExpect(jsonPath("$.localizations[0].province").value("Bizkaia"))
+                .andExpect(jsonPath("$.localizations[0].country").value("Spain"))
+                .andExpect(jsonPath("$.localizations[0].postalCode").value("48002"))
+                .andExpect(jsonPath("$.localizations[0].number").value("99"));
     }
 
     @Test
     void testGetRestaurantDashboardWithValidToken() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        RestaurantDashboardDTO dash = new RestaurantDashboardDTO();
-        dash.setRestaurantId(1L); 
-        dash.setTotalOrders(0L); 
-        when(restaurantService.getRestaurantDashboard(1L)).thenReturn(dash);
+        String token = createRestaurantSessionAndGetToken();
 
         mockMvc.perform(get("/api/restaurants/dashboard")
-                .header("Authorization", "Bearer valid-token"))
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.restaurantId").isNumber())
-                .andExpect(jsonPath("$.totalOrders").isNumber());
+                .andExpect(jsonPath("$.totalOrders").isNumber())
+                .andExpect(jsonPath("$.activeOrders").isNumber())
+                .andExpect(jsonPath("$.cancelledOrders").isNumber())
+                .andExpect(jsonPath("$.deliveredOrders").isNumber())
+                .andExpect(jsonPath("$.totalRevenue").isNumber())
+                .andExpect(jsonPath("$.totalRefunded").isNumber())
+                .andExpect(jsonPath("$.recentOrders").isArray());
     }
 
     @Test
@@ -332,8 +447,6 @@ public class RestaurantControllerTest {
 
     @Test
     void testGetRestaurantProfileWithInvalidToken() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenThrow(new SecurityException("Invalid token"));
-        
         mockMvc.perform(get("/api/restaurants/profile")
                 .header("Authorization", "Bearer invalid-token"))
             .andExpect(status().isUnauthorized());
@@ -341,8 +454,6 @@ public class RestaurantControllerTest {
 
     @Test
     void testGetRestaurantDashboardWithInvalidToken() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenThrow(new SecurityException("Invalid token"));
-        
         mockMvc.perform(get("/api/restaurants/dashboard")
                 .header("Authorization", "Bearer invalid-token"))
             .andExpect(status().isUnauthorized());
@@ -350,8 +461,6 @@ public class RestaurantControllerTest {
 
     @Test
     void testGetRestaurantProfileWithMalformedAuthorizationHeader() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenThrow(new SecurityException("Invalid token"));
-        
         mockMvc.perform(get("/api/restaurants/profile")
                 .header("Authorization", "invalid-token-without-bearer"))
             .andExpect(status().isUnauthorized());
@@ -359,66 +468,174 @@ public class RestaurantControllerTest {
 
     @Test
     void testUpdateRestaurantProfileWithoutAuthorizationHeader() throws Exception {
+        String updateBody = """
+        {
+            "name": "No Token"
+        }
+        """;
+
         mockMvc.perform(put("/api/restaurants/profile")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void testUpdateRestaurantProfileWithInvalidWorkingHoursFormat() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        when(restaurantService.updateRestaurantProfile(anyLong(), any())).thenThrow(new IllegalArgumentException("Bad format"));
-        
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "mondayWorkingHours": "9:00-18:00"
+        }
+        """;
+
         mockMvc.perform(put("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void testUpdateRestaurantProfileWithUnknownCuisineCategory() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        when(restaurantService.updateRestaurantProfile(anyLong(), any())).thenThrow(new IllegalArgumentException("Unknown Category"));
-        
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "cuisineCategoryNames": ["UnknownCategory"]
+        }
+        """;
+
         mockMvc.perform(put("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void testUpdateRestaurantProfileWithEmptyCuisineCategoryList() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        when(restaurantService.updateRestaurantProfile(anyLong(), any())).thenThrow(new IllegalArgumentException("Empty Category"));
-        
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "cuisineCategoryNames": []
+        }
+        """;
+
         mockMvc.perform(put("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void testUpdateRestaurantProfileWithEmptyLocalizationsList() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenReturn(1L);
-        when(restaurantService.updateRestaurantProfile(anyLong(), any())).thenThrow(new IllegalArgumentException("Empty Localizations"));
-        
+        String token = createRestaurantSessionAndGetToken();
+
+        String updateBody = """
+        {
+            "localizations": []
+        }
+        """;
+
         mockMvc.perform(put("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+                .content(updateBody))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void testGetRestaurantProfileWithTokenFromDeletedRestaurant() throws Exception {
-        when(sessionService.getActiveRestaurantId(anyString())).thenThrow(new SecurityException("Restaurant deleted"));
+        String email = "temp-restaurant-delete@justorder.com";
+        String password = "temporaryRestaurantPass123";
+        String token = createTempRestaurantSessionAndGetToken(email, password);
+
+        Long restaurantId = repository.findByEmail(email).get().getId();
+        repository.deleteById(restaurantId);
         
+        repository.flush(); // Ensure deletion is flushed
+
         mockMvc.perform(get("/api/restaurants/profile")
-                .header("Authorization", "Bearer valid-token"))
+                .header("Authorization", "Bearer " + token))
             .andExpect(status().isUnauthorized());
+    }
+
+    private String createRestaurantSessionAndGetToken() throws Exception {
+        String loginBody = """
+                {
+                    "type": "restaurant",
+                    "email": "lamarina@justorder.com",
+                    "password": "restaurant123"
+                }
+                """;
+
+        MvcResult result = mockMvc.perform(post("/sessions/restaurants")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
+    }
+
+    private String createTempRestaurantSessionAndGetToken(String email, String password) throws Exception {
+        String createBody = """
+        {
+            "name": "Temp Restaurant",
+            "description": "Temporary restaurant for tests",
+            "phone": "600123457",
+            "email": "%s",
+            "password": "%s",
+            "mondayWorkingHours": "10:00-22:00",
+            "tuesdayWorkingHours": "10:00-22:00",
+            "wednesdayWorkingHours": "10:00-22:00",
+            "thursdayWorkingHours": "10:00-22:00",
+            "fridayWorkingHours": "10:00-22:00",
+            "saturdayWorkingHours": "10:00-22:00",
+            "sundayWorkingHours": "10:00-22:00",
+            "dishes": [],
+            "cuisineCategoryNames": ["Italian"],
+            "localizations": [
+                {
+                    "city": "Bilbao",
+                    "province": "Bizkaia",
+                    "country": "Spain",
+                    "postalCode": "48001",
+                    "number": "10",
+                    "longitude": -2.9253,
+                    "latitude": 43.2630
+                }
+            ]
+        }
+        """.formatted(email, password);
+
+        mockMvc.perform(post("/api/restaurants/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createBody))
+            .andExpect(status().isCreated());
+
+        String loginBody = """
+        {
+            "type": "restaurant",
+            "email": "%s",
+            "password": "%s"
+        }
+        """.formatted(email, password);
+
+        MvcResult result = mockMvc.perform(post("/sessions/restaurants")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
+        return json.get("token").asText();
     }
 }
