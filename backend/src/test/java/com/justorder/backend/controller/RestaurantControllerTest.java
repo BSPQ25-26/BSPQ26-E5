@@ -83,7 +83,7 @@ public class RestaurantControllerTest {
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated()); // Corregido a isCreated() (201)
     }
 
     @Test
@@ -168,15 +168,16 @@ public class RestaurantControllerTest {
 
     @Test
     void testDeleteAllRestaurants() throws Exception {
-        mockMvc.perform(delete("/api/restaurants"))
+        // Corregido la ruta a /api/restaurants/all
+        mockMvc.perform(delete("/api/restaurants/all"))
                .andExpect(status().isOk());
     }
 
     @Test
     void testSearchAllRestaurants() throws Exception {
         mockMvc.perform(get("/api/restaurants/search"))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$").isArray());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
     }
     
     @Test
@@ -290,7 +291,7 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.fridayWorkingHours").value("11:00-20:00"))
                 .andExpect(jsonPath("$.saturdayWorkingHours").value("11:30-20:30"))
                 .andExpect(jsonPath("$.sundayWorkingHours").value("12:00-21:00"))
-                .andExpect(jsonPath("$.password").doesNotExist());             
+                .andExpect(jsonPath("$.password").doesNotExist());         
     }
 
     @Test
@@ -538,7 +539,7 @@ public class RestaurantControllerTest {
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(createBody))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated()); // Corregido a isCreated() (201)
 
         String loginBody = """
         {
