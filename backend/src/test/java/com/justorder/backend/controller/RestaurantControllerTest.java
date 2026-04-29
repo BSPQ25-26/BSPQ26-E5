@@ -277,14 +277,21 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // Creamos el OrderDTO perfecto que el controlador espera recibir del servicio
+        
+        Restaurant rest = new Restaurant();
+        rest.setName("Restaurante Prueba");
+        rest.setEmail("prueba" + System.nanoTime() + "@rest.com");
+        rest = repository.save(rest);
+        
+        Long restId = rest.getId();
+        Long orderId = 1L; 
+
         OrderDTO mockOrderDTO = new OrderDTO();
-        mockOrderDTO.setId(1L);
+        mockOrderDTO.setId(orderId);
         mockOrderDTO.setStatus("Cancelled");
         mockOrderDTO.setRejectionReason("Out of pizza dough");
 
-        // Al usar @MockitoBean (Mock puro), aislamos el test por completo.
-        when(orderService.rejectOrder(eq(1L), eq(1L), anyString())).thenReturn(mockOrderDTO);
+        when(orderService.rejectOrder(eq(restId), eq(orderId), anyString())).thenReturn(mockOrderDTO);
 
         String requestBody = """
         {
@@ -292,7 +299,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
+        mockMvc.perform(post("/api/restaurants/" + restId + "/orders/" + orderId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
@@ -302,8 +309,15 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderNotFound() throws Exception {
-        // Simulamos la excepción exacta que lanzaría tu base de datos real
-        when(orderService.rejectOrder(eq(1L), eq(9999L), anyString()))
+        
+        Restaurant rest = new Restaurant();
+        rest.setName("Restaurante Prueba 2");
+        rest.setEmail("prueba2" + System.nanoTime() + "@rest.com");
+        rest = repository.save(rest);
+
+        Long restId = rest.getId();
+
+        when(orderService.rejectOrder(eq(restId), eq(9999L), anyString()))
             .thenThrow(new ResourceNotFoundException("Order not found"));
 
         String requestBody = """
@@ -312,7 +326,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        mockMvc.perform(post("/api/restaurants/1/orders/9999/reject")
+        mockMvc.perform(post("/api/restaurants/" + restId + "/orders/9999/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isNotFound()); 
