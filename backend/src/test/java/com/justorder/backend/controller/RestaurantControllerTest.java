@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -282,16 +281,17 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        
+        // Garantizamos explícitamente que el estado Cancelled exista para el OrderService
         if (orderStatusRepository.findByStatusIgnoreCase("Cancelled").isEmpty()) {
             orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
         }
 
-        // Find an actual order to reject dynamically
-        List<Order> orders = orderRepository.findAll();
-        assertTrue(orders.size() > 0, "No orders found to test rejection");
+        // Filtramos para obtener de forma segura una orden que sí contenga Platos (Dishes) y Restaurante
+        Order targetOrder = orderRepository.findAll().stream()
+                .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No orders with dishes found for test. Ensure DataInitializer is working."));
         
-        Order targetOrder = orders.get(0);
         Long orderId = targetOrder.getId();
         Long restaurantId = targetOrder.getDishes().get(0).getRestaurant().getId();
 
