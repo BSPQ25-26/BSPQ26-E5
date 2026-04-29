@@ -1,16 +1,24 @@
+import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import MenuEditor from "../../pages/MenuEditor";
 import { fetchThroughNode } from "../utils/fetchThroughNode";
 
+
+const mockNavigate = jest.fn();
+
 jest.mock("react-router-dom", () => ({
     Link: ({ children, ...props }) => <a {...props}>{children}</a>,
+    useNavigate: () => mockNavigate, 
 }), { virtual: true });
 
 describe("MenuEditor", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         global.fetch = jest.fn(fetchThroughNode);
+        
+   
+        localStorage.setItem("user", JSON.stringify({ id: 1, name: "Test Rest" }));
     });
 
     test("loads allergens and dishes from live backend", async () => {
