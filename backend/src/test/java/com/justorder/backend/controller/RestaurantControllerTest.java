@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Order;
+import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.OrderRepository;
+import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +43,10 @@ public class RestaurantControllerTest {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    // AÑADIDO: Repositorio de estados para poder manipular el pedido
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -274,13 +280,19 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // En lugar de mocks, vamos a usar integración total real.
-        // Buscamos cualquier pedido que el DataInitializer haya creado
+        // 1. Buscamos cualquier pedido
         Order realOrder = orderRepository.findAll().stream()
                 .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No orders found for test. Ensure DataInitializer is working."));
         
+        // 2. FORZAMOS el estado a "Pending" para evitar el 404 por regla de negocio
+        OrderStatus pendingStatus = orderStatusRepository.findByStatus("Pending")
+                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Pending")));
+        
+        realOrder.setStatus(pendingStatus);
+        orderRepository.saveAndFlush(realOrder);
+
         Long realOrderId = realOrder.getId();
         Long realRestaurantId = realOrder.getDishes().get(0).getRestaurant().getId();
 
@@ -290,7 +302,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        // Lanzamos la petición real que ejecutará el código completo de punta a punta
+        // 3. Ejecutamos la petición
         mockMvc.perform(post("/api/restaurants/" + realRestaurantId + "/orders/" + realOrderId + "/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
