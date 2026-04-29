@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Order;
+import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.OrderRepository;
+import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +44,10 @@ public class RestaurantControllerTest {
     private RestaurantRepository repository;
     
     @Autowired
-    private OrderRepository orderRepository; // Added to get actual order IDs
+    private OrderRepository orderRepository; 
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository; // Añadido para asegurar estados
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -284,6 +289,11 @@ public class RestaurantControllerTest {
         Order targetOrder = orders.get(0);
         Long orderId = targetOrder.getId();
         Long restaurantId = targetOrder.getDishes().get(0).getRestaurant().getId();
+
+        // Asegurarnos de que el estado "Cancelled" existe por si DataInitializer se lo saltó en este contexto
+        if (orderStatusRepository.findByStatusIgnoreCase("Cancelled").isEmpty()) {
+            orderStatusRepository.save(new OrderStatus("Cancelled"));
+        }
 
         String requestBody = """
         {
