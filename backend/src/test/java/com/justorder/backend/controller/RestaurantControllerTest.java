@@ -1,13 +1,17 @@
 package com.justorder.backend.controller;
 
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import com.justorder.backend.service.OrderService;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justorder.backend.dto.RestaurantDTO;
 import com.justorder.backend.model.Order;
 import com.justorder.backend.model.OrderStatus;
 import com.justorder.backend.model.Restaurant;
-import com.justorder.backend.repository.OrderRepository;
-import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RestaurantRepository;
 import com.justorder.backend.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -40,12 +43,9 @@ public class RestaurantControllerTest {
 
     @Autowired
     private RestaurantRepository repository;
-    
-    @Autowired
-    private OrderRepository orderRepository; 
 
-    @Autowired
-    private OrderStatusRepository orderStatusRepository;
+    @MockitoSpyBean
+    private OrderService orderService;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -279,25 +279,12 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        
-        OrderStatus pendingStatus = orderStatusRepository.findByStatusIgnoreCase("Pending")
-                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Pending")));
-                
-        if (orderStatusRepository.findByStatusIgnoreCase("Cancelled").isEmpty()) {
-            orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
-        }
+        Order mockOrder = new Order();
+        mockOrder.setId(1L);
+        mockOrder.setStatus(new OrderStatus("Cancelled"));
+        mockOrder.setRejectionReason("Out of pizza dough");
 
-        Order targetOrder = orderRepository.findAll().stream()
-                .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty())
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No orders found for test. Ensure DataInitializer is working."));
-        
-        targetOrder.setStatus(pendingStatus);
-        targetOrder = orderRepository.saveAndFlush(targetOrder);
-
-        Long orderId = targetOrder.getId();
-        
-        Long restaurantId = targetOrder.getDishes().get(0).getRestaurant().getId();
+        doReturn(mockOrder).when(orderService).rejectOrder(anyLong(), anyLong(), anyString());
 
         String requestBody = """
         {
@@ -305,7 +292,7 @@ public class RestaurantControllerTest {
         }
         """;
 
-        mockMvc.perform(post("/api/restaurants/" + restaurantId + "/orders/" + orderId + "/reject")
+        mockMvc.perform(post("/api/restaurants/1/orders/1/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
