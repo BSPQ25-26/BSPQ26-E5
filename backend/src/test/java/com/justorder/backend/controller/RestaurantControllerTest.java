@@ -279,18 +279,24 @@ public class RestaurantControllerTest {
 
     @Test
     void testRejectOrderSuccess() throws Exception {
-        // Garantizamos explícitamente que el estado Cancelled exista en este contexto
+        
+        OrderStatus pendingStatus = orderStatusRepository.findByStatusIgnoreCase("Pending")
+                .orElseGet(() -> orderStatusRepository.saveAndFlush(new OrderStatus("Pending")));
+                
         if (orderStatusRepository.findByStatusIgnoreCase("Cancelled").isEmpty()) {
             orderStatusRepository.saveAndFlush(new OrderStatus("Cancelled"));
         }
 
-        // Filtramos para obtener de forma segura una orden que sí contenga Platos y Restaurante
         Order targetOrder = orderRepository.findAll().stream()
-                .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty() && o.getDishes().get(0).getRestaurant() != null)
+                .filter(o -> o.getDishes() != null && !o.getDishes().isEmpty())
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No orders with dishes found for test. Ensure DataInitializer is working."));
+                .orElseThrow(() -> new IllegalStateException("No orders found for test. Ensure DataInitializer is working."));
         
+        targetOrder.setStatus(pendingStatus);
+        targetOrder = orderRepository.saveAndFlush(targetOrder);
+
         Long orderId = targetOrder.getId();
+        
         Long restaurantId = targetOrder.getDishes().get(0).getRestaurant().getId();
 
         String requestBody = """
