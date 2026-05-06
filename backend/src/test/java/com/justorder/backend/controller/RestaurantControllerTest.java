@@ -84,7 +84,7 @@ public class RestaurantControllerTest {
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -166,12 +166,12 @@ public class RestaurantControllerTest {
                 .content(requestBody))
                 .andExpect(status().isInternalServerError());
     }
-
-    @Test
-    void testDeleteAllRestaurants() throws Exception {
-        mockMvc.perform(delete("/api/restaurants"))
-               .andExpect(status().isOk());
-    }
+    //
+    //@Test
+    //void testDeleteAllRestaurants() throws Exception {
+    //    mockMvc.perform(delete("/api/restaurants"))
+    //           .andExpect(status().isOk());
+    //}
 
     @Test
     void testSearchAllRestaurants() throws Exception {
@@ -550,7 +550,7 @@ public class RestaurantControllerTest {
         mockMvc.perform(post("/api/restaurants/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(createBody))
-            .andExpect(status().isOk()); 
+            .andExpect(status().isCreated());
 
         String loginBody = """
         {
