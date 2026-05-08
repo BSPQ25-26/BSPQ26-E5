@@ -6,6 +6,7 @@ import { loginAdmin } from '../../api/authApi';
 
 const mockNavigate = jest.fn();
 
+
 jest.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate
 }), { virtual: true });
