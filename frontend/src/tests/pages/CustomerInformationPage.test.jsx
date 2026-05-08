@@ -25,6 +25,7 @@ describe("CustomerInformationPage", () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+                type: "customer",
                 email: "customer@test.com",
                 password: "customer123"
             })
