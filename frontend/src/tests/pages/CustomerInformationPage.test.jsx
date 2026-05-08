@@ -6,7 +6,6 @@ import CustomerInformationPage from "../../pages/CustomerInformationPage";
 import { fetchThroughNode } from "../utils/fetchThroughNode";
 
 const mockNavigate = jest.fn();
-const DASHBOARD_URL = "http://localhost:8080/api/customers/1/dashboard";
 
 jest.mock("react-router-dom", () => ({
     Link: ({ children, to }) => <a href={to}>{children}</a>,
@@ -26,7 +25,6 @@ describe("CustomerInformationPage", () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                type: "customer",
                 email: "customer@test.com",
                 password: "customer123"
             })
@@ -36,7 +34,15 @@ describe("CustomerInformationPage", () => {
         const loginData = await loginResponse.json();
         const token = loginData.token;
 
-        const response = await fetchThroughNode(DASHBOARD_URL, {
+        const customersRes = await fetchThroughNode("http://localhost:8080/api/customers", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const customers = await customersRes.json();
+        const realCustomer = customers.find(c => c.email === "customer@test.com");
+        const realId = realCustomer ? realCustomer.id : 1;
+
+        const dynamicDashboardUrl = `http://localhost:8080/api/customers/${realId}/dashboard`;
+        const response = await fetchThroughNode(dynamicDashboardUrl, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -44,6 +50,9 @@ describe("CustomerInformationPage", () => {
             }
         });
         
+        if (!response.ok) {
+            console.error("Dashboard Error:", response.status, await response.text());
+        }
         expect(response.ok).toBe(true);
 
         const dashboard = await response.json();
@@ -65,7 +74,7 @@ describe("CustomerInformationPage", () => {
             expect(screen.getByText(`${Number(dashboard.totalSpent).toFixed(2)} EUR`)).toBeInTheDocument();
             expect(screen.getByText(`${Number(dashboard.totalRefunded).toFixed(2)} EUR`)).toBeInTheDocument();
 
-            if (dashboard.recentOrders.length > 0) {
+            if (dashboard.recentOrders && dashboard.recentOrders.length > 0) {
                 expect(screen.getByText(/Recent orders/i)).toBeInTheDocument();
             }
         });

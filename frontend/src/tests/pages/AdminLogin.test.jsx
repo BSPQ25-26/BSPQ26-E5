@@ -8,7 +8,7 @@ const mockNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
     useNavigate: () => mockNavigate
-}));
+}), { virtual: true });
 
 
 jest.mock('../../api/authApi', () => ({
