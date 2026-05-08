@@ -22,7 +22,7 @@ describe("CustomerInformationPage", () => {
 
     test("renders live dashboard data from the backend", async () => {
         
-        const loginResponse = await fetchThroughNode("http://localhost:8080/sessions/customers", {
+        const loginResponse = await fetchThroughNode("http://localhost:8080/sessions/users", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
