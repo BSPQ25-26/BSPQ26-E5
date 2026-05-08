@@ -35,7 +35,7 @@ describe("CustomerInformationPage", () => {
         const loginData = await loginResponse.json();
         
         const token = loginData.token;
-        const realId = loginData.id || 1; 
+        const realId = loginData.customer?.id || 1; 
 
         const dynamicDashboardUrl = `http://localhost:8080/api/customers/${realId}/dashboard`;
         const response = await fetchThroughNode(dynamicDashboardUrl, {
