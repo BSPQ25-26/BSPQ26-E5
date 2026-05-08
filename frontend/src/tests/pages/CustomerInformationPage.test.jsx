@@ -17,16 +17,39 @@ describe("CustomerInformationPage", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         global.fetch = fetchThroughNode;
+        localStorage.clear();
     });
 
     test("renders live dashboard data from the backend", async () => {
-        const response = await fetchThroughNode(DASHBOARD_URL);
+        
+        const loginResponse = await fetchThroughNode("http://localhost:8080/sessions/customers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "customer",
+                email: "customer@test.com",
+                password: "customer123"
+            })
+        });
+
+        expect(loginResponse.ok).toBe(true);
+        const loginData = await loginResponse.json();
+        const token = loginData.token;
+
+        const response = await fetchThroughNode(DASHBOARD_URL, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+        
         expect(response.ok).toBe(true);
 
         const dashboard = await response.json();
 
-        // Ensure the component treats a customer as logged in so it renders the dashboard
         localStorage.setItem("userType", "customer");
+        localStorage.setItem("token", token);
         localStorage.setItem(
             "user",
             JSON.stringify({ id: dashboard.customerId, name: dashboard.customerName || "Test Customer" })
@@ -35,6 +58,7 @@ describe("CustomerInformationPage", () => {
         render(<CustomerInformationPage />);
 
         expect(await screen.findByRole("heading", { name: /Information Dashboard/i })).toBeInTheDocument();
+        
         await waitFor(() => {
             expect(screen.getByText(`Customer: ${dashboard.customerName}`)).toBeInTheDocument();
             expect(screen.getByText("Total orders")).toBeInTheDocument();
