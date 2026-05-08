@@ -1,72 +1,92 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loginAdmin } from '../api/authApi';
-import '../assets/css/Register.css';
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import AdminLogin from '../../pages/AdminLogin';
+import { loginAdmin } from '../../api/authApi';
 
-function AdminLogin() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+const mockNavigate = jest.fn();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
+jest.mock('react-router-dom', () => ({
+    useNavigate: () => mockNavigate
+}), { virtual: true });
 
-        try {
-            const token = await loginAdmin(email, password);
-            localStorage.setItem('token', token);
-            localStorage.setItem('userRole', 'ROLE_ADMIN');
-            navigate('/admin-dashboard');
-        } catch (err) {
-            setError(err.message || 'Login failed. Please check your credentials.');
-        } finally {
-            setLoading(false);
-        }
-    };
+jest.mock('../../api/authApi', () => ({
+    loginAdmin: jest.fn()
+}));
 
-    return (
-        <div className="register-container">
-            <div className="register-card">
-                <h1>JustOrder Admin</h1>
-                <p>Administrator Login</p>
+describe('AdminLogin Component', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        localStorage.clear();
+    });
 
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="email">Email</label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
+    test('1. Renders the login form correctly', () => {
+        render(<AdminLogin />);
+        expect(screen.getByText(/JustOrder Admin/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Entrar/i })).toBeInTheDocument();
+    });
 
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
+    test('2. Updates input values as the user types', () => {
+        const { container } = render(<AdminLogin />);
+        const emailInput = container.querySelector('input[type="email"]');
+        const passInput = container.querySelector('input[type="password"]');
 
-                    {error && <div className="error-message">{error}</div>}
+        fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+        fireEvent.change(passInput, { target: { value: 'mysecretpass' } });
 
-                    <button type="submit" disabled={loading}>
-                        {loading ? 'Loading...' : 'Entrar'}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-}
+        expect(emailInput.value).toBe('test@example.com');
+        expect(passInput.value).toBe('mysecretpass');
+    });
 
-export default AdminLogin;
+    test('3. Logs in successfully, saves token and redirects', async () => {
+        loginAdmin.mockResolvedValueOnce('fake-token');
+        
+        const { container } = render(<AdminLogin />);
+        const emailInput = container.querySelector('input[type="email"]');
+        const passInput = container.querySelector('input[type="password"]');
+        
+        fireEvent.change(emailInput, { target: { value: 'admin@admin.com' } });
+        fireEvent.change(passInput, { target: { value: '1234' } });
+        fireEvent.click(screen.getByRole('button', { name: /Entrar/i }));
+
+        await waitFor(() => {
+            expect(localStorage.getItem('token')).toBe('fake-token');
+            expect(mockNavigate).toHaveBeenCalledWith('/admin-dashboard');
+        });
+    });
+
+    test('4. Shows an error message on failed login (Invalid Credentials)', async () => {
+        loginAdmin.mockRejectedValueOnce(new Error('Invalid credentials'));
+        
+        const { container } = render(<AdminLogin />);
+        const emailInput = container.querySelector('input[type="email"]');
+        const passInput = container.querySelector('input[type="password"]');
+        
+        fireEvent.change(emailInput, { target: { value: 'hacker@malomalisimo.com' } });
+        fireEvent.change(passInput, { target: { value: 'contraseñaincorrecta' } });
+        fireEvent.click(screen.getByRole('button', { name: /Entrar/i }));
+
+        await waitFor(() => {
+            expect(localStorage.getItem('token')).toBeNull();
+            expect(screen.getByText(/Invalid credentials/i)).toBeInTheDocument();
+        });
+    });
+
+    test('5. Handles network errors gracefully', async () => {
+        loginAdmin.mockRejectedValueOnce(new Error('Network Error'));
+        
+        const { container } = render(<AdminLogin />);
+        const emailInput = container.querySelector('input[type="email"]');
+        const passInput = container.querySelector('input[type="password"]');
+        
+        fireEvent.change(emailInput, { target: { value: 'admin@admin.com' } });
+        fireEvent.change(passInput, { target: { value: '1234' } });
+        fireEvent.click(screen.getByRole('button', { name: /Entrar/i }));
+
+        await waitFor(() => {
+            expect(localStorage.getItem('token')).toBeNull();
+            expect(mockNavigate).not.toHaveBeenCalled();
+            expect(screen.getByText(/Network Error/i)).toBeInTheDocument();
+        });
+    });
+});
