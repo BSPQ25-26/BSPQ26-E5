@@ -33,14 +33,9 @@ describe("CustomerInformationPage", () => {
 
         expect(loginResponse.ok).toBe(true);
         const loginData = await loginResponse.json();
+        
         const token = loginData.token;
-
-        const customersRes = await fetchThroughNode("http://localhost:8080/api/customers", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        const customers = await customersRes.json();
-        const realCustomer = customers.find(c => c.email === "customer@test.com");
-        const realId = realCustomer ? realCustomer.id : 1;
+        const realId = loginData.id || 1; 
 
         const dynamicDashboardUrl = `http://localhost:8080/api/customers/${realId}/dashboard`;
         const response = await fetchThroughNode(dynamicDashboardUrl, {
