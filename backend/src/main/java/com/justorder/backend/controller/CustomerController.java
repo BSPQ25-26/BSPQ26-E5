@@ -1,4 +1,3 @@
-```java id="c2k9m4"
 package com.justorder.backend.controller;
 
 import java.util.Comparator;
@@ -240,4 +239,3 @@ public class CustomerController {
         return ResponseEntity.ok(HttpStatus.OK);
     }
 }
-```
