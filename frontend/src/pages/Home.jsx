@@ -105,6 +105,13 @@ function Home() {
                                     >
                                         Sign up as rider
                                     </Link>
+                                    <Link
+                                        to="/register-restaurant"
+                                        className="dropdown-link"
+                                        onClick={() => setIsSignUpOpen(false)}
+                                    >
+                                        Sign up as restaurant
+                                    </Link>
                                 </div>
                             )}
                             
