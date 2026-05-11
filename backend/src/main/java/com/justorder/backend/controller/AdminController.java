@@ -7,6 +7,12 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * @brief Controller responsible for administrator-only operations.
+ *
+ * This controller provides endpoints that can only be accessed
+ * by users with the ADMIN role.
+ */
 @RestController
 @RequestMapping("/api/admin")
 @Tag(name = "Admin")
@@ -14,6 +20,15 @@ public class AdminController {
 
     // Si un usuario normal intenta entrar aquí, Spring le devolverá un Error 403 (Forbidden)
     // Solo si el Token trae el "ROLE_ADMIN", podrá leer esto.
+
+    /**
+     * @brief Returns the administrator dashboard access message.
+     *
+     * This endpoint is protected and requires the user
+     * to have the ADMIN role.
+     *
+     * @return ResponseEntity containing the dashboard access message.
+     */
     @GetMapping("/dashboard")
     @Operation(summary = "Admin dashboard (requires admin role)")
     public ResponseEntity<String> getAdminDashboard() {
