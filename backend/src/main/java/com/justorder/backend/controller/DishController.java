@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.exception.DishConflictException;
@@ -19,15 +23,22 @@ import com.justorder.backend.service.MenuService;
 
 @RestController
 @RequestMapping("/api/dishes")
+@Tag(name = "Dishes")
 public class DishController {
 
     @Autowired
     private MenuService menuService;
 
     // POST /api/dishes/{restaurantId} creates a new dish for the restaurant with the given id
+    @Operation(summary = "Create a dish for a restaurant")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Dish created"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "404", description = "Restaurant not found")
+    })
     @PostMapping("/{restaurantId}")
     public ResponseEntity<DishDTO> createDish(@PathVariable Long restaurantId,
-                                               @RequestBody DishDTO dishDTO) {
+                                               @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dish payload") @RequestBody DishDTO dishDTO) {
         try {
             if (dishDTO.getRestaurantId() != null && !dishDTO.getRestaurantId().equals(restaurantId)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -46,9 +57,10 @@ public class DishController {
     }
 
     // PUT /api/dishes/{dishId} updates an existing dish
+    @Operation(summary = "Update a dish")
     @PutMapping("/{dishId}")
     public ResponseEntity<DishDTO> updateDish(@PathVariable Long dishId,
-                                               @RequestBody DishDTO dishDTO) {
+                                               @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dish payload") @RequestBody DishDTO dishDTO) {
         try {
             DishDTO updated = menuService.updateDish(dishId, dishDTO);
             return ResponseEntity.ok(updated);
@@ -64,6 +76,7 @@ public class DishController {
     }
 
     // DELETE /api/dishes/{dishId} deletes the dish with the given id
+    @Operation(summary = "Delete a dish")
     @DeleteMapping("/{dishId}")
     public ResponseEntity<Void> deleteDish(@PathVariable Long dishId) {
         try {

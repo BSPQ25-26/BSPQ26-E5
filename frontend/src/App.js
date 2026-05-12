@@ -14,6 +14,7 @@ import CustomerMarketplace from "./pages/CustomerMarketplace";
 import CustomerInformationPage from "./pages/CustomerInformationPage";
 import RestaurantDetail from './pages/RestaurantDetail';
 import RestaurantOrderConfirmationView from "./pages/RestaurantOrderConfirmationView";
+import RestaurantDashboard from "./pages/RestaurantDashboard";
 import RestaurantInformationPage from "./pages/RestaurantInformationPage";
 import RiderInformationPage from "./pages/RiderInformationPage";
 import { CartProvider } from "./store/CartContext";
@@ -47,6 +48,7 @@ function App() {
 
           {/* User Profile and Dashboard Routes */}
           <Route path="/rider-dashboard" element={<RiderDashboard />} />
+          <Route path="/restaurant-dashboard" element={<RestaurantDashboard />} />
           <Route path="/customer-marketplace" element={<CustomerMarketplace />} />
           <Route path="/customer/profile" element={<CustomerInformationPage />} />
           <Route path="/restaurant/profile" element={<RestaurantInformationPage />} />

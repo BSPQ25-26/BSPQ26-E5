@@ -246,3 +246,16 @@ export const getRiderDashboard = async (token) => {
     if (!response.ok) throw new Error(text || "Error fetching rider dashboard");
     return text ? JSON.parse(text) : null;
 };
+
+export const rejectRestaurantOrder = async (restaurantId, orderId, reason, token) => {
+    const response = await fetch(`${API_URL}/restaurants/${restaurantId}/orders/${orderId}/reject`, {
+        method: "POST",
+        
+        headers: buildAuthHeaders(token), 
+        body: JSON.stringify({ reason }), 
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error rejecting order");
+    return text ? JSON.parse(text) : null;
+};
