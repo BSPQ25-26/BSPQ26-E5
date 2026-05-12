@@ -21,21 +21,24 @@ describe("CustomerInformationPage", () => {
 
     test("renders live dashboard data from the backend", async () => {
         
-        const loginResponse = await fetchThroughNode("http://localhost:8080/sessions/users", {
+        const loginResponse = await fetchThroughNode("http://localhost:8080/api/auth/customer/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                type: "customer",
                 email: "customer@test.com",
                 password: "customer123"
             })
         });
 
+        if (!loginResponse.ok) {
+            console.error("Login Error:", loginResponse.status, await loginResponse.text());
+        }
         expect(loginResponse.ok).toBe(true);
         const loginData = await loginResponse.json();
         
         const token = loginData.token;
-        const realId = loginData.customer?.id || 1; 
+
+        const realId = loginData.id || 1; 
 
         const dynamicDashboardUrl = `http://localhost:8080/api/customers/${realId}/dashboard`;
         const response = await fetchThroughNode(dynamicDashboardUrl, {
