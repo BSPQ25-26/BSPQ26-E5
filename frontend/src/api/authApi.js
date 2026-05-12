@@ -116,7 +116,6 @@ export const deleteDish = async (dishId) => {
 };
 
 export const loginUser = async (loginType, payload) => {
-
     const BASE_URL = "http://localhost:8080";
     let endpoint = "";
 
@@ -140,7 +139,6 @@ export const loginUser = async (loginType, payload) => {
 
     const data = await response.json();
 
-    // The backend returns { token, customer or rider or restaurant }.
     const user =
         (loginType === "customer" && data.customer) ||
         (loginType === "rider" && data.rider) ||
@@ -165,12 +163,10 @@ export const loginAdmin = async (email, password) => {
     return data.token;
 };
   
-export const getCustomerOrders = async (customerId) => {
+export const getCustomerOrders = async (customerId, token) => {
     const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: buildAuthHeaders(token),
     });
 
     const text = await response.text();
@@ -178,12 +174,10 @@ export const getCustomerOrders = async (customerId) => {
     return text ? JSON.parse(text) : [];
 };
 
-export const getCustomerDashboard = async (customerId) => {
+export const getCustomerDashboard = async (customerId, token) => {
     const response = await fetch(`${API_URL}/customers/${customerId}/dashboard`, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: buildAuthHeaders(token),
     });
 
     const text = await response.text();
@@ -250,7 +244,6 @@ export const getRiderDashboard = async (token) => {
 export const rejectRestaurantOrder = async (restaurantId, orderId, reason, token) => {
     const response = await fetch(`${API_URL}/restaurants/${restaurantId}/orders/${orderId}/reject`, {
         method: "POST",
-        
         headers: buildAuthHeaders(token), 
         body: JSON.stringify({ reason }), 
     });
