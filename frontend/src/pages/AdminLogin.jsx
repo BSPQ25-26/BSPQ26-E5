@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginAdmin } from '../api/authService';
+import { loginUser } from '../api/authApi';
 
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
@@ -12,8 +12,10 @@ const AdminLogin = () => {
         e.preventDefault();
         setError('');
         try {
-            const token = await loginAdmin(email, password);
-            localStorage.setItem('adminToken', token);
+            
+            const response = await loginUser('admin', { email, password });
+            
+            localStorage.setItem('adminToken', response.token);
             
             navigate('/admin/dashboard'); 
 
