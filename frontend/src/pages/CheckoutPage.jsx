@@ -229,9 +229,9 @@ const CheckoutPage = () => {
         </div>
       </div>
       {/* Browse restaurants button at the bottom */}
-      <div style={{padding: '40px 0 20px 0', textAlign: 'center'}}>
+      <div style={{ padding: '40px 0 20px 0', textAlign: 'center' }}>
         <Link to="/customer-marketplace" style={{ textDecoration: 'none', color: '#00cc66', fontWeight: 'bold', fontSize: '1.1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{fontSize: '1.5rem', lineHeight: 1}}>&larr;</span> Browse restaurants
+          <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>&larr;</span> Browse restaurants
         </Link>
       </div>
     </main>

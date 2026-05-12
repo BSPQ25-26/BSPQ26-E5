@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import RiderRejectionModal from '../components/RiderRejectionModal';
-import '../assets/css/Home.css'; 
-import '../assets/css/CustomerMarketplace.css'; 
+import '../assets/css/Home.css';
+import '../assets/css/CustomerMarketplace.css';
 import '../assets/css/RiderDashboard.css';
 
 function RiderDashboard() {
   const navigate = useNavigate();
-  
+
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [orderToReject, setOrderToReject] = useState(null);
@@ -24,19 +24,19 @@ function RiderDashboard() {
       })
       .then(data => {
         console.log("🚀 Raw data from DB:", data);
-        
+
         const formattedOrders = data.map((order, index) => ({
           ...order,
-          id: order.id || index + 100, 
+          id: order.id || index + 100,
           restaurantName: order.restaurantName || `Restaurant ID: ${order.customerId || 'N/A'}`,
           deliveryAddress: order.deliveryAddress || "Pending delivery address..."
         }));
-        
+
         const pending = formattedOrders.filter(o => o.status === "Pending" || !o.status);
         const accepted = formattedOrders.filter(o => o.status === "Accepted" || o.status === "In Progress");
-        
-        setNewOrders(pending); 
-        setAssignedOrders(accepted); 
+
+        setNewOrders(pending);
+        setAssignedOrders(accepted);
       })
       .catch(error => {
         console.error("Error loading orders:", error);
@@ -45,7 +45,7 @@ function RiderDashboard() {
 
   const handleSignOut = () => {
     setIsProfileMenuOpen(false);
-    navigate("/"); 
+    navigate("/");
   };
 
   const triggerRejection = (orderId) => {
@@ -96,38 +96,40 @@ function RiderDashboard() {
       <section className="home-shell">
         <header className="home-navbar">
           <div className="brand-group" aria-label="JustOrder home">
-            <h1 className="brand-title">JustOrder</h1>
+            <Link to="/rider-dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <h1 className="brand-title">JustOrder</h1>
+            </Link>
           </div>
 
-          <div className="home-header-right" style={{ position: 'relative' }}> 
+          <div className="home-header-right" style={{ position: 'relative' }}>
             <nav className="home-nav-links" aria-label="Main navigation">
               <div className="profile-menu-container" style={{ position: 'relative' }}>
-                <button 
-                  className="profile-avatar-btn" 
+                <button
+                  className="profile-avatar-btn"
                   aria-label="User profile"
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation(); 
+                    e.stopPropagation();
                     setIsProfileMenuOpen(!isProfileMenuOpen);
                   }}
-                  style={{ 
-                    width: '42px', 
-                    height: '42px', 
-                    borderRadius: '50%', 
-                    overflow: 'hidden', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    border: '2px solid #eaeaea', 
+                    border: '2px solid #eaeaea',
                     padding: '0',
                     background: 'none',
                     cursor: 'pointer',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
-                  <img 
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-                    alt="Profile Avatar" 
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                    alt="Profile Avatar"
                     className="profile-avatar-img"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
@@ -135,7 +137,7 @@ function RiderDashboard() {
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown" style={{
                     position: 'absolute',
-                    top: '55px', 
+                    top: '55px',
                     right: '0',
                     width: '180px',
                     backgroundColor: '#ffffff',
@@ -154,29 +156,29 @@ function RiderDashboard() {
                       }
                     `}</style>
 
-                    <Link 
-                      to="/rider/profile" 
-                      className="dropdown-item" 
+                    <Link
+                      to="/rider/profile"
+                      className="dropdown-item"
                       onClick={() => setIsProfileMenuOpen(false)}
                       style={dropdownItemStyle}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'} 
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
                       onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                     >
                       Information
                     </Link>
-                    
 
-                    <button 
-                      className="dropdown-item sign-out" 
+
+                    <button
+                      className="dropdown-item sign-out"
                       onClick={handleSignOut}
-                      style={{ 
-                        ...dropdownItemStyle, 
-                        color: '#ff4d4d', 
+                      style={{
+                        ...dropdownItemStyle,
+                        color: '#ff4d4d',
                         borderTop: '1px solid #eaeaea',
                         marginTop: '5px',
                         paddingTop: '15px'
                       }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#fff5f5'} 
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#fff5f5'}
                       onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                     >
                       Sign out
@@ -189,11 +191,11 @@ function RiderDashboard() {
           </div>
         </header>
         <div className="marketplace-content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
             <div>
               <h2 style={{ borderBottom: '2px solid #eaeaea', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.5rem' }}>New Order Requests</h2>
-              
+
               {newOrders.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   {newOrders.map(order => (
@@ -221,7 +223,7 @@ function RiderDashboard() {
             </div>
             <div>
               <h2 style={{ borderBottom: '2px solid #eaeaea', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.5rem' }}>My Assigned Orders</h2>
-              
+
               {assignedOrders.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   {assignedOrders.map(order => (
@@ -247,13 +249,13 @@ function RiderDashboard() {
           </div>
         </div>
         {showRejectionModal && orderToReject && (
-          <RiderRejectionModal 
-            orderId={orderToReject} 
+          <RiderRejectionModal
+            orderId={orderToReject}
             onClose={() => {
               setShowRejectionModal(false);
               setOrderToReject(null);
-            }} 
-            onSubmit={handleRejectionSubmit} 
+            }}
+            onSubmit={handleRejectionSubmit}
           />
         )}
       </section>

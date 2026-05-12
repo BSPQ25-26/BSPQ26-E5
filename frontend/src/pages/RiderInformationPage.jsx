@@ -24,6 +24,7 @@ function RiderInformationPage() {
     const [dashboard, setDashboard] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     const token = useMemo(() => localStorage.getItem("token") || "", []);
 
@@ -58,13 +59,48 @@ function RiderInformationPage() {
             <section className="home-shell">
                 <header className="home-navbar">
                     <div className="brand-group" aria-label="JustOrder home">
-                        <h1 className="brand-title">JustOrder</h1>
+                        <Link to="/rider-dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <h1 className="brand-title">JustOrder</h1>
+                        </Link>
                     </div>
-
-                    <div className="home-header-right">
+                    <div className="home-header-right" style={{ position: 'relative' }}>
                         <nav className="home-nav-links" aria-label="Main navigation">
-                            <Link to="/rider-dashboard" className="nav-link">Orders</Link>
-                            <button className="nav-link nav-link-button" onClick={handleSignOut} type="button">Sign out</button>
+                            <div className="profile-menu-container" style={{ position: 'relative' }}>
+                                <button
+                                    className="profile-avatar-btn"
+                                    aria-label="User profile"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setIsProfileMenuOpen((open) => !open);
+                                    }}
+                                    style={{
+                                        width: '42px',
+                                        height: '42px',
+                                        borderRadius: '50%',
+                                        overflow: 'hidden',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <img
+                                        src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                                        alt="Profile Avatar"
+                                        className="profile-avatar-img"
+                                    />
+                                </button>
+                                {isProfileMenuOpen && (
+                                    <div className="profile-dropdown" style={{ right: 0, left: 'auto' }}>
+                                        <Link to="/rider/profile" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
+                                            Information
+                                        </Link>
+                                        <button className="dropdown-item sign-out" onClick={handleSignOut}>
+                                            Sign out
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </nav>
                     </div>
                 </header>
@@ -147,26 +183,26 @@ function RiderInformationPage() {
                                 </div>
 
                                 <div className="customer-info-stats-grid rider-stats-grid">
-                                <article className="customer-info-stat-card">
-                                    <h3>Total orders</h3>
-                                    <p>{dashboard?.totalOrders ?? 0}</p>
-                                </article>
-                                <article className="customer-info-stat-card">
-                                    <h3>Pending orders</h3>
-                                    <p>{dashboard?.pendingOrders ?? 0}</p>
-                                </article>
-                                <article className="customer-info-stat-card">
-                                    <h3>In progress</h3>
-                                    <p>{dashboard?.inProgressOrders ?? 0}</p>
-                                </article>
-                                <article className="customer-info-stat-card">
-                                    <h3>Delivered</h3>
-                                    <p>{dashboard?.deliveredOrders ?? 0}</p>
-                                </article>
-                                <article className="customer-info-stat-card">
-                                    <h3>Cancelled</h3>
-                                    <p>{dashboard?.cancelledOrders ?? 0}</p>
-                                </article>
+                                    <article className="customer-info-stat-card">
+                                        <h3>Total orders</h3>
+                                        <p>{dashboard?.totalOrders ?? 0}</p>
+                                    </article>
+                                    <article className="customer-info-stat-card">
+                                        <h3>Pending orders</h3>
+                                        <p>{dashboard?.pendingOrders ?? 0}</p>
+                                    </article>
+                                    <article className="customer-info-stat-card">
+                                        <h3>In progress</h3>
+                                        <p>{dashboard?.inProgressOrders ?? 0}</p>
+                                    </article>
+                                    <article className="customer-info-stat-card">
+                                        <h3>Delivered</h3>
+                                        <p>{dashboard?.deliveredOrders ?? 0}</p>
+                                    </article>
+                                    <article className="customer-info-stat-card">
+                                        <h3>Cancelled</h3>
+                                        <p>{dashboard?.cancelledOrders ?? 0}</p>
+                                    </article>
                                 </div>
 
                                 <div className="rider-highlight-strip">
