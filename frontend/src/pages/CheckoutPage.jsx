@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Cart from "../components/Cart";
 import { useCart } from "../store/CartContext";
 import { readLoggedInCustomer } from "../utils/auth";
@@ -89,7 +89,7 @@ const CheckoutPage = () => {
       if (!response.ok) {
         throw new Error(
           data?.message ||
-            `Checkout failed with status ${response.status}. Check your cart or payment data.`
+          `Checkout failed with status ${response.status}. Check your cart or payment data.`
         );
       }
 
@@ -107,12 +107,59 @@ const CheckoutPage = () => {
     }
   };
 
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const handleSignOut = () => {
+    setIsProfileMenuOpen(false);
+    navigate("/");
+  };
+
   return (
     <main className="checkout-page">
+      <header className="home-navbar">
+        <div className="brand-group" aria-label="JustOrder home">
+          <Link to="/customer-marketplace" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <h1 className="brand-title">JustOrder</h1>
+          </Link>
+        </div>
+        <div className="home-header-right">
+          <nav className="home-nav-links" aria-label="Main navigation">
+            <div className="profile-menu-container">
+              <button
+                className="profile-avatar-btn"
+                aria-label="User profile"
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                  alt="Profile Avatar"
+                  className="profile-avatar-img"
+                />
+              </button>
+              {isProfileMenuOpen && (
+                <div className="profile-dropdown">
+                  <Link to="/orders" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
+                    My Orders
+                  </Link>
+                  <Link to="/customer/profile" className="dropdown-item" onClick={() => setIsProfileMenuOpen(false)}>
+                    Information
+                  </Link>
+                  <button className="dropdown-item sign-out" onClick={handleSignOut}>
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </nav>
+          <Link to="/checkout" className="cart-link" aria-label="Go to cart">
+            <img src={Cart ? require('../assets/images/Shopping cart.png') : ''} alt="Shopping cart" className="cart-icon" />
+          </Link>
+        </div>
+      </header>
       <div className="checkout-header">
         <h1>🛒 Shopping Cart & Checkout</h1>
         <p>Review your cart and complete your purchase</p>
       </div>
+
 
       <div className="checkout-steps">
         <div className="step active">
@@ -180,6 +227,12 @@ const CheckoutPage = () => {
             </div>
           )}
         </div>
+      </div>
+      {/* Browse restaurants button at the bottom */}
+      <div style={{padding: '40px 0 20px 0', textAlign: 'center'}}>
+        <Link to="/customer-marketplace" style={{ textDecoration: 'none', color: '#00cc66', fontWeight: 'bold', fontSize: '1.1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{fontSize: '1.5rem', lineHeight: 1}}>&larr;</span> Browse restaurants
+        </Link>
       </div>
     </main>
   );
