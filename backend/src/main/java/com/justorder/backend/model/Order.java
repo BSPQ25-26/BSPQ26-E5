@@ -19,6 +19,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 
@@ -54,7 +55,7 @@ public class Order {
      * The rider assigned to deliver this order.
      */
     @ManyToOne
-    @JoinColumn(name = "rider_id", nullable = false)
+    @JoinColumn(name = "rider_id", nullable = true)
     private Rider rider;
 
     /** Pre-calculated total price of all dishes in the order, in euros. */
@@ -82,7 +83,16 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime deliveredAt;
 
+    @OneToMany(mappedBy = "order", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @jakarta.persistence.OrderBy("timestamp ASC")
+    private List<OrderTimelineEvent> timelineEvents = new ArrayList<>();
+
     public Order() {
+    }
+
+    public void addTimelineEvent(String statusOrEvent, String details) {
+        OrderTimelineEvent event = new OrderTimelineEvent(this, statusOrEvent, details);
+        this.timelineEvents.add(event);
     }
 
 
@@ -113,6 +123,7 @@ public class Order {
     public String getRejectionReason() { return rejectionReason; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public List<OrderTimelineEvent> getTimelineEvents() { return timelineEvents; }
 
     // -------------------------------------------------------------------------
     // Setters
@@ -131,6 +142,7 @@ public class Order {
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+    public void setTimelineEvents(List<OrderTimelineEvent> timelineEvents) { this.timelineEvents = timelineEvents; }
 
     // -------------------------------------------------------------------------
     // Conversion
@@ -139,13 +151,16 @@ public class Order {
     public OrderDTO toDTO() {
         OrderDTO dto = new OrderDTO(
             this.id, this.customer.getId(), this.status.getStatus(),
-            this.rider.getId(), this.totalPrice, null
+            this.rider != null ? this.rider.getId() : null, this.totalPrice, null
         );
         dto.setRejectionReason(this.rejectionReason);
         dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
         dto.setRejectionReason(this.rejectionReason);
+        if (this.timelineEvents != null) {
+            dto.setTimeline(this.timelineEvents.stream().map(OrderTimelineEvent::toDTO).collect(Collectors.toList()));
+        }
         return dto;
     }
 }

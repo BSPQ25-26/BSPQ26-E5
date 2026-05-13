@@ -84,20 +84,42 @@ public class RiderController {
     }
 
     /**
-     * @brief Updates rider order status (placeholder endpoint).
+     * @brief Updates rider order status.
      *
-     * @param request Status update payload.
-     * @return HTTP 501 Not Implemented.
+     * @param riderId Rider identifier.
+     * @param orderId Order identifier.
+     * @param body Payload containing new status.
+     * @return Updated order or error status.
      */
-    @PostMapping("/orders")
-    @Operation(summary = "Update rider order status (placeholder)")
-    public ResponseEntity<HttpStatus> updateStatus(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                description = "Status payload"
-            )
-            @RequestBody String request) {
+    @PostMapping("/{riderId}/orders/{orderId}/status")
+    @Operation(summary = "Update assigned order status")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Status updated"),
+        @ApiResponse(responseCode = "400", description = "Bad request (e.g., trying to set Delivered without PIN)"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Not found")
+    })
+    public ResponseEntity<OrderDTO> updateOrderStatus(
+            @Parameter(description = "ID of the rider") @PathVariable Long riderId,
+            @Parameter(description = "ID of the order") @PathVariable Long orderId,
+            @RequestBody Map<String, String> body) {
 
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        String status = body.get("status");
+
+        if (status == null || status.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            OrderDTO updatedOrder = riderService.updateOrderStatus(riderId, orderId, status);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -140,6 +162,49 @@ public class RiderController {
             return ResponseEntity.ok(orders);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * @brief Retrieves unassigned available orders.
+     *
+     * @return List of unassigned orders.
+     */
+    @GetMapping("/orders/available")
+    @Operation(summary = "Get unassigned orders available for riders")
+    public ResponseEntity<List<OrderDTO>> getAvailableOrders() {
+        return ResponseEntity.ok(riderService.getAvailableOrders());
+    }
+
+    /**
+     * @brief Assigns an order to a rider.
+     *
+     * @param riderId Rider identifier.
+     * @param orderId Order identifier.
+     * @param request Order payload.
+     * @return Updated order or error status.
+     */
+    @PostMapping("/{riderId}/orders/{orderId}")
+    @Operation(summary = "Assign an available order to a rider")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order assigned"),
+        @ApiResponse(responseCode = "400", description = "Bad request (e.g., already assigned)"),
+        @ApiResponse(responseCode = "404", description = "Rider or order not found")
+    })
+    public ResponseEntity<OrderDTO> assignOrder(
+            @Parameter(description = "ID of the rider") @PathVariable Long riderId,
+            @Parameter(description = "ID of the order") @PathVariable Long orderId,
+            @RequestBody OrderDTO request) {
+
+        try {
+            OrderDTO updatedOrder = riderService.assignOrder(riderId, orderId, request);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
