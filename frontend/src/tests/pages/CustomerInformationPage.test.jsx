@@ -6,7 +6,6 @@ import CustomerInformationPage from "../../pages/CustomerInformationPage";
 import { fetchThroughNode } from "../utils/fetchThroughNode";
 
 const mockNavigate = jest.fn();
-const DASHBOARD_URL = "http://localhost:8080/api/customers/1/dashboard";
 
 jest.mock("react-router-dom", () => ({
     Link: ({ children, to }) => <a href={to}>{children}</a>,
@@ -17,19 +16,47 @@ describe("CustomerInformationPage", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         global.fetch = fetchThroughNode;
+        localStorage.clear();
+        localStorage.setItem("userType", "customer");
+        localStorage.setItem("token", "fake-token");
+        localStorage.setItem(
+            "user",
+            JSON.stringify({ id: 1, name: "Test Customer" })
+        );
     });
 
     test("renders live dashboard data from the backend", async () => {
-        const response = await fetchThroughNode(DASHBOARD_URL);
+        const LOGIN_URL = "http://localhost:8080/sessions/users";
+        const DASHBOARD_URL = "http://localhost:8080/api/customers/dashboard";
+
+        // Obtener un token real
+        const loginResponse = await fetchThroughNode(LOGIN_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: "customer@test.com", password: "customer123", type: "customer" })
+        });
+        
+        let token = "fake-token";
+        if (loginResponse.ok) {
+            const loginData = await loginResponse.json();
+            token = loginData.token;
+        }
+
+        const response = await fetchThroughNode(DASHBOARD_URL, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
         expect(response.ok).toBe(true);
 
         const dashboard = await response.json();
 
-        // Ensure the component treats a customer as logged in so it renders the dashboard
         localStorage.setItem("userType", "customer");
+        localStorage.setItem("token", token);
         localStorage.setItem(
             "user",
-            JSON.stringify({ id: dashboard.customerId, name: dashboard.customerName || "Test Customer" })
+            JSON.stringify({ id: dashboard.customerId || 1, name: dashboard.customerName || "Test Customer" })
         );
 
         render(<CustomerInformationPage />);

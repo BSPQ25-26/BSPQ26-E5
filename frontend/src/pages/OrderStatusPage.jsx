@@ -6,8 +6,6 @@ import "../assets/css/Home.css";
 import "../assets/css/CustomerMarketplace.css";
 import "../assets/css/OrderStatusPage.css";
 
-
-const CUSTOMER_ID = 1;
 const ORDER_CODE_STORAGE_KEY = "justorder:verificationCodes";
 
 const STATUS_CLASS = {
@@ -105,9 +103,16 @@ function OrderStatusPage() {
 
     const navigate = useNavigate();
 
-    // Auto-load orders on mount, no user input needed
+    // Auto-load orders on mount, using authentication token
     useEffect(() => {
-        getCustomerOrders(CUSTOMER_ID)
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setErrorMessage("You must be logged in to view your orders.");
+            setIsLoading(false);
+            return;
+        }
+
+        getCustomerOrders(token)
             .then((data) => {
                 const verificationCodes = readVerificationCodes();
                 const ordersWithCodes = data.map((order) => ({

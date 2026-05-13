@@ -150,12 +150,10 @@ export const loginUser = async (loginType, payload) => {
     return { isBypass: false, token: data.token, user };
 };
   
-export const getCustomerOrders = async (customerId) => {
-    const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
+export const getCustomerOrders = async (token) => {
+    const response = await fetch(`${API_URL}/customers/orders`, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: buildAuthHeaders(token),
     });
 
     const text = await response.text();
@@ -163,16 +161,25 @@ export const getCustomerOrders = async (customerId) => {
     return text ? JSON.parse(text) : [];
 };
 
-export const getCustomerDashboard = async (customerId) => {
-    const response = await fetch(`${API_URL}/customers/${customerId}/dashboard`, {
+export const getCustomerDashboard = async (token) => {
+    const response = await fetch(`${API_URL}/customers/dashboard`, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: buildAuthHeaders(token),
     });
 
     const text = await response.text();
     if (!response.ok) throw new Error(text || "Error fetching customer dashboard");
+    return text ? JSON.parse(text) : null;
+};
+
+export const getCustomerProfile = async (token) => {
+    const response = await fetch(`${API_URL}/customers/profile`, {
+        method: "GET",
+        headers: buildAuthHeaders(token),
+    });
+
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Error fetching customer profile");
     return text ? JSON.parse(text) : null;
 };
 

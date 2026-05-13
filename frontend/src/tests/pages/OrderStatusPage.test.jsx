@@ -38,6 +38,7 @@ describe("OrderStatusPage", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         localStorage.clear();
+        localStorage.setItem("token", "fake-token");
     });
 
     test("renders the page title on mount", async () => {
@@ -46,11 +47,12 @@ describe("OrderStatusPage", () => {
         expect(screen.getByRole("heading", { name: /My Orders/i })).toBeInTheDocument();
     });
 
-    test("loads orders for customer 1 automatically on mount", async () => {
+    test("loads orders automatically on mount with token", async () => {
+        localStorage.setItem("token", "fake-token");
         getCustomerOrders.mockResolvedValueOnce(mockOrders);
         await act(async () => { render(<OrderStatusPage />); });
 
-        expect(getCustomerOrders).toHaveBeenCalledWith(1);
+        expect(getCustomerOrders).toHaveBeenCalledWith("fake-token");
     });
 
     test("displays all orders after loading", async () => {

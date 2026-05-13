@@ -39,7 +39,9 @@ function CustomerInformationPage() {
             return;
         }
 
-        getCustomerDashboard(customer.id)
+        const token = localStorage.getItem("token"); // O de donde venga el token
+
+        getCustomerDashboard(token)
             .then((data) => setDashboard(data))
             .catch(() => setErrorMessage("Could not load your information dashboard. Please try again later."))
             .finally(() => setIsLoading(false));
