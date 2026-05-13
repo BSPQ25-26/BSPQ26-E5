@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMenuByRestaurantId, getRestaurantDashboard, rejectRestaurantOrder } from "../api/authApi"; 
+import { getMenuByRestaurantId, getRestaurantDashboard, rejectRestaurantOrder } from "../api/authApi";
 import RestaurantRejectionModal from "../components/RestaurantRejectionModal";
 import "../assets/css/Home.css";
-import "../assets/css/CustomerMarketplace.css"; 
+import "../assets/css/CustomerMarketplace.css";
 import "../assets/css/RestaurantDashboard.css";
 
 
@@ -18,18 +18,18 @@ const formatDate = (dateString) => {
 function RestaurantDashboard() {
     const [activeTab, setActiveTab] = useState("orders");
     const [menu, setMenu] = useState([]);
-    const [dashboardData, setDashboardData] = useState(null); 
-    
-    
+    const [dashboardData, setDashboardData] = useState(null);
+
+
     const [rejectingOrderId, setRejectingOrderId] = useState(null);
-    
+
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
-    const RESTAURANT_ID = storedUser?.id; 
+    const RESTAURANT_ID = storedUser?.id;
 
     useEffect(() => {
         if (!RESTAURANT_ID || !token) {
@@ -41,14 +41,14 @@ function RestaurantDashboard() {
             .then(data => setMenu(Array.isArray(data) ? data : []))
             .catch(err => console.error("Error cargando menú:", err));
 
-        
+
         getRestaurantDashboard(token)
             .then(data => setDashboardData(data))
             .catch(err => console.error("Error cargando dashboard:", err));
 
     }, [RESTAURANT_ID, token, navigate]);
 
-    
+
     const recentOrders = dashboardData?.recentOrders || [];
     const pendingOrders = recentOrders.filter(order => order.status === "Pending");
 
@@ -72,17 +72,17 @@ function RestaurantDashboard() {
     const handleConfirmReject = async (orderId, reason) => {
         try {
             await rejectRestaurantOrder(RESTAURANT_ID, orderId, reason, token);
-            
-            
+
+
             setDashboardData(prev => ({
                 ...prev,
-                recentOrders: prev.recentOrders.map(order => 
+                recentOrders: prev.recentOrders.map(order =>
                     order.id === orderId ? { ...order, status: "Cancelled" } : order
                 )
             }));
-            
-           
-            setRejectingOrderId(null); 
+
+
+            setRejectingOrderId(null);
         } catch (error) {
             console.error("Error rechazando el pedido:", error);
             alert("No se pudo rechazar el pedido. Comprueba la consola.");
@@ -94,13 +94,13 @@ function RestaurantDashboard() {
             <header className="home-navbar">
                 <div className="brand-group" aria-label="JustOrder home">
                     <button className="menu-button" type="button" aria-label="Open navigation menu"></button>
-                    <h1 className="brand-title">JustOrder</h1>
+                    <h1 className="brand-title" style={{ cursor: 'pointer' }} onClick={() => navigate('/restaurant-dashboard')}>JustOrder</h1>
                 </div>
                 <div className="home-header-right">
                     <nav className="home-nav-links" aria-label="Main navigation">
                         <div className="profile-menu-container" ref={dropdownRef}>
                             <button className="profile-avatar-btn" onClick={() => setShowDropdown(!showDropdown)}>
-                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chef" alt="Profile Avatar" className="profile-avatar-img"/>
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chef" alt="Profile Avatar" className="profile-avatar-img" />
                             </button>
                             {showDropdown && (
                                 <div className="profile-dropdown">
@@ -118,7 +118,7 @@ function RestaurantDashboard() {
             </header>
 
             <div className="dashboard-layout">
-                
+
                 <aside className="sidebar">
                     <button className={activeTab === "orders" ? "active" : ""} onClick={() => setActiveTab("orders")}>
                         Live Orders
@@ -132,7 +132,7 @@ function RestaurantDashboard() {
                 </aside>
 
                 <main className="dashboard-content">
-                    
+
                     {activeTab === "orders" && (
                         <div className="orders-section">
                             <h2>Live Orders</h2>
@@ -152,15 +152,15 @@ function RestaurantDashboard() {
                                                 </div>
                                                 <p style={{ fontSize: '13px', color: '#666', margin: '0 0 15px 0' }}>{formatDate(order.createdAt)}</p>
                                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                                    
-                                                    <button 
+
+                                                    <button
                                                         style={{ flex: 1, backgroundColor: '#00cc66', color: 'white', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}
                                                         onClick={() => alert("Backend team: Missing Accept endpoint!")}
                                                     >
                                                         Accept
                                                     </button>
-                                                    
-                                                    <button 
+
+                                                    <button
                                                         style={{ flex: 1, backgroundColor: '#fff', color: '#dc3545', border: '1px solid #dc3545', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}
                                                         onClick={() => setRejectingOrderId(order.id)}
                                                     >
@@ -195,7 +195,7 @@ function RestaurantDashboard() {
                                             <h3>{dish.name}</h3><p>{dish.description}</p><span className="price">{dish.price}€</span>
                                         </div>
                                     ))
-                                ) : ( <p>Loading dishes from database...</p> )}
+                                ) : (<p>Loading dishes from database...</p>)}
                             </div>
                         </div>
                     )}
@@ -227,14 +227,14 @@ function RestaurantDashboard() {
                     )}
                 </main>
             </div>
-{rejectingOrderId && (
-                <RestaurantRejectionModal 
-                    orderId={rejectingOrderId} 
-                    onClose={() => setRejectingOrderId(null)} 
-                    onSubmit={handleConfirmReject} 
+            {rejectingOrderId && (
+                <RestaurantRejectionModal
+                    orderId={rejectingOrderId}
+                    onClose={() => setRejectingOrderId(null)}
+                    onSubmit={handleConfirmReject}
                 />
             )}
-            
+
         </div>
     );
 }

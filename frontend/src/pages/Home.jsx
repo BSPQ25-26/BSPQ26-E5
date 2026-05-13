@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../api/authApi"; 
+import { loginUser } from "../api/authApi";
 import sushiImage from "../assets/images/delicioso-rollo-sushi-california-aguacate-anguila-pepino_1125744-1587.jpg";
 
 function Home() {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isSignUpOpen, setIsSignUpOpen] = useState(false);
     const [loginType, setLoginType] = useState("customer");
-    
+
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
-    
+
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
@@ -37,7 +37,7 @@ function Home() {
             if (loginType === "customer") navigate("/customer-marketplace");
             else if (loginType === "rider") navigate("/rider-dashboard");
             else if (loginType === "restaurant") navigate("/restaurant-dashboard");
-            
+
 
         } catch (error) {
             if (error.message === "Failed to fetch" || error.message.includes("NetworkError")) {
@@ -64,12 +64,12 @@ function Home() {
 
                     <div className="home-header-right">
                         <nav className="home-nav-links" aria-label="Main navigation">
-                            
-                   
 
-                            <button 
-                                className="nav-link nav-link-button" 
-                                type="button" 
+
+
+                            <button
+                                className="nav-link nav-link-button"
+                                type="button"
                                 onClick={() => {
                                     setIsLoginOpen(!isLoginOpen);
                                     setIsSignUpOpen(false);
@@ -114,43 +114,43 @@ function Home() {
                                     </Link>
                                 </div>
                             )}
-                            
+
 
                             {isLoginOpen && (
                                 <div className="home-dropdown home-login-dropdown">
                                     <div className="login-tabs">
-                                        <button 
+                                        <button
                                             onClick={() => handleTabSwitch('customer')}
                                             className={`login-tab ${loginType === 'customer' ? 'active' : ''}`}
                                         >Customer</button>
-                                        <button 
+                                        <button
                                             onClick={() => handleTabSwitch('rider')}
                                             className={`login-tab ${loginType === 'rider' ? 'active' : ''}`}
                                         >Rider</button>
-                                        <button 
+                                        <button
                                             onClick={() => handleTabSwitch('restaurant')}
                                             className={`login-tab ${loginType === 'restaurant' ? 'active' : ''}`}
                                         >Restaurant</button>
                                     </div>
 
                                     <form onSubmit={handleLogin} className="login-form">
-                                        <input 
-                                            type="email" 
+                                        <input
+                                            type="email"
                                             placeholder="Enter your Email"
                                             value={identifier}
                                             onChange={(e) => setIdentifier(e.target.value)}
                                             required
                                             className="login-input"
                                         />
-                                        <input 
-                                            type="password" 
-                                            placeholder="Password" 
+                                        <input
+                                            type="password"
+                                            placeholder="Password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                             className="login-input"
                                         />
-                                        <button 
+                                        <button
                                             type="submit"
                                             className="login-submit"
                                         >

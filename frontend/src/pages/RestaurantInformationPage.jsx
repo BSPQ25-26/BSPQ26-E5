@@ -61,6 +61,7 @@ function RestaurantInformationPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [showDropdown, setShowDropdown] = useState(false);
 
     const token = useMemo(() => localStorage.getItem("token") || "", []);
 
@@ -120,7 +121,7 @@ function RestaurantInformationPage() {
             const rawLat = String(formData.latitude || "").replace(",", ".").trim();
             const longitude = rawLng === "" ? null : Number(rawLng);
             const latitude = rawLat === "" ? null : Number(rawLat);
-            
+
             const localization = {
                 city: isBlank(formData.city) ? undefined : formData.city.trim(),
                 province: isBlank(formData.province) ? undefined : formData.province.trim(),
@@ -160,19 +161,36 @@ function RestaurantInformationPage() {
             <section className="home-shell">
                 <header className="home-navbar">
                     <div className="brand-group" aria-label="JustOrder home">
-                        <h1 className="brand-title">JustOrder</h1>
+                        <Link to="/restaurant-dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <h1 className="brand-title">JustOrder</h1>
+                        </Link>
                     </div>
                     <div className="home-header-right">
                         <nav className="home-nav-links" aria-label="Main navigation">
-                            <button className="nav-link nav-link-button" onClick={() => navigate(-1)} type="button">
-                                Back to Dashboard
-                            </button>
-                            <button className="nav-link nav-link-button" onClick={handleSignOut} type="button">
-                                Sign out
-                            </button>
+                            <div className="profile-menu-container">
+                                <button className="profile-avatar-btn" onClick={() => setShowDropdown(!showDropdown)}>
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chef" alt="Profile Avatar" className="profile-avatar-img" />
+                                </button>
+                                {showDropdown && (
+                                    <div className="profile-dropdown">
+                                        <button className="dropdown-item" onClick={() => { setShowDropdown(false); navigate("/restaurant/profile"); }}>
+                                            My Information
+                                        </button>
+                                        <button className="dropdown-item sign-out" onClick={handleSignOut}>
+                                            Sign out
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </nav>
                     </div>
                 </header>
+                {/* Back to main restaurant page button at the bottom */}
+                <div style={{ padding: '40px 0 20px 0', textAlign: 'center' }}>
+                    <button className="nav-link nav-link-button" onClick={() => navigate('/restaurant-dashboard')}>
+                        Return to Restaurant Dashboard
+                    </button>
+                </div>
 
                 <div className="restaurant-info-content">
                     <div className="restaurant-info-header">
@@ -182,10 +200,10 @@ function RestaurantInformationPage() {
                     {isLoading && <p className="restaurant-info-loading">Loading your restaurant data...</p>}
                     {errorMessage && <p className="restaurant-info-error">{errorMessage}</p>}
                     {successMessage && <p className="restaurant-info-success">{successMessage}</p>}
-                    
+
                     {!isLoading && !errorMessage && (
                         <>
-                            
+
                             <div className="restaurant-info-stats-grid">
                                 <article className="restaurant-info-stat-card"><h3>Total orders</h3><p>{dashboard?.totalOrders ?? 0}</p></article>
                                 <article className="restaurant-info-stat-card"><h3>Active orders</h3><p>{dashboard?.activeOrders ?? 0}</p></article>

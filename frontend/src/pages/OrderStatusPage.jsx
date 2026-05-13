@@ -11,12 +11,12 @@ const CUSTOMER_ID = 1;
 const ORDER_CODE_STORAGE_KEY = "justorder:verificationCodes";
 
 const STATUS_CLASS = {
-    "Pending":          "status-Pending",
-    "Confirmed":        "status-Confirmed",
-    "Preparing":        "status-Preparing",
+    "Pending": "status-Pending",
+    "Confirmed": "status-Confirmed",
+    "Preparing": "status-Preparing",
     "Out for Delivery": "status-OutForDelivery",
-    "Delivered":        "status-Delivered",
-    "Cancelled":        "status-Cancelled",
+    "Delivered": "status-Delivered",
+    "Cancelled": "status-Cancelled",
 };
 
 const formatPrice = (value) => `${Number(value).toFixed(2)} €`;
@@ -135,10 +135,9 @@ function OrderStatusPage() {
                 {/* Navbar, same as CustomerMarketplace */}
                 <header className="home-navbar">
                     <div className="brand-group" aria-label="JustOrder home">
-                        <button className="menu-button" type="button" aria-label="Open navigation menu">
-                            <span /><span /><span />
-                        </button>
-                        <h1 className="brand-title">JustOrder</h1>
+                        <Link to="/customer-marketplace" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <h1 className="brand-title">JustOrder</h1>
+                        </Link>
                     </div>
 
                     <div className="home-header-right">
@@ -242,6 +241,12 @@ function OrderStatusPage() {
                             )}
                         </>
                     )}
+                </div>
+                {/* Browse restaurants button at the bottom */}
+                <div style={{ padding: '40px 0 20px 0', textAlign: 'center' }}>
+                    <Link to="/customer-marketplace" style={{ textDecoration: 'none', color: '#00cc66', fontWeight: 'bold', fontSize: '1.1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>&larr;</span> Browse restaurants
+                    </Link>
                 </div>
             </section>
         </main>
