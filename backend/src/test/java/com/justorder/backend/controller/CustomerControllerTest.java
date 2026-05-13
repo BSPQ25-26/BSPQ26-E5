@@ -27,7 +27,7 @@ class CustomerControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Test

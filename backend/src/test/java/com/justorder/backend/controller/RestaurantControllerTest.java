@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class RestaurantControllerTest {
 
-    @MockitoBean
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Autowired

@@ -20,7 +20,7 @@ class HelloControllerTest {
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @MockitoBean
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Test
