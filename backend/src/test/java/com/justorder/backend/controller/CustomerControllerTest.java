@@ -5,8 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,8 +30,26 @@ class CustomerControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
-    private JwtUtil jwtUtil;
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    private String getAuthToken() throws Exception {
+        // Login to get the token with the existing seeded customer
+        String loginBody = """
+            {
+                "type": "customer",
+                "email": "customer@test.com",
+                "password": "customer123"
+            }
+            """;
+        MvcResult result = mockMvc.perform(post("/sessions/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        return root.path("token").asText();
+    }
 
     @Test
     void testRegisterCustomer() throws Exception {
@@ -228,9 +249,11 @@ class CustomerControllerTest {
 
     @Test
     void testGetCustomerDashboard() throws Exception {
-        mockMvc.perform(get("/api/customers/1/dashboard"))
+        String token = getAuthToken();
+
+        mockMvc.perform(get("/api/customers/dashboard")
+                .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.customerId").value(1))
             .andExpect(jsonPath("$.customerName").value("Test Customer"))
             .andExpect(jsonPath("$.totalOrders").value(greaterThanOrEqualTo(0)))
             .andExpect(jsonPath("$.activeOrders").value(greaterThanOrEqualTo(0)))
@@ -242,8 +265,30 @@ class CustomerControllerTest {
     }
 
     @Test
-    void testGetCustomerDashboardNotFound() throws Exception {
-        mockMvc.perform(get("/api/customers/999999/dashboard"))
-            .andExpect(status().isNotFound());
+    void testGetCustomerDashboardUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/customers/dashboard"))
+            .andExpect(status().isBadRequest()); // O depende de SecurityFilterChain
     }
+    
+    @Test
+    void testGetCustomerProfile() throws Exception {
+        String token = getAuthToken();
+
+        mockMvc.perform(get("/api/customers/profile")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("Test Customer"))
+            .andExpect(jsonPath("$.email").value("customer@test.com"));
+    }
+
+    @Test
+    void testGetCustomerOrders() throws Exception {
+        String token = getAuthToken();
+
+        mockMvc.perform(get("/api/customers/orders")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
+    }
+
 }

@@ -22,6 +22,7 @@ import com.justorder.backend.model.Order;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.service.RegisterService;
+import com.justorder.backend.service.SessionService;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,13 +43,16 @@ public class CustomerController {
     private final RegisterService registerService;
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
+    private final SessionService sessionService;
 
     public CustomerController(RegisterService registerService,
                               CustomerRepository customerRepository,
-                              OrderRepository orderRepository) {
+                              OrderRepository orderRepository,
+                              SessionService sessionService) {
         this.registerService = registerService;
         this.customerRepository = customerRepository;
         this.orderRepository = orderRepository;
+        this.sessionService = sessionService;
     }
 
     /**
@@ -113,45 +117,73 @@ public class CustomerController {
     }
 
     /**
-     * @brief Retrieves a customer by ID.
+     * @brief Retrieves a customer profile.
      *
-     * @param customerId Unique identifier of the customer.
-     * @return HTTP 501 Not Implemented (current placeholder).
+     * @return HTTP 200 with profile data, HTTP 401 if unauthorized, or HTTP 404 if not found.
      */
-    @GetMapping("/{customerId}")
-    @Operation(summary = "Get customer by id")
-    public ResponseEntity<CustomerDTO> getCustomer(
-            @Parameter(description = "Customer id")
-            @PathVariable Long customerId) {
+    @GetMapping("/profile")
+    @Operation(summary = "Get my customer profile")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Profile retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
+    public ResponseEntity<CustomerDTO> getCustomerProfile(
+            @Parameter(description = "Authorization header: Bearer <token>")
+            @RequestHeader("Authorization") String authorization) {
 
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        try {
+            Long customerId = sessionService.getActiveCustomerId(authorization);
+            logger.info("GET /api/customers/profile - profile request for customer {}", customerId);
+            Customer customer = customerRepository.findById(customerId).orElse(null);
+            if (customer == null) {
+                logger.warn("Customer {} not found for profile", customerId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            return ResponseEntity.ok(customer.toDTO());
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     /**
      * @brief Retrieves all orders for a given customer.
      *
-     * @param customerId Customer identifier.
-     * @return List of orders if customer exists, otherwise HTTP 404.
+     * @return List of orders if customer exists, otherwise HTTP 404 or 401.
      */
-    @GetMapping("/{customerId}/orders")
-    @Operation(summary = "Get orders for a customer")
-    public ResponseEntity<List<OrderDTO>> getCustomerOrders(
-            @Parameter(description = "Customer id")
-            @PathVariable Long customerId) {
+    @GetMapping("/orders")
+    @Operation(summary = "Get my orders")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Orders retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
+    public ResponseEntity<List<OrderDTO>> getMyOrders(
+            @Parameter(description = "Authorization header: Bearer <token>")
+            @RequestHeader("Authorization") String authorization) {
 
-        logger.info("GET /api/customers/{}/orders - fetching orders", customerId);
+        try {
+            Long customerId = sessionService.getActiveCustomerId(authorization);
+            logger.info("GET /api/customers/orders - fetching orders for customer {}", customerId);
 
-        if (!customerRepository.existsById(customerId)) {
-            logger.warn("Customer {} not found when requesting orders", customerId);
+            if (!customerRepository.existsById(customerId)) {
+                logger.warn("Customer {} not found when requesting orders", customerId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            List<OrderDTO> orders = orderRepository.findByCustomerId(customerId)
+                    .stream()
+                    .map(order -> order.toDTO())
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(orders);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        List<OrderDTO> orders = orderRepository.findByCustomerId(customerId)
-                .stream()
-                .map(order -> order.toDTO())
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(orders);
     }
 
     /**
@@ -159,18 +191,24 @@ public class CustomerController {
      *
      * Includes order statistics, spending, refunds, and recent orders.
      *
-     * @param customerId Customer identifier.
-     * @return Aggregated dashboard data or HTTP 404 if not found.
+     * @return Aggregated dashboard data or HTTP 404/401 if unauthorized.
      */
-    @GetMapping("/{customerId}/dashboard")
-    @Operation(summary = "Get customer dashboard")
-    public ResponseEntity<CustomerDashboardDTO> getCustomerDashboard(
-            @Parameter(description = "Customer id")
-            @PathVariable Long customerId) {
+    @GetMapping("/dashboard")
+    @Operation(summary = "Get my dashboard")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Dashboard retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Customer not found")
+    })
+    public ResponseEntity<CustomerDashboardDTO> getMyDashboard(
+            @Parameter(description = "Authorization header: Bearer <token>")
+            @RequestHeader("Authorization") String authorization) {
 
-        logger.info("GET /api/customers/{}/dashboard - dashboard requested", customerId);
+        try {
+            Long customerId = sessionService.getActiveCustomerId(authorization);
+            logger.info("GET /api/customers/dashboard - dashboard requested for customer {}", customerId);
 
-        Customer customer = customerRepository.findById(customerId).orElse(null);
+            Customer customer = customerRepository.findById(customerId).orElse(null);
 
         if (customer == null) {
             logger.warn("Customer {} not found for dashboard", customerId);
@@ -220,6 +258,11 @@ public class CustomerController {
         );
 
         return ResponseEntity.ok(dashboard);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     /**

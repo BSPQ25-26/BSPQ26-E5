@@ -71,6 +71,25 @@ public class SessionService {
         return riderId;
     }
 
+    public Long getActiveCustomerId(String authorizationHeader) {
+        String token = extractToken(authorizationHeader);
+        if (token == null || token.isBlank()) {
+            throw new SecurityException("Authorization token is required");
+        }
+
+        Long customerId = activeTokens.get("customer").get(token);
+        if (customerId == null) {
+            throw new SecurityException("Invalid or expired customer token");
+        }
+
+        if (!customerRepository.existsById(customerId)) {
+            activeTokens.get("customer").remove(token);
+            throw new SecurityException("Customer not found for token");
+        }
+
+        return customerId;
+    }
+
     private String extractToken(String authorizationHeader) {
         if (authorizationHeader == null || authorizationHeader.isBlank()) {
             return null;
