@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
  */
 @RestController
 @RequestMapping("/sessions")
-@Tag(name = "Sessions")
+@Tag(name = "Sessions", description = "User, rider, and restaurant session login/logout endpoints.")
 public class SessionController {
 
     private final SessionService sessionService;

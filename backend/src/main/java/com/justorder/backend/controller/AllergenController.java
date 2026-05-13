@@ -24,7 +24,7 @@ import com.justorder.backend.service.AllergenService;
  */
 @RestController
 @RequestMapping("/api/allergens")
-@Tag(name = "Allergens")
+@Tag(name = "Allergens", description = "Endpoints for retrieving and managing allergen data.")
 public class AllergenController {
 
     @Autowired

@@ -24,7 +24,7 @@ import com.justorder.backend.service.MenuService;
  */
 @RestController
 @RequestMapping("/api/dishes")
-@Tag(name = "Dishes")
+@Tag(name = "Dishes", description = "Endpoints for restaurant dish management, including creation, updates, and deletion.")
 public class DishController {
 
     @Autowired
