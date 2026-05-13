@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @RestController
 @RequestMapping("/api")
-@Tag(name = "General")
+@Tag(name = "General", description = "Basic API health check and general test endpoints.")
 public class HelloController {
 
     private static final Logger logger = LogManager.getLogger(HelloController.class);

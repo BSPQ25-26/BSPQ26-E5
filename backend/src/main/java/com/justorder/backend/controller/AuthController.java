@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
- 
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.Optional;
 
@@ -24,6 +24,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth", description = "Authentication endpoints for admin users and JWT token issuance.")
 public class AuthController {
 
     @Autowired

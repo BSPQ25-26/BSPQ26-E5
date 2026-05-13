@@ -38,7 +38,7 @@ import com.justorder.backend.service.SessionService;
  */
 @RestController
 @RequestMapping("/api/restaurants")
-@Tag(name = "Restaurants")
+@Tag(name = "Restaurants", description = "API endpoints for restaurant registration, profile management, menus, and orders.")
 public class RestaurantController {
 
     private static final Logger logger = LogManager.getLogger(RestaurantController.class);

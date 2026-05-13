@@ -14,6 +14,7 @@ import com.justorder.backend.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @brief Controller responsible for order management operations.
@@ -22,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
  */
 @RestController
 @RequestMapping("/api/orders")
+@Tag(name = "Orders", description = "Endpoints to create and manage orders through checkout operations.")
 public class OrderController {
 
     private static final Logger logger = LogManager.getLogger(OrderController.class);

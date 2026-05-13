@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @RestController
 @RequestMapping("/api/admin")
-@Tag(name = "Admin")
+@Tag(name = "Admin", description = "Administrator-only endpoints for managing admin operations.")
 public class AdminController {
 
     // Si un usuario normal intenta entrar aquí, Spring le devolverá un Error 403 (Forbidden)

@@ -34,7 +34,7 @@ import org.apache.logging.log4j.Logger;
  */
 @RestController
 @RequestMapping("/api/customers")
-@Tag(name = "Customers")
+@Tag(name = "Customers", description = "Endpoints for customer registration, orders, and dashboard analytics.")
 public class CustomerController {
 
     private static final Logger logger = LogManager.getLogger(CustomerController.class);
