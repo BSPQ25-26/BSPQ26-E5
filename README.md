@@ -145,3 +145,13 @@ BSPQ26-E5
 ## License
 
 See [LICENSE](LICENSE) for details.
+
+## Project Documentation
+
+You can access the detailed technical documentation (generated with Doxygen) at the following link:
+
+[Online Documentation (GitHub Pages)](https://bspq25-26.github.io/BSPQ26-E5/)
+
+You can also download the technical report in PDF format:
+
+[Download refman.pdf](./docs/pdf/refman.pdf)
