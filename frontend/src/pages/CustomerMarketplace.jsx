@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import cartImage from '../assets/images/Shopping cart.png';
-import '../assets/css/Home.css'; 
+import '../assets/css/Home.css';
 import '../assets/css/CustomerMarketplace.css';
 
 function CustomerMarketplace() {
-  const [restaurants, setRestaurants] = useState([]); 
-  const [categories, setCategories] = useState(["All"]); 
-  
+  const [restaurants, setRestaurants] = useState([]);
+  const [categories, setCategories] = useState(["All"]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,8 +21,8 @@ function CustomerMarketplace() {
         return response.json();
       })
       .then(data => {
-        setRestaurants(data); 
- 
+        setRestaurants(data);
+
         const allCategoriesFromDB = data.flatMap(rest => rest.cuisineCategoryNames || []);
 
         const uniqueCategories = [...new Set(allCategoriesFromDB)];
@@ -34,41 +34,43 @@ function CustomerMarketplace() {
   const handleSignOut = () => {
     alert("Closing sesion y erasing el token JWT...");
     setIsProfileMenuOpen(false);
-    navigate("/"); 
+    navigate("/");
   };
 
   const filteredRestaurants = restaurants.filter((rest) => {
     const restName = rest.name?.toLowerCase() || "";
     const matchesSearch = restName.includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = activeCategory === "All" || 
+
+    const matchesCategory = activeCategory === "All" ||
       (rest.cuisineCategoryNames && rest.cuisineCategoryNames.includes(activeCategory));
-    
+
     return matchesSearch && matchesCategory;
   });
 
   return (
     <main className="home-page">
       <section className="home-shell">
-        
+
         <header className="home-navbar">
           <div className="brand-group" aria-label="JustOrder home">
             <button className="menu-button" type="button" aria-label="Open navigation menu">
             </button>
-            <h1 className="brand-title">JustOrder</h1>
+            <Link to="/customer-marketplace" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <h1 className="brand-title">JustOrder</h1>
+            </Link>
           </div>
 
           <div className="home-header-right">
             <nav className="home-nav-links" aria-label="Main navigation">
               <div className="profile-menu-container">
-                <button 
-                  className="profile-avatar-btn" 
+                <button
+                  className="profile-avatar-btn"
                   aria-label="User profile"
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 >
-                  <img 
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-                    alt="Profile Avatar" 
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                    alt="Profile Avatar"
                     className="profile-avatar-img"
                   />
                 </button>
@@ -97,17 +99,17 @@ function CustomerMarketplace() {
 
         <div className="marketplace-content">
           <section className="search-filter-section">
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Search for restaurants, cuisines, or dishes..." 
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search for restaurants, cuisines, or dishes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            
+
             <div className="category-filters">
               {categories.map(category => (
-                <button 
+                <button
                   key={category}
                   className={`filter-chip ${activeCategory === category ? 'active' : ''}`}
                   onClick={() => setActiveCategory(category)}
@@ -131,8 +133,8 @@ function CustomerMarketplace() {
                       <span className="card-rating">★ {restaurant.averageRating || "N/A"}</span>
                     </div>
                     <p className="card-tags">
-                      {(restaurant.cuisineCategoryNames && restaurant.cuisineCategoryNames.length > 0) 
-                        ? restaurant.cuisineCategoryNames.join(', ') 
+                      {(restaurant.cuisineCategoryNames && restaurant.cuisineCategoryNames.length > 0)
+                        ? restaurant.cuisineCategoryNames.join(', ')
                         : "Restaurant"} • Modern Cuisine
                     </p>
                     <div className="card-delivery">

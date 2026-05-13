@@ -258,8 +258,8 @@ public class DataInitializer implements CommandLineRunner {
             Order order1 = new Order(customer1, List.of(dish1), pending, rider1, 23.0, passwordEncoder.encode("1234"));
             orderRepository.save(order1);
 
-            // Order 2 — for testing rejection + cancellation
-            Order order2 = new Order(customer1, List.of(dish1), pending, rider1, 14.0, passwordEncoder.encode("5678"));
+            // Order 2 — for testing assignment (starts unassigned)
+            Order order2 = new Order(customer1, List.of(dish1), pending, null, 14.0, passwordEncoder.encode("5678"));
             orderRepository.save(order2);
         }
     }

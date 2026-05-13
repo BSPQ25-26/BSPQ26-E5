@@ -16,6 +16,7 @@ public class OrderDTO {
     private String rejectionReason;
     private LocalDateTime createdAt;
     private LocalDateTime deliveredAt;
+    private List<OrderTimelineEventDTO> timeline;
 
     public OrderDTO() {}
 
@@ -50,4 +51,6 @@ public class OrderDTO {
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+    public List<OrderTimelineEventDTO> getTimeline() { return timeline; }
+    public void setTimeline(List<OrderTimelineEventDTO> timeline) { this.timeline = timeline; }
 }

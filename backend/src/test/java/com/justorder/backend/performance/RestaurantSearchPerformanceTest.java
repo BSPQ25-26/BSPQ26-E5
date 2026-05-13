@@ -29,9 +29,11 @@ public class RestaurantSearchPerformanceTest {
 
     private static HttpClient http;
 
+    /** intercepts test methods. When JUnit is about to run a @Test, reads the @PerfTest and @Required and generates report HTML */
     @Rule
     public ContiPerfRule contiPerfRule = new ContiPerfRule();
 
+    /**if I can't even establish a TCP connection in 5 seconds, give up */
     @BeforeClass
     public static void setUpHttpClient() {
         http = HttpClient.newBuilder()
@@ -63,8 +65,8 @@ public class RestaurantSearchPerformanceTest {
      *   - throughput is at least 20 ops/sec
      */
     @Test
-    @PerfTest(invocations = 200, threads = 5)
-    @Required(max = 1500, average = 200, totalTime = 30_000, throughput = 20)
+    @PerfTest(invocations = 200, threads = 5)/**40 runs per thread APROX */
+    @Required(max = 1500, average = 200, totalTime = 30_000, throughput = 20)/**must finish within 30,000 ms (30 seconds), 20 at least per call */
     public void searchEndpoint_handlesNormalLoad() throws Exception {
         hitSearchEndpoint();
     }
@@ -74,7 +76,7 @@ public class RestaurantSearchPerformanceTest {
      * THIS IS MEANT TO FAIL. 
      */
     @Test
-    @PerfTest(invocations = 100, threads = 5)
+    @PerfTest(invocations = 100, threads = 5)/**HTTP call to a real backend (typical: 5-15 ms) */
     @Required(average = 1)
     public void searchEndpoint_failsWhenTargetIsImpossible() throws Exception {
         hitSearchEndpoint();
@@ -85,7 +87,7 @@ public class RestaurantSearchPerformanceTest {
      * Passes when throughput is at least 10 ops/sec over a 10 second period.
      */
     @Test
-    @PerfTest(duration = 10000, threads = 2)
+    @PerfTest(duration = 10000, threads = 2)/**keep running for 10,000 ms (10 seconds), as many invocations as you can fit, on 2 threads */
     @Required(throughput = 10)
     public void searchEndpoint_runsForSpecificDuration() throws Exception {
         hitSearchEndpoint();
