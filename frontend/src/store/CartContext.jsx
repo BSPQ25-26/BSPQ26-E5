@@ -13,10 +13,13 @@ export const CartProvider = ({ children }) => {
   const [restaurantName, setRestaurantName] = useState(null);
 
   /**
-   * Tries to add a dish to the cart.
+   * Tries to add a dish to the cart from a restaurant menu.
    * Returns { success: true } on success.
    * Returns { success: false, reason: 'different_restaurant', ... } if the dish
    * belongs to a restaurant different from the one currently in the cart.
+   *
+   * NOTE: this is for adding NEW dishes from a menu. To bump the quantity of a
+   * dish that is already in the cart, use `increaseQuantity` instead.
    */
   const addToCart = useCallback((dish) => {
     if (!dish || dish.id == null) {
@@ -27,6 +30,7 @@ export const CartProvider = ({ children }) => {
     const dishIsFromDifferentRestaurant =
       cartHasItems &&
       restaurantId != null &&
+      dish.restaurantId != null &&
       dish.restaurantId !== restaurantId;
 
     if (dishIsFromDifferentRestaurant) {
@@ -89,6 +93,20 @@ export const CartProvider = ({ children }) => {
     return { success: true };
   }, []);
 
+  /**
+   * Bumps the quantity of a dish already in the cart by one.
+   * Does NOT validate restaurant: by definition the dish is already in the cart,
+   * so it's already from the right restaurant.
+   */
+  const increaseQuantity = useCallback((dishId) => {
+    const next = items.map((item) =>
+      item.id === dishId
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    );
+    setItems(next);
+  }, [items]);
+
   const removeFromCart = useCallback((dishId) => {
     const next = items.filter((item) => item.id !== dishId);
     setItems(next);
@@ -147,6 +165,7 @@ export const CartProvider = ({ children }) => {
     restaurantName,
     addToCart,
     replaceCartWith,
+    increaseQuantity,
     removeFromCart,
     decreaseQuantity,
     clearCart,
