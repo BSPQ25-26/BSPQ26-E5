@@ -17,6 +17,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import java.util.Optional;
 
+/**
+ * @brief Controller responsible for authentication operations.
+ *
+ * This controller handles admin authentication and JWT generation.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -30,6 +35,16 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * @brief Authenticates an admin user and returns a JWT token.
+     *
+     * This endpoint verifies the provided credentials. If valid,
+     * it generates and returns a JWT token with ADMIN role.
+     *
+     * @param request Login credentials containing email and password.
+     * @return ResponseEntity containing a JWT token if authentication is successful,
+     *         or HTTP 401 if credentials are invalid.
+     */
     @PostMapping("/admin/login")
     @Operation(summary = "Admin login", description = "Authenticate admin and return JWT token")
     @ApiResponses(value = {
