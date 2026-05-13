@@ -70,19 +70,16 @@ public class OrderService {
                 "Order status not found: " + DEFAULT_ORDER_STATUS
             ));
 
-        Rider assignedRider = riderRepository.findAll().stream().findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "No riders available to assign this order"
-            ));
-
         Order order = new Order();
         order.setCustomer(customer);
         order.setDishes(dishes);
         order.setStatus(status);
-        order.setRider(assignedRider);
+        order.setRider(null);
         order.setTotalPrice(calculatedTotal);
         String plainPin = orderPinGenerationService.generatePin();
         order.setSecretCodeHash(orderPinSecurityService.hashPin(plainPin));
+
+        order.addTimelineEvent("Pending", "Order placed by customer.");
 
         OrderDTO createdOrder = orderRepository.save(order).toDTO();
         createdOrder.setSecretCode(plainPin);
@@ -104,6 +101,7 @@ public class OrderService {
 
         order.setStatus(cancelledStatus);
         order.setRejectionReason(reason);
+        order.addTimelineEvent("Cancelled", "Order rejected by restaurant. Reason: " + reason);
 
         Order updatedOrder = orderRepository.save(order);
         return updatedOrder.toDTO();

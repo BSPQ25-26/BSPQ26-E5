@@ -77,7 +77,7 @@ const OrderCard = ({ order }) => {
                     </ul>
                 )}
 
-                {isCancelled && (
+                {isCancelled && !order.timeline && (
                     <div className="refund-notice">
                         <p className="refund-notice-title">⚠️ Order cancelled — refund issued</p>
                         <p className="refund-notice-body">
@@ -90,6 +90,30 @@ const OrderCard = ({ order }) => {
                                 Rider note: "{order.rejectionReason}"
                             </p>
                         )}
+                    </div>
+                )}
+
+                {order.timeline && order.timeline.length > 0 && (
+                    <div className="order-timeline">
+                        <h4 style={{marginTop: '20px', marginBottom: '10px', fontSize: '1.1rem', color: '#444'}}>Order Timeline</h4>
+                        <div style={{borderLeft: '2px solid #ccc', marginLeft: '10px', paddingLeft: '15px'}}>
+                            {order.timeline.map((event, idx) => (
+                                <div key={idx} style={{marginBottom: '15px', position: 'relative'}}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        left: '-21px',
+                                        top: '4px',
+                                        width: '10px',
+                                        height: '10px',
+                                        borderRadius: '50%',
+                                        backgroundColor: event.statusOrEvent === 'Cancelled' || event.statusOrEvent === 'Rejected' ? '#ff4d4d' : '#00cc66'
+                                    }}></div>
+                                    <div style={{fontSize: '0.85rem', color: '#888'}}>{formatDate(event.timestamp)}</div>
+                                    <div style={{fontWeight: 'bold', color: '#333'}}>{event.statusOrEvent}</div>
+                                    {event.details && <div style={{fontSize: '0.9rem', color: '#555', marginTop: '2px'}}>{event.details}</div>}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
