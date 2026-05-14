@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +77,9 @@ public class OrderService {
         }
 
         linkOrderEntities(order, dto);
+        
+        // Add timeline event
+        order.addTimelineEvent(order.getStatus() != null ? order.getStatus().getStatus() : "Created", "Order manually created by admin.");
 
         return orderRepository.save(order).toDTO();
     }
@@ -97,7 +98,16 @@ public class OrderService {
             order.setSecretCodeHash(orderPinSecurityService.hashPin(dto.getSecretCode()));
         }
         
+        String oldStatus = order.getStatus() != null ? order.getStatus().getStatus() : "Unknown";
+        
         linkOrderEntities(order, dto);
+        
+        String newStatus = order.getStatus() != null ? order.getStatus().getStatus() : "Unknown";
+        
+        // Add timeline event if status changed
+        if (!oldStatus.equals(newStatus)) {
+            order.addTimelineEvent(newStatus, "Order status manually updated by admin.");
+        }
 
         return orderRepository.save(order).toDTO();
     }
@@ -131,21 +141,19 @@ public class OrderService {
         OrderStatus status = orderStatusRepository.findByStatusIgnoreCase(DEFAULT_ORDER_STATUS)
             .orElseThrow(() -> new ResourceNotFoundException("Order status not found: " + DEFAULT_ORDER_STATUS));
 
-        // Refactor: Efficiently find a single rider from the DB instead of loading ALL of them.
-        Page<Rider> riderPage = riderRepository.findAll(PageRequest.of(0, 1));
-        if (!riderPage.hasContent()) {
-             throw new ResourceNotFoundException("No riders available");
-        }
-        Rider assignedRider = riderPage.getContent().get(0);
-
+        // En lugar de asignar un Rider al azar directamente, lo dejamos como null 
+        // para que la lógica de "Available Orders" de RiderService funcione correctamente.
         Order order = new Order();
         order.setCustomer(customer);
         order.setDishes(dishes);
         order.setStatus(status);
-        order.setRider(assignedRider);
+        order.setRider(null); 
         order.setTotalPrice(calculatedTotal);
+        
         String plainPin = orderPinGenerationService.generatePin();
         order.setSecretCodeHash(orderPinSecurityService.hashPin(plainPin));
+
+        order.addTimelineEvent("Pending", "Order placed by customer.");
 
         OrderDTO createdOrder = orderRepository.save(order).toDTO();
         createdOrder.setSecretCode(plainPin);
@@ -169,6 +177,7 @@ public class OrderService {
 
         order.setStatus(cancelledStatus);
         order.setRejectionReason(reason);
+        order.addTimelineEvent("Cancelled", "Order rejected by restaurant. Reason: " + reason);
 
         Order updatedOrder = orderRepository.save(order);
         return updatedOrder.toDTO();

@@ -102,6 +102,7 @@ public class RiderService {
         boolean alreadyRejectedOnce = order.getRejectionReason() != null;
 
         order.setRejectionReason(rejectionReason);
+        order.addTimelineEvent("Rejected", "Rejected by rider. Reason: " + rejectionReason);
 
         Optional<Rider> otherRider = alreadyRejectedOnce
                 ? Optional.empty()
@@ -112,12 +113,14 @@ public class RiderService {
 
         if (otherRider.isPresent()) {
             order.setRider(otherRider.get());
+            order.addTimelineEvent("Assigned", "Order assigned to rider " + otherRider.get().getName());
         } else {
             OrderStatus cancelledStatus = orderStatusRepository
                     .findByStatus("Cancelled")
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Order status 'Cancelled' not found. Check DataInitializer."));
             order.setStatus(cancelledStatus);
+            order.addTimelineEvent("Cancelled", "Order cancelled. No other riders available.");
         }
 
         Order savedOrder = orderRepository.save(order);
@@ -136,6 +139,52 @@ public class RiderService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderDTO> getAvailableOrders() {
+        return orderRepository.findByRiderIsNull()
+                .stream()
+                .filter(order -> "Pending".equalsIgnoreCase(order.getStatus().getStatus()))
+                .map(Order::toDTO)
+                .toList();
+    }
+
+    @Transactional
+    public OrderDTO assignOrder(Long riderId, Long orderId, OrderDTO request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with id: " + orderId));
+
+        if (order.getRider() != null) {
+            throw new IllegalStateException("Order is already assigned to a rider.");
+        }
+
+        Rider rider = riderRepository.findById(riderId)
+                .orElseThrow(() -> new IllegalArgumentException("Rider not found with id: " + riderId));
+
+        order.setRider(rider);
+        order.addTimelineEvent("Assigned", "Order assigned to rider.");
+        return orderRepository.save(order).toDTO();
+    }
+
+    @Transactional
+    public OrderDTO updateOrderStatus(Long riderId, Long orderId, String newStatus) {
+        if ("Delivered".equalsIgnoreCase(newStatus)) {
+            throw new IllegalArgumentException("Use PIN verification to set status to Delivered.");
+        }
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with id: " + orderId));
+
+        if (!order.getRider().getId().equals(riderId)) {
+            throw new SecurityException("Rider " + riderId + " is not assigned to order " + orderId);
+        }
+
+        OrderStatus status = orderStatusRepository.findByStatusIgnoreCase(newStatus)
+                .orElseThrow(() -> new IllegalArgumentException("Status not found: " + newStatus));
+
+        order.setStatus(status);
+        order.addTimelineEvent(newStatus, "Status updated by rider.");
+        return orderRepository.save(order).toDTO();
+    }
 
     @Transactional
     public OrderDTO verifyOrderPin(Long riderId, Long orderId, String pin) {
@@ -183,6 +232,7 @@ public class RiderService {
         order.setPinVerifiedAt(now);
         order.setPinFailedAttempts(0);
         order.setPinLockedUntil(null);
+        order.addTimelineEvent("Delivered", "Order successfully delivered to customer.");
 
         return orderRepository.save(order).toDTO();
     }

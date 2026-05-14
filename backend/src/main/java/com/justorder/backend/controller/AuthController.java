@@ -19,19 +19,22 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * REST controller responsible for authentication and security.
+ * @brief Controller responsible for authentication operations.
+ *
  * Manages the login process by validating credentials against the database
  * and generates a signed JWT token to securely maintain active sessions.
  * @version 1.0
  */
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth", description = "Authentication endpoints for admin users and JWT token issuance.")
 public class AuthController {
 
     @Autowired
@@ -52,6 +55,16 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * @brief Authenticates an admin user and returns a JWT token.
+     *
+     * This endpoint verifies the provided credentials. If valid,
+     * it generates and returns a JWT token with ADMIN role.
+     *
+     * @param request Login credentials containing email and password.
+     * @return ResponseEntity containing a JWT token if authentication is successful,
+     * or HTTP 401 if credentials are invalid.
+     */
     @PostMapping("/admin/login")
     @Operation(summary = "Admin login", description = "Authenticate admin and return JWT token")
     @ApiResponses(value = {
@@ -59,7 +72,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public ResponseEntity<?> loginAdmin(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Login credentials") @RequestBody LoginRequest request) {
-        // 1. Buscamos al admin por su email
+        
         Optional<Admin> adminOptional = adminRepository.findByEmail(request.getEmail());
 
         if (adminOptional.isPresent()) {

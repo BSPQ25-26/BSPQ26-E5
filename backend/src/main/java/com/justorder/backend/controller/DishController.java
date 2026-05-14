@@ -3,14 +3,8 @@ package com.justorder.backend.controller;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,27 +17,30 @@ import com.justorder.backend.exception.ResourceNotFoundException;
 import com.justorder.backend.service.MenuService;
 
 /**
- * REST controller for managing Dish entities.
- * Provides endpoints for performing CRUD operations on dishes, 
- * leveraging the MenuService for business logic and exception handling.
+ * @brief Controller for managing dishes in restaurants.
+ *
+ * This controller provides endpoints to create, update, delete,
+ * and retrieve dishes associated with restaurants, leveraging the 
+ * MenuService for business logic and exception handling.
  */
 @RestController
 @RequestMapping("/api/dishes")
-@Tag(name = "Dishes")
+@Tag(name = "Dishes", description = "Endpoints for restaurant dish management, including creation, updates, and deletion.")
 public class DishController {
 
     private final MenuService menuService;
 
     /**
-     * Constructor injection (Best practice compared to @Autowired field injection).
+     * @brief Constructor injection for DishController.
      */
     public DishController(MenuService menuService) {
         this.menuService = menuService;
     }
 
     /**
-     * Retrieves a list of all available dishes in the database.
-     * @return a ResponseEntity containing a list of {@link DishDTO} objects.
+     * @brief Retrieves a list of all available dishes in the database.
+     *
+     * @return A ResponseEntity containing a list of DishDTO objects.
      */
     @GetMapping
     @Operation(summary = "Get all dishes")
@@ -52,28 +49,36 @@ public class DishController {
     }
 
     /**
-     * Creates a new dish for a specific restaurant.
-     * @param restaurantId the unique identifier of the restaurant.
-     * @param dishDTO the data transfer object containing dish details.
-     * @return the created {@link DishDTO} and HTTP 201 Created status.
+     * @brief Creates a new dish for a given restaurant.
+     *
+     * @param restaurantId Identifier of the restaurant.
+     * @param dishDTO Dish data transfer object.
+     * @return The created dish or an error status.
      */
+    @PostMapping("/{restaurantId}")
     @Operation(summary = "Create a dish for a restaurant")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Dish created"),
-        @ApiResponse(responseCode = "400", description = "Bad request"),
-        @ApiResponse(responseCode = "404", description = "Restaurant not found")
+        @ApiResponse(responseCode = "201", description = "Dish created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "404", description = "Restaurant not found"),
+        @ApiResponse(responseCode = "409", description = "Dish conflict")
     })
-    @PostMapping("/{restaurantId}")
-    public ResponseEntity<DishDTO> createDish(@PathVariable Long restaurantId, 
-                                              @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dish payload") @RequestBody DishDTO dishDTO) {
-        // Prevent inconsistent payloads where path ID and body ID mismatch
-        if (dishDTO.getRestaurantId() != null && !restaurantId.equals(dishDTO.getRestaurantId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    public ResponseEntity<DishDTO> createDish(
+            @PathVariable Long restaurantId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Dish payload"
+            )
+            @RequestBody DishDTO dishDTO) {
 
         try {
+            if (dishDTO.getRestaurantId() != null &&
+                !dishDTO.getRestaurantId().equals(restaurantId)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
             DishDTO created = menuService.createDish(restaurantId, dishDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
+
         } catch (InvalidDishDataException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (ResourceNotFoundException e) {
@@ -86,18 +91,25 @@ public class DishController {
     }
 
     /**
-     * Updates an existing dish.
-     * @param dishId the unique identifier of the dish to be updated.
-     * @param dishDTO the updated details.
-     * @return the updated {@link DishDTO}.
+     * @brief Updates an existing dish.
+     *
+     * @param dishId Identifier of the dish to update.
+     * @param dishDTO Updated dish data.
+     * @return Updated dish or error status.
      */
-    @Operation(summary = "Update a dish")
     @PutMapping("/{dishId}")
-    public ResponseEntity<DishDTO> updateDish(@PathVariable Long dishId, 
-                                              @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dish payload") @RequestBody DishDTO dishDTO) {
+    @Operation(summary = "Update a dish")
+    public ResponseEntity<DishDTO> updateDish(
+            @PathVariable Long dishId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Dish payload"
+            )
+            @RequestBody DishDTO dishDTO) {
+
         try {
             DishDTO updated = menuService.updateDish(dishId, dishDTO);
             return ResponseEntity.ok(updated);
+
         } catch (InvalidDishDataException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (ResourceNotFoundException e) {
@@ -110,16 +122,19 @@ public class DishController {
     }
 
     /**
-     * Deletes a specific dish by its ID.
-     * @param dishId the unique identifier of the dish.
-     * @return HTTP 204 No Content if successful.
+     * @brief Deletes a dish by its identifier.
+     *
+     * @param dishId Identifier of the dish to delete.
+     * @return No content if deletion is successful or error status.
      */
-    @Operation(summary = "Delete a dish")
     @DeleteMapping("/{dishId}")
+    @Operation(summary = "Delete a dish")
     public ResponseEntity<Void> deleteDish(@PathVariable Long dishId) {
+
         try {
             menuService.deleteDish(dishId);
             return ResponseEntity.noContent().build();
+
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {

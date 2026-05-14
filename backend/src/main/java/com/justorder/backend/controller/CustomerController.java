@@ -7,14 +7,8 @@ import java.util.stream.Collectors;
 import com.justorder.backend.dto.CustomerDashboardDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -28,16 +22,19 @@ import com.justorder.backend.model.Order;
 import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.service.RegisterService;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * REST controller for managing Customer entities.
- * Provides endpoints for performing CRUD operations and managing customer orders.
+ * @brief Controller for managing customer-related operations.
+ *
+ * This controller handles customer creation, retrieval, updates, 
+ * order access, and dashboard analytics.
  */
 @RestController
 @RequestMapping("/api/customers")
-@Tag(name = "Customers")
+@Tag(name = "Customers", description = "Endpoints for customer registration, orders, and dashboard analytics.")
 public class CustomerController {
 
     private static final Logger logger = LogManager.getLogger(CustomerController.class);
@@ -57,6 +54,11 @@ public class CustomerController {
         this.orderRepository = orderRepository;
     }
 
+    /**
+     * @brief Simple health check endpoint for customer API.
+     *
+     * @return A greeting string confirming service availability.
+     */
     @GetMapping("/hello")
     @Operation(summary = "Health check for customer endpoints")
     public String hello() {
@@ -64,7 +66,9 @@ public class CustomerController {
     }
 
     /**
-     * Retrieves all customers. To avoid recursion issues, we return DTOs.
+     * @brief Retrieves all customers.
+     *
+     * Returns a list of DTOs to avoid recursion issues.
      */
     @GetMapping
     @Operation(summary = "Get all customers")
@@ -76,18 +80,31 @@ public class CustomerController {
     }
 
     /**
-     * Creates a new customer using the RegisterService.
+     * @brief Creates or updates a customer.
+     *
+     * Registers a new customer or updates an existing one using RegisterService.
+     *
+     * @param request Customer data transfer object.
+     * @return HTTP 200 if successful, or HTTP 500 on error.
      */
+    @PostMapping("/create")
     @Operation(summary = "Create or update a customer")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Customer created/updated"),
-        @ApiResponse(responseCode = "500", description = "Internal error")
+        @ApiResponse(responseCode = "200", description = "Customer created/updated successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PostMapping("/create")
-    public ResponseEntity<HttpStatus> createOrUpdateCustomer(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Customer payload") @RequestBody CustomerDTO request) {
+    public ResponseEntity<HttpStatus> createOrUpdateCustomer(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Customer payload"
+            )
+            @RequestBody CustomerDTO request) {
+
         try {
-            logger.info("POST /api/customers/create - register customer request: {}", request != null ? request.getEmail() : "<null>");
+            logger.info("POST /api/customers/create - register customer request: {}",
+                    request != null ? request.getEmail() : "<null>");
+
             this.registerService.registerCustomer(request);
+
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             logger.error("Error registering customer", e);
@@ -96,7 +113,7 @@ public class CustomerController {
     }
 
     /**
-     * Updates an existing customer.
+     * @brief Updates an existing customer by ID.
      */
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing customer")
@@ -118,49 +135,82 @@ public class CustomerController {
     }
 
     /**
-     * Retrieves a specific customer by ID.
+     * @brief Creates or updates an order (placeholder endpoint).
+     *
+     * @param request Order data transfer object.
+     * @return HTTP 501 Not Implemented.
      */
-    @Operation(summary = "Get customer by id")
-    @GetMapping("/{customerId}")
-    public ResponseEntity<CustomerDTO> getCustomer(@Parameter(description = "Customer id") @PathVariable Long customerId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
-
-    /**
-     * Creates or updates an order for a customer.
-     */
-    @Operation(summary = "Create or update an order (placeholder)")
     @PostMapping("/order")
-    public ResponseEntity<HttpStatus> createOrUpdateOrder(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Order payload") @RequestBody OrderDTO request) { 
+    @Operation(summary = "Create or update an order (placeholder)")
+    public ResponseEntity<HttpStatus> createOrUpdateOrder(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Order payload"
+            )
+            @RequestBody OrderDTO request) {
+
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
     /**
-     * Retrieves all orders for a specific customer.
+     * @brief Retrieves a customer by ID.
+     *
+     * @param customerId Unique identifier of the customer.
+     * @return HTTP 501 Not Implemented (current placeholder).
      */
-    @Operation(summary = "Get orders for a customer")
+    @GetMapping("/{customerId}")
+    @Operation(summary = "Get customer by id")
+    public ResponseEntity<CustomerDTO> getCustomer(
+            @Parameter(description = "Customer id")
+            @PathVariable Long customerId) {
+
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
+    /**
+     * @brief Retrieves all orders for a given customer.
+     *
+     * @param customerId Customer identifier.
+     * @return List of orders if customer exists, otherwise HTTP 404.
+     */
     @GetMapping("/{customerId}/orders")
-    public ResponseEntity<List<OrderDTO>> getCustomerOrders(@Parameter(description = "Customer id") @PathVariable Long customerId) {
+    @Operation(summary = "Get orders for a customer")
+    public ResponseEntity<List<OrderDTO>> getCustomerOrders(
+            @Parameter(description = "Customer id")
+            @PathVariable Long customerId) {
+
         logger.info("GET /api/customers/{}/orders - fetching orders", customerId);
+
         if (!customerRepository.existsById(customerId)) {
             logger.warn("Customer {} not found when requesting orders", customerId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+
         List<OrderDTO> orders = orderRepository.findByCustomerId(customerId)
                 .stream()
                 .map(order -> order.toDTO())
                 .collect(Collectors.toList());
+
         return ResponseEntity.ok(orders);
     }
 
     /**
-     * Retrieves the dashboard metrics for a specific customer.
+     * @brief Retrieves dashboard statistics for a customer.
+     *
+     * Includes order statistics, spending, refunds, and recent orders.
+     *
+     * @param customerId Customer identifier.
+     * @return Aggregated dashboard data or HTTP 404 if not found.
      */
-    @Operation(summary = "Get customer dashboard")
     @GetMapping("/{customerId}/dashboard")
-    public ResponseEntity<CustomerDashboardDTO> getCustomerDashboard(@Parameter(description = "Customer id") @PathVariable Long customerId) {
+    @Operation(summary = "Get customer dashboard")
+    public ResponseEntity<CustomerDashboardDTO> getCustomerDashboard(
+            @Parameter(description = "Customer id")
+            @PathVariable Long customerId) {
+
         logger.info("GET /api/customers/{}/dashboard - dashboard requested", customerId);
+
         Customer customer = customerRepository.findById(customerId).orElse(null);
+
         if (customer == null) {
             logger.warn("Customer {} not found for dashboard", customerId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -170,44 +220,49 @@ public class CustomerController {
 
         long totalOrders = customerOrders.size();
         long cancelledOrders = customerOrders.stream()
-            .filter(order -> "Cancelled".equalsIgnoreCase(order.getStatus().getStatus()))
-            .count();
+                .filter(order -> "Cancelled".equalsIgnoreCase(order.getStatus().getStatus()))
+                .count();
         long deliveredOrders = customerOrders.stream()
-            .filter(order -> "Delivered".equalsIgnoreCase(order.getStatus().getStatus()))
-            .count();
+                .filter(order -> "Delivered".equalsIgnoreCase(order.getStatus().getStatus()))
+                .count();
         long activeOrders = totalOrders - cancelledOrders;
 
         double totalSpent = customerOrders.stream()
-            .filter(order -> !"Cancelled".equalsIgnoreCase(order.getStatus().getStatus()))
-            .mapToDouble(Order::getTotalPrice)
-            .sum();
+                .filter(order -> !"Cancelled".equalsIgnoreCase(order.getStatus().getStatus()))
+                .mapToDouble(Order::getTotalPrice)
+                .sum();
+
         double totalRefunded = customerOrders.stream()
-            .filter(order -> "Cancelled".equalsIgnoreCase(order.getStatus().getStatus()))
-            .mapToDouble(Order::getTotalPrice)
-            .sum();
+                .filter(order -> "Cancelled".equalsIgnoreCase(order.getStatus().getStatus()))
+                .mapToDouble(Order::getTotalPrice)
+                .sum();
 
         List<OrderDTO> recentOrders = customerOrders.stream()
-            .sorted(Comparator.comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-            .limit(5)
-            .map(Order::toDTO)
-            .collect(Collectors.toList());
+                .sorted(Comparator.comparing(
+                        Order::getCreatedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                ))
+                .limit(5)
+                .map(Order::toDTO)
+                .collect(Collectors.toList());
 
         CustomerDashboardDTO dashboard = new CustomerDashboardDTO(
-            customerId,
-            customer.getName(),
-            totalOrders,
-            activeOrders,
-            cancelledOrders,
-            deliveredOrders,
-            totalSpent,
-            totalRefunded,
-            recentOrders
+                customerId,
+                customer.getName(),
+                totalOrders,
+                activeOrders,
+                cancelledOrders,
+                deliveredOrders,
+                totalSpent,
+                totalRefunded,
+                recentOrders
         );
+
         return ResponseEntity.ok(dashboard);
     }
 
     /**
-     * Deletes a specific customer by ID.
+     * @brief Deletes a specific customer by ID.
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete customer by id")
@@ -220,13 +275,19 @@ public class CustomerController {
     }
 
     /**
-     * Deletes all customers and their orders from the database.
+     * @brief Deletes all customers and associated orders.
+     *
+     * WARNING: This operation removes all customer and order data.
+     *
+     * @return HTTP 200 when deletion is completed.
      */
-    @Operation(summary = "Delete all customers and their orders")
     @DeleteMapping()
+    @Operation(summary = "Delete all customers and their orders")
     public ResponseEntity<HttpStatus> deleteAllCustomers() {
+
         orderRepository.deleteAll();
         customerRepository.deleteAll();
+
         return ResponseEntity.ok(HttpStatus.OK);
     }
 }

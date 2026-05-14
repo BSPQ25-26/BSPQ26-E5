@@ -19,4 +19,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * Finds all orders placed by a specific customer.
      */
     List<Order> findByCustomerId(Long customerId);
+    List<Order> findByRiderIsNull();
 }

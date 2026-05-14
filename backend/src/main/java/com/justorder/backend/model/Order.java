@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.justorder.backend.dto.OrderDTO;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -52,7 +52,7 @@ public class Order {
      * The rider assigned to deliver this order.
      */
     @ManyToOne
-    @JoinColumn(name = "rider_id", nullable = false)
+    @JoinColumn(name = "rider_id", nullable = true)
     private Rider rider;
 
     /** Pre-calculated total price of all dishes in the order, in euros. */
@@ -80,9 +80,14 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime deliveredAt;
 
+    @OneToMany(mappedBy = "order", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @jakarta.persistence.OrderBy("timestamp ASC")
+    private List<OrderTimelineEvent> timelineEvents = new ArrayList<>();
+
     // --- Constructors ---
 
-    public Order() {}
+    public Order() {
+    }
 
     public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider,
                  double totalPrice, String secretCodeHash) {
@@ -92,6 +97,11 @@ public class Order {
         this.rider = rider;
         this.totalPrice = totalPrice;
         this.secretCodeHash = secretCodeHash;
+    }
+
+    public void addTimelineEvent(String statusOrEvent, String details) {
+        OrderTimelineEvent event = new OrderTimelineEvent(this, statusOrEvent, details);
+        this.timelineEvents.add(event);
     }
 
     // --- Getters ---
@@ -109,6 +119,7 @@ public class Order {
     public String getRejectionReason() { return rejectionReason; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public List<OrderTimelineEvent> getTimelineEvents() { return timelineEvents; }
 
     // --- Setters ---
 
@@ -125,6 +136,7 @@ public class Order {
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+    public void setTimelineEvents(List<OrderTimelineEvent> timelineEvents) { this.timelineEvents = timelineEvents; }
 
     // --- Conversion ---
 
@@ -145,6 +157,9 @@ public class Order {
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
         dto.setRejectionReason(this.rejectionReason);
+        if (this.timelineEvents != null) {
+            dto.setTimeline(this.timelineEvents.stream().map(OrderTimelineEvent::toDTO).collect(Collectors.toList()));
+        }
         return dto;
     }
 }
