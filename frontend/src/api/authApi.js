@@ -76,10 +76,12 @@ export const getMenuByRestaurantId = async (restaurantId) => {
 };
 
 export const createDish = async (restaurantId, dishData) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/dishes/${restaurantId}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(dishData),
     });
@@ -90,10 +92,12 @@ export const createDish = async (restaurantId, dishData) => {
 };
 
 export const updateDish = async (dishId, dishData) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/dishes/${dishId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(dishData),
     });
@@ -104,10 +108,12 @@ export const updateDish = async (dishId, dishData) => {
 };
 
 export const deleteDish = async (dishId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/dishes/${dishId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
         },
     });
 
@@ -116,18 +122,17 @@ export const deleteDish = async (dishId) => {
 };
 
 export const loginUser = async (loginType, payload) => {
-
-    const BASE_URL = "http://localhost:8080";
     let endpoint = "";
 
-    if (loginType === "customer") endpoint = `${BASE_URL}/sessions/users`;
-    else if (loginType === "rider") endpoint = `${BASE_URL}/sessions/riders`;
-    else if (loginType === "restaurant") endpoint = `${BASE_URL}/sessions/restaurants`;
+    if (loginType === "customer") endpoint = `${API_URL}/auth/customer/login`;
+    else if (loginType === "rider") endpoint = `${API_URL}/auth/rider/login`;
+    else if (loginType === "restaurant") endpoint = `${API_URL}/auth/restaurant/login`;
+    else endpoint = `${API_URL}/auth/admin/login`;
 
     const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, type: loginType })
+        body: JSON.stringify(payload)
     });
 
     if (response.status === 501 || response.status === 403) {
@@ -139,8 +144,14 @@ export const loginUser = async (loginType, payload) => {
     }
 
     const data = await response.json();
+    
+    // Storing token and ID logic from HEAD
+    localStorage.setItem('token', data.token);
+    if (data.id) {
+        localStorage.setItem(`${loginType}Id`, data.id);
+    }
 
-    // The backend returns { token, customer or rider or restaurant }.
+    // User extraction logic from main
     const user =
         (loginType === "customer" && data.customer) ||
         (loginType === "rider" && data.rider) ||
@@ -151,10 +162,12 @@ export const loginUser = async (loginType, payload) => {
 };
   
 export const getCustomerOrders = async (customerId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/customers/${customerId}/orders`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
         },
     });
 
@@ -164,10 +177,12 @@ export const getCustomerOrders = async (customerId) => {
 };
 
 export const getCustomerDashboard = async (customerId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/customers/${customerId}/dashboard`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
         },
     });
 

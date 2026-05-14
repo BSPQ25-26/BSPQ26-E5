@@ -6,8 +6,6 @@ import "../assets/css/Home.css";
 import "../assets/css/CustomerMarketplace.css";
 import "../assets/css/OrderStatusPage.css";
 
-
-const CUSTOMER_ID = 1;
 const ORDER_CODE_STORAGE_KEY = "justorder:verificationCodes";
 
 const STATUS_CLASS = {
@@ -128,10 +126,11 @@ function OrderStatusPage() {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     const navigate = useNavigate();
-
+    const customerId = localStorage.getItem('customerId');
+    
     // Auto-load orders on mount, no user input needed
     useEffect(() => {
-        getCustomerOrders(CUSTOMER_ID)
+        getCustomerOrders(customerId)
             .then((data) => {
                 const verificationCodes = readVerificationCodes();
                 const ordersWithCodes = data.map((order) => ({
@@ -143,7 +142,7 @@ function OrderStatusPage() {
             })
             .catch(() => setErrorMessage("Could not load your orders. Please try again later."))
             .finally(() => setIsLoading(false));
-    }, []);
+    }, [customerId]);
 
     const handleSignOut = () => {
         setIsProfileMenuOpen(false);

@@ -6,13 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.justorder.backend.repository.RestaurantRepository;
-import com.justorder.backend.security.JwtUtil;
 
 import org.springframework.http.MediaType;
 import static org.hamcrest.Matchers.hasSize;
@@ -29,9 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @Transactional
 public class RestaurantControllerTest {
-
-    @MockitoBean
-    private JwtUtil jwtUtil;
 
     @Autowired
     private MockMvc mockMvc;
