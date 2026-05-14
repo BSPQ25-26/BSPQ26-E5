@@ -69,7 +69,6 @@ public class OrderService {
         Order order = new Order();
         order.setTotalPrice(dto.getTotalPrice());
         
-        // Si el DTO no trae PIN, generamos uno nuevo y lo encriptamos
         if (dto.getSecretCode() != null) {
              order.setSecretCodeHash(orderPinSecurityService.hashPin(dto.getSecretCode()));
         } else {
@@ -141,8 +140,7 @@ public class OrderService {
         OrderStatus status = orderStatusRepository.findByStatusIgnoreCase(DEFAULT_ORDER_STATUS)
             .orElseThrow(() -> new ResourceNotFoundException("Order status not found: " + DEFAULT_ORDER_STATUS));
 
-        // En lugar de asignar un Rider al azar directamente, lo dejamos como null 
-        // para que la lógica de "Available Orders" de RiderService funcione correctamente.
+        
         Order order = new Order();
         order.setCustomer(customer);
         order.setDishes(dishes);
