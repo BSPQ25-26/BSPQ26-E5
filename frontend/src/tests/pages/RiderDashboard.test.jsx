@@ -19,15 +19,19 @@ describe("RiderDashboard Live Backend Integration", () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    // Using live backend fetch
-    global.fetch = jest.fn(fetchThroughNode);
     
-    // Suppress logs that happen after tests finish due to async useEffect in component
+    // Simulate a logged-in rider (matches the rider used in the test)
+    localStorage.clear();
+    localStorage.setItem("userType", "rider");
+    localStorage.setItem("user", JSON.stringify({ id: 1, name: "Carlos Rider", email: "carlos.rider@test.com" }));
+    
+    global.fetch = jest.fn(fetchThroughNode);
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
+    localStorage.clear();
     jest.restoreAllMocks();
   });
 

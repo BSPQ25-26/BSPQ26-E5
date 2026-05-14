@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import RiderRejectionModal from '../components/RiderRejectionModal';
+import { readLoggedInRider } from '../utils/auth';
 import '../assets/css/Home.css';
 import '../assets/css/CustomerMarketplace.css';
 import '../assets/css/RiderDashboard.css';
@@ -18,15 +19,31 @@ function RiderDashboard() {
 
   const [newOrders, setNewOrders] = useState([]);
   const [assignedOrders, setAssignedOrders] = useState([]);
-  const RIDER_ID = 1;
+
+  // Read the rider that is currently logged in from localStorage.
+  // If no rider is logged in, redirect to the home page.
+  const [loggedInRider, setLoggedInRider] = useState(null);
 
   useEffect(() => {
+    const rider = readLoggedInRider();
+    if (!rider) {
+      navigate("/");
+      return;
+    }
+    setLoggedInRider(rider);
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!loggedInRider) {
+      return;
+    }
+
     Promise.all([
       fetch(`http://localhost:8080/api/riders/orders/available`).then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
       }),
-      fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders`).then(res => {
+      fetch(`http://localhost:8080/api/riders/${loggedInRider.id}/orders`).then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
       })
@@ -48,7 +65,7 @@ function RiderDashboard() {
       .catch(error => {
         console.error("Error loading orders:", error);
       });
-  }, []);
+  }, [loggedInRider]);
 
   const handleSignOut = () => {
     setIsProfileMenuOpen(false);
@@ -61,8 +78,10 @@ function RiderDashboard() {
   };
 
   const handleAcceptOrder = async (order) => {
+    if (!loggedInRider) return;
+
     try {
-      const response = await fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders/${order.id}`, {
+      const response = await fetch(`http://localhost:8080/api/riders/${loggedInRider.id}/orders/${order.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(order)
@@ -90,8 +109,10 @@ function RiderDashboard() {
   };
 
   const handleRejectionSubmit = async (orderId, reason) => {
+    if (!loggedInRider) return;
+
     try {
-      const response = await fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders/${orderId}/reject`, {
+      const response = await fetch(`http://localhost:8080/api/riders/${loggedInRider.id}/orders/${orderId}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: reason })
@@ -111,6 +132,8 @@ function RiderDashboard() {
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
+    if (!loggedInRider) return;
+
     if (newStatus === "Delivered") {
       setOrderToDeliver(orderId);
       setShowPinModal(true);
@@ -118,7 +141,7 @@ function RiderDashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders/${orderId}/status`, {
+      const response = await fetch(`http://localhost:8080/api/riders/${loggedInRider.id}/orders/${orderId}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
@@ -137,8 +160,10 @@ function RiderDashboard() {
   };
 
   const handlePinSubmit = async () => {
+    if (!loggedInRider) return;
+
     try {
-      const response = await fetch(`http://localhost:8080/api/riders/${RIDER_ID}/orders/${orderToDeliver}/verify-pin`, {
+      const response = await fetch(`http://localhost:8080/api/riders/${loggedInRider.id}/orders/${orderToDeliver}/verify-pin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin: pinInput })
@@ -175,6 +200,15 @@ function RiderDashboard() {
     cursor: 'pointer',
     boxSizing: 'border-box'
   };
+
+  // Block rendering until we know who the rider is.
+  if (!loggedInRider) {
+    return (
+      <div style={{ padding: '100px', textAlign: 'center' }}>
+        <h2>Checking your session...</h2>
+      </div>
+    );
+  }
 
   return (
     <main className="home-page">
@@ -276,6 +310,10 @@ function RiderDashboard() {
           </div>
         </header>
         <div className="marketplace-content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+
+          <div style={{ marginBottom: '20px', color: '#333', fontSize: '0.95rem' }}>
+            Logged in as <strong>{loggedInRider.name || loggedInRider.email}</strong>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
             <div>
