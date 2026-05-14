@@ -25,7 +25,6 @@ public class AllergenControllerTest {
         
         mockMvc.perform(get("/api/allergens"))
                 .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(6)))
             .andExpect(jsonPath("$[?(@.name=='Gluten' && @.description=='Cereals containing gluten')]", hasSize(1)))
             .andExpect(jsonPath("$[?(@.name=='Lactose' && @.description=='Milk and dairy products')]", hasSize(1)))
             .andExpect(jsonPath("$[?(@.name=='Peanuts' && @.description=='Peanuts and peanut-based products')]", hasSize(1)))

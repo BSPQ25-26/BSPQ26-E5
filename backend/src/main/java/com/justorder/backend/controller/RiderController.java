@@ -4,6 +4,7 @@ import com.justorder.backend.dto.OrderDTO;
 import com.justorder.backend.dto.RiderDashboardDTO;
 import com.justorder.backend.dto.RiderDTO;
 import com.justorder.backend.dto.VerifyOrderPinRequestDTO;
+import com.justorder.backend.model.Rider;
 import com.justorder.backend.repository.RiderRepository;
 import com.justorder.backend.service.RegisterService;
 import com.justorder.backend.service.RiderService;
@@ -21,12 +22,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @brief Controller for managing rider-related operations.
  *
  * This controller handles rider registration, order assignment,
- * delivery workflows, and rider dashboard information.
+ * delivery workflows, administrative operations, and rider dashboard information.
  */
 @RestController
 @RequestMapping("/api/riders")
@@ -38,6 +40,9 @@ public class RiderController {
     private final RiderService riderService;
     private final SessionService sessionService;
 
+    /**
+     * Constructor injection for improved testability and architecture.
+     */
     public RiderController(RegisterService registerService,
                            RiderRepository riderRepository,
                            RiderService riderService,
@@ -60,15 +65,28 @@ public class RiderController {
     }
 
     /**
+     * @brief Retrieves all riders.
+     * * Converts entities to DTOs.
+     */
+    @GetMapping
+    @Operation(summary = "Get all riders")
+    public ResponseEntity<List<RiderDTO>> getAllRiders() {
+        List<RiderDTO> riders = riderRepository.findAll().stream()
+                .map(Rider::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(riders);
+    }
+
+    /**
      * @brief Creates or updates a rider.
      *
      * @param request Rider data transfer object.
-     * @return HTTP 200 if successful, otherwise HTTP 500.
+     * @return HTTP 201 if successful, otherwise HTTP 500.
      */
     @PostMapping("/create")
     @Operation(summary = "Create or update a rider")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Rider created/updated successfully"),
+        @ApiResponse(responseCode = "201", description = "Rider created/updated successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<HttpStatus> createOrUpdateRider(
@@ -79,49 +97,43 @@ public class RiderController {
 
         try {
             this.registerService.registerRider(request);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     /**
-     * @brief Updates rider order status.
-     *
-     * @param riderId Rider identifier.
-     * @param orderId Order identifier.
-     * @param body Payload containing new status.
-     * @return Updated order or error status.
+     * @brief Updates an existing rider's profile.
      */
-    @PostMapping("/{riderId}/orders/{orderId}/status")
-    @Operation(summary = "Update assigned order status")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Status updated"),
-        @ApiResponse(responseCode = "400", description = "Bad request (e.g., trying to set Delivered without PIN)"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Not found")
-    })
-    public ResponseEntity<OrderDTO> updateOrderStatus(
-            @Parameter(description = "ID of the rider") @PathVariable Long riderId,
-            @Parameter(description = "ID of the order") @PathVariable Long orderId,
-            @RequestBody Map<String, String> body) {
+    @PutMapping("/{id}")
+    @Operation(summary = "Update an existing rider")
+    public ResponseEntity<RiderDTO> updateRider(@Parameter(description = "ID of the rider") @PathVariable Long id, @RequestBody RiderDTO request) {
+        return riderRepository.findById(id).map(existing -> {
+            existing.setName(request.getName());
+            existing.setEmail(request.getEmail());
+            existing.setPhoneNumber(request.getPhoneNumber());
 
-        String status = body.get("status");
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                existing.setPassword(request.getPassword());
+            }
 
-        if (status == null || status.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            Rider updated = riderRepository.save(existing);
+            return ResponseEntity.ok(updated.toDTO());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * @brief Deletes a specific rider by ID.
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a rider by id")
+    public ResponseEntity<Void> deleteRider(@Parameter(description = "ID of the rider") @PathVariable Long id) {
+        if (riderRepository.existsById(id)) {
+            riderRepository.deleteById(id);
+            return ResponseEntity.ok().build();
         }
-
-        try {
-            OrderDTO updatedOrder = riderService.updateOrderStatus(riderId, orderId, status);
-            return ResponseEntity.ok(updatedOrder);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -205,6 +217,45 @@ public class RiderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * @brief Updates rider order status.
+     *
+     * @param riderId Rider identifier.
+     * @param orderId Order identifier.
+     * @param body Payload containing new status.
+     * @return Updated order or error status.
+     */
+    @PostMapping("/{riderId}/orders/{orderId}/status")
+    @Operation(summary = "Update assigned order status")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Status updated"),
+        @ApiResponse(responseCode = "400", description = "Bad request (e.g., trying to set Delivered without PIN)"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Not found")
+    })
+    public ResponseEntity<OrderDTO> updateOrderStatus(
+            @Parameter(description = "ID of the rider") @PathVariable Long riderId,
+            @Parameter(description = "ID of the order") @PathVariable Long orderId,
+            @RequestBody Map<String, String> body) {
+
+        String status = body.get("status");
+
+        if (status == null || status.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            OrderDTO updatedOrder = riderService.updateOrderStatus(riderId, orderId, status);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -336,6 +387,6 @@ public class RiderController {
     @Operation(summary = "Delete all riders")
     public ResponseEntity<HttpStatus> deleteAllRiders() {
         riderRepository.deleteAll();
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 }

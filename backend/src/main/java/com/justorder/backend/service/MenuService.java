@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.justorder.backend.dto.DishDTO;
 import com.justorder.backend.exception.DishConflictException;
@@ -30,7 +31,18 @@ public class MenuService {
     @Autowired
     private AllergenRepository allergenRepository;
 
-    // This method is used by the GET /api/restaurants/{restaurantId}/menu endpoint
+    /**
+     * Retrieves all dishes for the admin view.
+     */
+    public List<DishDTO> getAllDishes() {
+        return dishRepository.findAll().stream()
+                .map(Dish::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves the menu for a specific restaurant.
+     */
     public List<DishDTO> getMenu(Long restaurantId) {
         return dishRepository.findByRestaurantId(restaurantId)
                 .stream()
@@ -38,7 +50,10 @@ public class MenuService {
                 .collect(Collectors.toList());
     }
 
-    // This method is used by the POST /api/dishes/{restaurantId} endpoint
+    /**
+     * Creates a new dish for a restaurant.
+     */
+    @Transactional
     public DishDTO createDish(Long restaurantId, DishDTO dishDTO) {
         validateDishData(dishDTO);
 
@@ -59,7 +74,10 @@ public class MenuService {
         }
     }
 
-    // This method is used by the PUT /api/dishes/{dishId} endpoint
+    /**
+     * Updates an existing dish.
+     */
+    @Transactional
     public DishDTO updateDish(Long dishId, DishDTO dishDTO) {
         validateDishData(dishDTO);
 
@@ -82,7 +100,10 @@ public class MenuService {
         }
     }
 
-    // This method is used by the DELETE /api/dishes/{dishId} endpoint
+    /**
+     * Deletes a dish by ID.
+     */
+    @Transactional
     public void deleteDish(Long dishId) {
         if (!dishRepository.existsById(dishId)) {
             throw new ResourceNotFoundException("Dish not found: " + dishId);
@@ -90,7 +111,8 @@ public class MenuService {
         dishRepository.deleteById(dishId);
     }
 
-    // Validates the dish data and throws an exception if any required field is missing or invalid
+    // --- Helper Methods ---
+
     private void validateDishData(DishDTO dishDTO) {
         if (dishDTO == null) {
             throw new InvalidDishDataException("Dish payload is required");
@@ -114,4 +136,3 @@ public class MenuService {
                 .collect(Collectors.toList());
     }
 }
-

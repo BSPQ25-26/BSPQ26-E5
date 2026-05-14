@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.justorder.backend.dto.OrderDTO;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,7 +20,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-
 
 @Entity
 @Table(name = "orders")
@@ -45,7 +43,6 @@ public class Order {
 
     /**
      * The current status of the order (e.g. Pending, Confirmed, Cancelled).
-     * Updated throughout the order lifecycle by restaurant, rider, and system.
      */
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
@@ -75,7 +72,7 @@ public class Order {
     private LocalDateTime pinVerifiedAt;
 
     /**
-     * <p>Null if the order has not been rejected by a rider.</p>
+     * Null if the order has not been rejected by a rider.
      */
     private String rejectionReason;
 
@@ -87,14 +84,10 @@ public class Order {
     @jakarta.persistence.OrderBy("timestamp ASC")
     private List<OrderTimelineEvent> timelineEvents = new ArrayList<>();
 
+    // --- Constructors ---
+
     public Order() {
     }
-
-    public void addTimelineEvent(String statusOrEvent, String details) {
-        OrderTimelineEvent event = new OrderTimelineEvent(this, statusOrEvent, details);
-        this.timelineEvents.add(event);
-    }
-
 
     public Order(Customer customer, List<Dish> dishes, OrderStatus status, Rider rider,
                  double totalPrice, String secretCodeHash) {
@@ -106,9 +99,12 @@ public class Order {
         this.secretCodeHash = secretCodeHash;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters
-    // -------------------------------------------------------------------------
+    public void addTimelineEvent(String statusOrEvent, String details) {
+        OrderTimelineEvent event = new OrderTimelineEvent(this, statusOrEvent, details);
+        this.timelineEvents.add(event);
+    }
+
+    // --- Getters ---
 
     public Long getId() { return id; }
     public Customer getCustomer() { return customer; }
@@ -125,9 +121,7 @@ public class Order {
     public LocalDateTime getDeliveredAt() { return deliveredAt; }
     public List<OrderTimelineEvent> getTimelineEvents() { return timelineEvents; }
 
-    // -------------------------------------------------------------------------
-    // Setters
-    // -------------------------------------------------------------------------
+    // --- Setters ---
 
     public void setId(Long id) { this.id = id; }
     public void setCustomer(Customer customer) { this.customer = customer; }
@@ -144,17 +138,22 @@ public class Order {
     public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
     public void setTimelineEvents(List<OrderTimelineEvent> timelineEvents) { this.timelineEvents = timelineEvents; }
 
-    // -------------------------------------------------------------------------
-    // Conversion
-    // -------------------------------------------------------------------------
+    // --- Conversion ---
 
     public OrderDTO toDTO() {
+        // We use IDs in the DTO to avoid recursion and reduce payload size
         OrderDTO dto = new OrderDTO(
-            this.id, this.customer.getId(), this.status.getStatus(),
-            this.rider != null ? this.rider.getId() : null, this.totalPrice, null
+            this.id, 
+            this.customer != null ? this.customer.getId() : null, 
+            this.status != null ? this.status.getStatus() : null,
+            this.rider != null ? this.rider.getId() : null, 
+            this.totalPrice, 
+            null // secretCode is now hashed and handled securely, passing null to DTO
         );
-        dto.setRejectionReason(this.rejectionReason);
-        dto.setdishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        
+        if (this.dishes != null) {
+            dto.setDishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        }
         dto.setCreatedAt(this.createdAt);
         dto.setDeliveredAt(this.deliveredAt);
         dto.setRejectionReason(this.rejectionReason);

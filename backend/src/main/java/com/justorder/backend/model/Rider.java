@@ -36,7 +36,6 @@ public class Rider {
     @JoinColumn(name = "starter_point_id", nullable=false)
     private Localization starterPoint;
 
-    // Constructors
     public Rider() {
     }
     public Rider(String name, String dni, String phoneNumber, String email, String password, Localization starterPoint) {

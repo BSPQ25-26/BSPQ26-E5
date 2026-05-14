@@ -1,6 +1,6 @@
 package com.justorder.backend.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,16 +19,34 @@ import com.justorder.backend.service.MenuService;
 /**
  * @brief Controller for managing dishes in restaurants.
  *
- * This controller provides endpoints to create, update, and delete dishes
- * associated with restaurants.
+ * This controller provides endpoints to create, update, delete,
+ * and retrieve dishes associated with restaurants, leveraging the 
+ * MenuService for business logic and exception handling.
  */
 @RestController
 @RequestMapping("/api/dishes")
 @Tag(name = "Dishes", description = "Endpoints for restaurant dish management, including creation, updates, and deletion.")
 public class DishController {
 
-    @Autowired
-    private MenuService menuService;
+    private final MenuService menuService;
+
+    /**
+     * @brief Constructor injection for DishController.
+     */
+    public DishController(MenuService menuService) {
+        this.menuService = menuService;
+    }
+
+    /**
+     * @brief Retrieves a list of all available dishes in the database.
+     *
+     * @return A ResponseEntity containing a list of DishDTO objects.
+     */
+    @GetMapping
+    @Operation(summary = "Get all dishes")
+    public ResponseEntity<List<DishDTO>> getAllDishes() {
+        return ResponseEntity.ok(menuService.getAllDishes());
+    }
 
     /**
      * @brief Creates a new dish for a given restaurant.

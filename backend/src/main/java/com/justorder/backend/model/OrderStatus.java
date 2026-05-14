@@ -20,7 +20,6 @@ public class OrderStatus {
     @Column(unique = true, nullable = false)
     private String status;
 
-    // Constructors
     public OrderStatus() {
     }
 

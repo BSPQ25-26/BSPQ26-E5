@@ -29,8 +29,8 @@ import org.apache.logging.log4j.Logger;
 /**
  * @brief Controller for managing customer-related operations.
  *
- * This controller handles customer creation, retrieval, order access,
- * and dashboard analytics.
+ * This controller handles customer creation, retrieval, updates, 
+ * order access, and dashboard analytics.
  */
 @RestController
 @RequestMapping("/api/customers")
@@ -43,6 +43,9 @@ public class CustomerController {
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
 
+    /**
+     * Constructor injection for better testability and following Spring recommendations.
+     */
     public CustomerController(RegisterService registerService,
                               CustomerRepository customerRepository,
                               OrderRepository orderRepository) {
@@ -63,9 +66,23 @@ public class CustomerController {
     }
 
     /**
+     * @brief Retrieves all customers.
+     *
+     * Returns a list of DTOs to avoid recursion issues.
+     */
+    @GetMapping
+    @Operation(summary = "Get all customers")
+    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
+        List<CustomerDTO> customers = customerRepository.findAll().stream()
+                .map(Customer::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(customers);
+    }
+
+    /**
      * @brief Creates or updates a customer.
      *
-     * Registers a new customer or updates an existing one.
+     * Registers a new customer or updates an existing one using RegisterService.
      *
      * @param request Customer data transfer object.
      * @return HTTP 200 if successful, or HTTP 500 on error.
@@ -93,6 +110,28 @@ public class CustomerController {
             logger.error("Error registering customer", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    /**
+     * @brief Updates an existing customer by ID.
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "Update an existing customer")
+    public ResponseEntity<CustomerDTO> updateCustomer(@Parameter(description = "Customer id") @PathVariable Long id, @RequestBody CustomerDTO request) {
+        return customerRepository.findById(id).map(existing -> {
+            existing.setName(request.getName());
+            existing.setAge(request.getAge());
+            existing.setDni(request.getDni());
+            existing.setPhone(request.getPhone());
+            existing.setEmail(request.getEmail());
+            
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                existing.setPassword(request.getPassword());
+            }
+
+            Customer updated = customerRepository.save(existing);
+            return ResponseEntity.ok(updated.toDTO());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
@@ -220,6 +259,19 @@ public class CustomerController {
         );
 
         return ResponseEntity.ok(dashboard);
+    }
+
+    /**
+     * @brief Deletes a specific customer by ID.
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete customer by id")
+    public ResponseEntity<Void> deleteCustomer(@Parameter(description = "Customer id") @PathVariable Long id) {
+        if (customerRepository.existsById(id)) {
+            customerRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     /**

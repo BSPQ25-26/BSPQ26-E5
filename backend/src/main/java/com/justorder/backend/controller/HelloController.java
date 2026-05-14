@@ -10,8 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 /**
  * @brief General controller for basic API health and test endpoints.
  *
- * This controller provides simple endpoints used to verify that
- * the backend service is running correctly.
+ * Serves as a simple endpoint to verify that the backend application 
+ * is running and correctly responding to HTTP requests.
+ * @version 1.0
  */
 @RestController
 @RequestMapping("/api")
@@ -23,7 +24,8 @@ public class HelloController {
     /**
      * @brief API health check endpoint.
      *
-     * Simple endpoint used to verify that the API is running.
+     * Handles GET requests to provide a basic greeting message.
+     * Useful for quick connectivity tests from the frontend or external clients.
      *
      * @return A greeting message confirming service availability.
      */

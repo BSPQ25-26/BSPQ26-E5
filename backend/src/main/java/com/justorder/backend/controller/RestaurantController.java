@@ -1,34 +1,26 @@
 package com.justorder.backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.justorder.backend.dto.DishDTO;
-import com.justorder.backend.dto.OrderDTO;
-import com.justorder.backend.dto.RejectionRequestDTO;
-import com.justorder.backend.dto.RestaurantDTO;
-import com.justorder.backend.dto.RestaurantDashboardDTO;
-import com.justorder.backend.dto.RestaurantProfileUpdateDTO;
-import com.justorder.backend.exception.ResourceNotFoundException;
-import com.justorder.backend.service.MenuService;
-import com.justorder.backend.service.OrderService;
+import com.justorder.backend.dto.*;
+import com.justorder.backend.model.Restaurant;
 import com.justorder.backend.repository.RestaurantRepository;
-import com.justorder.backend.service.RegisterService;
-import com.justorder.backend.service.RestaurantService;
-import com.justorder.backend.service.SessionService;
+import com.justorder.backend.exception.ResourceNotFoundException;
+import com.justorder.backend.service.*;
 
 /**
  * @brief Controller for managing restaurant-related operations.
@@ -43,20 +35,20 @@ public class RestaurantController {
 
     private static final Logger logger = LogManager.getLogger(RestaurantController.class);
 
-    @Autowired
-    private MenuService menuService;
-
+    private final MenuService menuService;
     private final RegisterService registerService;
     private final RestaurantRepository restaurantRepository;
     private final RestaurantService restaurantService;
-    private final SessionService sessionService;
     private final OrderService orderService;
+    private final SessionService sessionService;
 
-    public RestaurantController(RegisterService registerService,
+    public RestaurantController(MenuService menuService,
+                                RegisterService registerService,
                                 RestaurantRepository restaurantRepository,
                                 RestaurantService restaurantService,
                                 OrderService orderService,
-                                SessionService sessionService) {
+                                SessionService sessionService) {    
+        this.menuService = menuService;
         this.registerService = registerService;
         this.restaurantRepository = restaurantRepository;
         this.restaurantService = restaurantService;
@@ -70,10 +62,21 @@ public class RestaurantController {
      * @return Simple greeting message confirming service availability.
      */
     @GetMapping("/hello")
-    @Operation(summary = "Health check for restaurant endpoints", description = "Simple hello endpoint to verify restaurant controller is reachable")
+    @Operation(summary = "Health check for restaurant endpoints")
     public String hello() {
-        logger.info("GET /api/restaurants/hello - hello endpoint called");
         return "Hello from JustOrder!";
+    }
+
+    /**
+     * @brief Retrieves all restaurants.
+     */
+    @GetMapping
+    @Operation(summary = "Get all restaurants")
+    public ResponseEntity<List<RestaurantDTO>> getAllRestaurants() {
+        List<RestaurantDTO> results = restaurantRepository.findAll().stream()
+                .map(Restaurant::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(results);
     }
 
     /**
@@ -93,17 +96,12 @@ public class RestaurantController {
                 description = "Restaurant payload"
             )
             @RequestBody RestaurantDTO request) {
-
         try {
             logger.info("POST /api/restaurants/create - register restaurant request: {}",
                     request != null ? request.getName() : "<null>");
-
             this.registerService.registerRestaurant(request);
-
-            return ResponseEntity.ok().build();
-
+            return ResponseEntity.ok().build(); 
         } catch (Exception e) {
-            logger.error("Error registering restaurant", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -144,9 +142,7 @@ public class RestaurantController {
 
         try {
             Long restaurantId = sessionService.getActiveRestaurantId(authorization);
-
             logger.info("GET /api/restaurants/profile - profile request for restaurant {}", restaurantId);
-
             RestaurantDTO profile = restaurantService.getRestaurantProfile(restaurantId);
             return ResponseEntity.ok(profile);
 
@@ -179,12 +175,8 @@ public class RestaurantController {
 
         try {
             Long restaurantId = sessionService.getActiveRestaurantId(authorization);
-
             logger.info("PUT /api/restaurants/profile - update request for restaurant {}", restaurantId);
-
-            RestaurantDTO updatedProfile =
-                    restaurantService.updateRestaurantProfile(restaurantId, request);
-
+            RestaurantDTO updatedProfile = restaurantService.updateRestaurantProfile(restaurantId, request);
             return ResponseEntity.ok(updatedProfile);
 
         } catch (ResourceNotFoundException e) {
@@ -211,12 +203,8 @@ public class RestaurantController {
 
         try {
             Long restaurantId = sessionService.getActiveRestaurantId(authorization);
-
             logger.info("GET /api/restaurants/dashboard - dashboard request for restaurant {}", restaurantId);
-
-            RestaurantDashboardDTO dashboard =
-                    restaurantService.getRestaurantDashboard(restaurantId);
-
+            RestaurantDashboardDTO dashboard = restaurantService.getRestaurantDashboard(restaurantId);
             return ResponseEntity.ok(dashboard);
 
         } catch (ResourceNotFoundException e) {
@@ -255,6 +243,18 @@ public class RestaurantController {
     }
 
     /**
+     * @brief Updates an existing restaurant (admin endpoint).
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "Update restaurant (Admin)")
+    public ResponseEntity<RestaurantDTO> updateRestaurant(@PathVariable Long id, @RequestBody RestaurantDTO request) {
+        return restaurantRepository.findById(id).map(existing -> {
+            existing.setName(request.getName());
+            return ResponseEntity.ok(restaurantRepository.save(existing).toDTO());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
      * @brief Deletes all restaurants.
      *
      * WARNING: This operation removes all restaurant data.
@@ -287,7 +287,6 @@ public class RestaurantController {
 
         List<RestaurantDTO> results =
                 restaurantService.searchRestaurants(cuisine, minRating, minPrice, maxPrice);
-
         return ResponseEntity.ok(results);
     }
 
@@ -311,7 +310,6 @@ public class RestaurantController {
 
         OrderDTO updatedOrder =
                 orderService.rejectOrder(restaurantId, orderId, rejectionRequest.getReason());
-
         return ResponseEntity.ok(updatedOrder);
     }
 }

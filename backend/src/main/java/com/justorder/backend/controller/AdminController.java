@@ -10,24 +10,22 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 /**
  * @brief Controller responsible for administrator-only operations.
  *
- * This controller provides endpoints that can only be accessed
- * by users with the ADMIN role.
+ * Serves as a secure entry point that verifies the user has
+ * the 'ROLE_ADMIN' role via their JWT token before allowing access.
+ * * @version 1.0
  */
 @RestController
 @RequestMapping("/api/admin")
 @Tag(name = "Admin", description = "Administrator-only endpoints for managing admin operations.")
 public class AdminController {
 
-    // Si un usuario normal intenta entrar aquí, Spring le devolverá un Error 403 (Forbidden)
-    // Solo si el Token trae el "ROLE_ADMIN", podrá leer esto.
-
     /**
      * @brief Returns the administrator dashboard access message.
      *
-     * This endpoint is protected and requires the user
-     * to have the ADMIN role.
+     * If a regular user attempts to access this endpoint, Spring will return a 403 (Forbidden) error.
+     * Only requests with a valid JWT containing the "ROLE_ADMIN" role can access this resource.
      *
-     * @return ResponseEntity containing the dashboard access message.
+     * @return ResponseEntity containing a welcome message for the administrator.
      */
     @GetMapping("/dashboard")
     @Operation(summary = "Admin dashboard (requires admin role)")

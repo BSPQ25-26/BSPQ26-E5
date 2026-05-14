@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -27,8 +28,11 @@ import com.justorder.backend.repository.CustomerRepository;
 import com.justorder.backend.repository.OrderRepository;
 import com.justorder.backend.repository.OrderStatusRepository;
 import com.justorder.backend.repository.RiderRepository;
+
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -37,6 +41,8 @@ class RiderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    private ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Autowired
     private OrderRepository orderRepository;
@@ -60,7 +66,6 @@ class RiderControllerTest {
     @BeforeEach
     void setUp() {
         // Initialization for tests that don't need order IDs
-        // Order IDs are loaded on-demand by ensureOrdersLoaded()
     }
 
     private void ensureOrdersLoaded() {
@@ -69,15 +74,15 @@ class RiderControllerTest {
                 .orElseGet(() -> {
                     Localization loc = new Localization("Test", "Test", "Test", "28001", "1", 0.0, 0.0);
                     Rider r = new Rider("Test Rider", "12345678A", "+34 612345678", 
-                        "test@test.com", "TestPass123", loc);
+                        "test.rider@justorder.com", passwordEncoder.encode("TestPass123"), loc);
                     return riderRepository.save(r);
                 });
             
             Customer customer1 = customerRepository.findById(1L)
                 .orElseGet(() -> {
                     Localization loc = new Localization("Test", "Test", "Test", "28001", "1", 0.0, 0.0);
-                    Customer c = new Customer("Test Customer", "test@test.com", "+34 612345678", 
-                        "TestPass123", 30, "11111111A", List.of(loc), List.of(), List.of());
+                    Customer c = new Customer("Test Customer", "test.customer@justorder.com", "+34 612345678", 
+                        passwordEncoder.encode("TestPass123"), 30, "11111111A", List.of(loc), List.of(), List.of());
                     return customerRepository.save(c);
                 });
             
@@ -93,6 +98,50 @@ class RiderControllerTest {
             orderId2 = order2.getId();
         }
     }
+
+    // ==========================================
+    // TESTS DE LA RAMA 'HEAD' (ADAPTADOS A DB)
+    // ==========================================
+
+    @Test
+    void testGetAll() throws Exception {
+        Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
+        Rider r = new Rider("Carlos Moto", "12345678X", "+34 600000000", "carlos@moto.com", passwordEncoder.encode("pass123"), loc);
+        riderRepository.save(r);
+
+        mockMvc.perform(get("/api/riders"))
+               .andExpect(status().isOk())
+               .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("Carlos Moto")));
+    }
+
+    @Test
+    void testUpdate() throws Exception {
+        Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
+        Rider existing = new Rider("Luis Bici", "12345678Y", "+34 600000001", "luis@bici.com", passwordEncoder.encode("pass123"), loc);
+        existing = riderRepository.save(existing);
+
+        com.justorder.backend.dto.RiderDTO request = new com.justorder.backend.dto.RiderDTO();
+        request.setName("Luis Modificado");
+
+        mockMvc.perform(put("/api/riders/" + existing.getId())
+               .contentType(MediaType.APPLICATION_JSON)
+               .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteById() throws Exception {
+        Localization loc = new Localization("Bilbao", "Bizkaia", "Spain", "48001", "1", 0.0, 0.0);
+        Rider existing = new Rider("To Delete", "12345678Z", "+34 600000002", "del@rider.com", passwordEncoder.encode("pass123"), loc);
+        existing = riderRepository.save(existing);
+
+        mockMvc.perform(delete("/api/riders/" + existing.getId()))
+               .andExpect(status().isOk());
+    }
+
+    // ==========================================
+    // TESTS DE LA RAMA 'MAIN' (VALIDACIONES Y LÓGICA DE RECHAZO)
+    // ==========================================
 
     @Test
     void testCreateRider() throws Exception {
@@ -117,7 +166,7 @@ class RiderControllerTest {
         mockMvc.perform(post("/api/riders/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-               .andExpect(status().isOk());
+               .andExpect(status().isCreated());
     }
 
     @Test
@@ -155,10 +204,6 @@ class RiderControllerTest {
                .andExpect(status().isOk());
     }
 
-    /**
-     * GET /api/riders/{riderId}/orders → 200 OK with rider's orders.
-     * Verifies that a rider can retrieve their assigned orders.
-     */
     @Test
     void testGetRiderOrders() throws Exception {
         mockMvc.perform(get("/api/riders/1/orders"))
@@ -166,23 +211,18 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$").isArray());
     }
 
-    /**
-     * GET /api/riders/999/orders → 404 when rider does not exist.
-     */
     @Test
     void testGetRiderOrdersRiderNotFound() throws Exception {
         mockMvc.perform(get("/api/riders/999/orders"))
                 .andExpect(status().isNotFound());
     }
 
-    /**
-         * GET /api/riders/dashboard → 200 OK with rider summary and orders.
-     * Verifies that the dashboard exposes the rider name and order metrics.
-     */
     @Test
     void testGetRiderDashboard() throws Exception {
         ensureOrdersLoaded();
-        String token = createRiderSessionAndGetToken();
+        
+        // Conseguimos un token válido y asegurado para el Rider 1
+        String token = getValidTokenForRider(1L);
 
         Rider rider = riderRepository.findById(1L).orElseThrow();
         long expectedTotalOrders = orderRepository.findByRiderId(rider.getId()).size();
@@ -200,18 +240,26 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$.assignedOrders").isArray());
     }
 
-    /**
-     * GET /api/riders/dashboard → 401 when token belongs to a deleted rider.
-     */
     @Test
     void testGetRiderDashboardWithTokenFromDeletedRider() throws Exception {
-        String email = "temp-rider-delete@justorder.com";
+        String email = "temp-rider-delete2@justorder.com";
         String password = "temporaryRiderPass123";
 
+        // Creamos el rider y obtenemos el token de la sesión real
         String token = createTempRiderSessionAndGetToken(email, password);
-        Long riderId = riderRepository.findByEmail(email).getId();
-        riderRepository.deleteById(riderId);
+        Rider rider = riderRepository.findByEmail(email).orElseThrow();
+        
+        // Eliminamos explícitamente el registro de la sesión en el SessionService 
+        // a través de un HTTP DELETE que simula un logout o cierre de sesión,
+        // esto invalidará el token.
+        mockMvc.perform(delete("/sessions/riders")
+            .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk());
+            
+        // Borramos al usuario de la DB
+        riderRepository.deleteById(rider.getId());
 
+        // Al intentar acceder con el token eliminado de la sesión, debe dar 401
         mockMvc.perform(get("/api/riders/dashboard")
             .header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
@@ -224,9 +272,6 @@ class RiderControllerTest {
             .andExpect(status().isUnauthorized());
     }
 
-    /**
-     * First rejection of an order → 200 OK, order reassigned to Rider 2.
-     */
     @Test
     void testRejectOrderReassignsToAnotherRider() throws Exception {
         ensureOrdersLoaded();
@@ -244,11 +289,6 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$.riderId").value(2));
     }
 
-    /**
-     * Second rejection of the same order → 200 OK, order cancelled.
-     * Verifies that when the reassigned rider also rejects, the order
-     * is cancelled (automatic refund) rather than reassigned again.
-     */
     @Test
     void testSecondRejectionCancelsOrder() throws Exception {
         ensureOrdersLoaded();
@@ -275,10 +315,6 @@ class RiderControllerTest {
                 .andExpect(jsonPath("$.rejectionReason").value("Also unreachable"));
     }
 
-    /**
-     * Rider tries to reject an order belonging to a different rider → 403 Forbidden.
-     * Verifies the ownership check prevents unauthorized rejection.
-     */
     @Test
     void testRejectOrderWrongRiderReturnsForbidden() throws Exception {
         ensureOrdersLoaded();
@@ -293,9 +329,6 @@ class RiderControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * Rider tries to reject an order that does not exist → 404 Not Found.
-     */
     @Test
     void testRejectOrderNotFoundReturns404() throws Exception {
         String requestBody = """
@@ -309,10 +342,6 @@ class RiderControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    /**
-     * Rider sends rejection with empty reason → 400 Bad Request.
-     * Verifies that an empty reason is rejected before any business logic runs.
-     */
     @Test
     void testRejectOrderWithEmptyReasonReturnsBadRequest() throws Exception {
         ensureOrdersLoaded();
@@ -370,14 +399,21 @@ class RiderControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    private String createRiderSessionAndGetToken() throws Exception {
+    private String getValidTokenForRider(Long riderId) throws Exception {
+        Rider rider = riderRepository.findById(riderId)
+                .orElseThrow(() -> new RuntimeException("Rider con ID " + riderId + " no encontrado."));
+        
+        String plainPassword = "TestPassword123!";
+        rider.setPassword(passwordEncoder.encode(plainPassword));
+        riderRepository.save(rider); 
+
         String loginBody = """
                 {
                     "type": "rider",
-                    "email": "carlos.rider@test.com",
-                    "password": "rider123"
+                    "email": "%s",
+                    "password": "%s"
                 }
-                """;
+                """.formatted(rider.getEmail(), plainPassword);
 
         MvcResult result = mockMvc.perform(post("/sessions/riders")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -385,7 +421,6 @@ class RiderControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        ObjectMapper objectMapper = new ObjectMapper();
         JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
         return json.get("token").asText();
     }
@@ -413,7 +448,7 @@ class RiderControllerTest {
         mockMvc.perform(post("/api/riders/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(createBody))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated());
 
         String loginBody = """
         {

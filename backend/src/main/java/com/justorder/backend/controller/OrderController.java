@@ -1,5 +1,7 @@
 package com.justorder.backend.controller;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -19,19 +21,35 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 /**
  * @brief Controller responsible for order management operations.
  *
- * This controller handles order creation through checkout requests.
+ * This controller handles order creation through checkout requests,
+ * as well as administrative operations like retrieving, updating,
+ * and deleting orders.
  */
 @RestController
 @RequestMapping("/api/orders")
-@Tag(name = "Orders", description = "Endpoints to create and manage orders through checkout operations.")
+@Tag(name = "Orders", description = "Endpoints to create and manage orders through checkout and admin operations.")
 public class OrderController {
 
     private static final Logger logger = LogManager.getLogger(OrderController.class);
 
     private final OrderService orderService;
 
+    /**
+     * @brief Constructor injection for the OrderService.
+     */
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
+    }
+
+    /**
+     * @brief Retrieves a list of all orders in the database.
+     *
+     * @return a ResponseEntity containing a list of {@link OrderDTO} objects.
+     */
+    @GetMapping
+    @Operation(summary = "Get all orders", description = "Retrieves all orders in the system.")
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
     }
 
     /**
@@ -42,7 +60,7 @@ public class OrderController {
      *
      * @param request Checkout order request data.
      * @return The created order with HTTP 201 status,
-     *         or an error status depending on validation or processing results.
+     * or an error status depending on validation or processing results.
      */
     @PostMapping("/checkout")
     @Operation(summary = "Create an order (checkout)", description = "Creates an order from checkout payload; returns created order with id")
@@ -80,6 +98,42 @@ public class OrderController {
         } catch (Exception e) {
             logger.error("Error during checkout", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * @brief Administrative endpoint to create an order manually.
+     */
+    @PostMapping
+    @Operation(summary = "Create order manually", description = "Admin endpoint to directly create an order without checkout.")
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request));
+    }
+
+    /**
+     * @brief Updates an existing order's details and status.
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "Update an order", description = "Updates an existing order's details and status.")
+    public ResponseEntity<OrderDTO> updateOrder(@PathVariable Long id, @RequestBody OrderDTO request) {
+        try {
+            return ResponseEntity.ok(orderService.updateOrder(id, request));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * @brief Deletes a specific order by ID.
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete an order", description = "Removes an order from the database by its ID.")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        try {
+            orderService.deleteOrder(id);
+            return ResponseEntity.ok().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }

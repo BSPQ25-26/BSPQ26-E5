@@ -44,7 +44,6 @@ public class Restaurant {
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Dish> dishes = new ArrayList<>();
 
-
     @ManyToMany
     @JoinTable(
         name = "restaurant_cuisine_categories",
@@ -53,7 +52,10 @@ public class Restaurant {
     )
     private List<CuisineCategory> cuisineCategories = new ArrayList<>();
 
+    // --- Constructors ---
+
     public Restaurant() {}
+
     public Restaurant(String name, String description, String phone, String email, String password,
                       String mondayWorkingHours, String tuesdayWorkingHours, String wednesdayWorkingHours,
                       String thursdayWorkingHours, String fridayWorkingHours, String saturdayWorkingHours,
@@ -72,8 +74,8 @@ public class Restaurant {
         this.sundayWorkingHours = sundayWorkingHours;
     }
 
+    // --- Getters ---
 
-    // Getters
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getDescription() { return description; }
@@ -92,8 +94,8 @@ public class Restaurant {
     public List<Dish> getDishes() { return dishes; }
     public List<CuisineCategory> getCuisineCategories() { return cuisineCategories; }
 
+    // --- Setters ---
 
-    // Setters
     public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setDescription(String description) { this.description = description; }
@@ -111,6 +113,9 @@ public class Restaurant {
     public void setLocalizations(List<Localization> localizations) { this.localizations = localizations; }
     public void setDishes(List<Dish> dishes) { this.dishes = dishes; }
     public void setCuisineCategories(List<CuisineCategory> cuisineCategories) { this.cuisineCategories = cuisineCategories; }
+
+    // --- Conversion to DTO ---
+
     public RestaurantDTO toDTO() {
         RestaurantDTO dto = new RestaurantDTO(
             this.id, this.name, this.description, this.phone, this.email, this.password,
@@ -119,9 +124,17 @@ public class Restaurant {
             this.sundayWorkingHours
         );
         dto.setAverageRating(this.averageRating);
-        dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
-        dto.setDishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
-        dto.setCuisineCategoryNames(this.cuisineCategories.stream().map(CuisineCategory::getName).collect(Collectors.toList()));
+        
+        if (this.localizations != null) {
+            dto.setLocalizations(this.localizations.stream().map(Localization::toDTO).collect(Collectors.toList()));
+        }
+        if (this.dishes != null) {
+            dto.setDishes(this.dishes.stream().map(Dish::toDTO).collect(Collectors.toList()));
+        }
+        if (this.cuisineCategories != null) {
+            dto.setCuisineCategoryNames(this.cuisineCategories.stream().map(CuisineCategory::getName).collect(Collectors.toList()));
+        }
+        
         return dto;
     }
 }
