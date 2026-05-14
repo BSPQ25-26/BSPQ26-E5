@@ -17,7 +17,7 @@ class HelloControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
