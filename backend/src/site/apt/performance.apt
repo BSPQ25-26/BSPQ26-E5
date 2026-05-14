@@ -1,0 +1,17 @@
+ ------
+ Performance Tests
+ ------
+
+Performance Tests
+
+  Performance tests are executed with {{{https://databene.org/contiperf}ContiPerf}} via JUnit 4.
+
+  They are excluded from the normal test run and must be triggered explicitly:
+
++--
+./mvnw test -Dtest=RestaurantSearchPerformanceTest
++--
+
+  After running them, the raw ContiPerf report is available at:
+  {{{./performance/index.html}Direct HTML Report}}.
+
