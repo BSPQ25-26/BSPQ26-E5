@@ -38,6 +38,7 @@ describe("OrderStatusPage", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         localStorage.clear();
+        localStorage.setItem("customerId", "1");
     });
 
     test("renders the page title on mount", async () => {
@@ -50,7 +51,8 @@ describe("OrderStatusPage", () => {
         getCustomerOrders.mockResolvedValueOnce(mockOrders);
         await act(async () => { render(<OrderStatusPage />); });
 
-        expect(getCustomerOrders).toHaveBeenCalledWith(1);
+        // Cambiado a string "1" porque localStorage siempre devuelve strings
+        expect(getCustomerOrders).toHaveBeenCalledWith("1");
     });
 
     test("displays all orders after loading", async () => {

@@ -43,7 +43,7 @@ describe("Home", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "http://localhost:8080/sessions/users",
+                "http://localhost:8080/api/auth/customer/login",
                 expect.objectContaining({ method: "POST" })
             );
         });
