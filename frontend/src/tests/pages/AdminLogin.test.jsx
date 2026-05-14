@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AdminLogin from '../../pages/AdminLogin';
-import { loginAdmin } from '../../api/authService';
+import { loginUser } from '../../api/authApi';
 
 const mockNavigate = jest.fn();
 
@@ -41,8 +41,8 @@ describe('AdminLogin Component', () => {
     });
 
     test('3. Logs in successfully, saves token and redirects', async () => {
-        // Le decimos a la API mockeada que devuelva el token falso
-        loginAdmin.mockResolvedValueOnce('fake-token');
+        
+        loginUser.mockResolvedValueOnce({ token: 'fake-token' });
         
         const { container } = render(<AdminLogin />);
         const emailInput = container.querySelector('input[type="email"]');
@@ -59,8 +59,8 @@ describe('AdminLogin Component', () => {
     });
 
     test('4. Shows an error message on failed login (Invalid Credentials)', async () => {
-        // Mock backend rejecting the request (Invalid credentials)
-        loginAdmin.mockRejectedValueOnce(new Error('Invalid credentials'));
+
+        loginUser.mockRejectedValueOnce(new Error('Invalid credentials'));
         
         const { container } = render(<AdminLogin />);
         const emailInput = container.querySelector('input[type="email"]');
@@ -82,8 +82,8 @@ describe('AdminLogin Component', () => {
     });
 
     test('5. Handles network errors gracefully', async () => {
-        // Mock backend throwing a generic network error
-        loginAdmin.mockRejectedValueOnce(new Error('Network Error'));
+
+        loginUser.mockRejectedValueOnce(new Error('Network Error'));
         
         const { container } = render(<AdminLogin />);
         const emailInput = container.querySelector('input[type="email"]');
