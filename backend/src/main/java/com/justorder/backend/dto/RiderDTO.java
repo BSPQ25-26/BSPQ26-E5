@@ -16,8 +16,7 @@ public class RiderDTO {
     public RiderDTO() {
     }
 
-    public RiderDTO(Long id, String name, String dni, String phoneNumber, String email, String password, 
-                    List<Long> orderIds, LocalizationDTO starterPoint) {
+    public RiderDTO(Long id, String name, String dni, String phoneNumber, String email, String password, List<Long> orderIds, LocalizationDTO starterPoint) {
         this.id = id;
         this.name = name;
         this.dni = dni;
@@ -28,67 +27,23 @@ public class RiderDTO {
         this.starterPoint = starterPoint;
     }
 
-    public Long getId() {
-        return id;
-    }
+    // Getters
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public String getDni() { return dni; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
+    public List<Long> getOrderIds() { return orderIds; }
+    public LocalizationDTO getStarterPoint() { return starterPoint; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDni() {
-        return dni;
-    }
-
-    public void setDni(String dni) {
-        this.dni = dni;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public List<Long> getOrderIds() {
-        return orderIds;
-    }
-
-    public void setOrderIds(List<Long> orderIds) {
-        this.orderIds = orderIds;
-    }
-
-    public LocalizationDTO getStarterPoint() {
-        return starterPoint;
-    }
-
-    public void setStarterPoint(LocalizationDTO starterPoint) {
-        this.starterPoint = starterPoint;
-    }
+    // Setters
+    public void setId(Long id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public void setDni(String dni) { this.dni = dni; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPassword(String password) { this.password = password; }
+    public void setOrderIds(List<Long> orderIds) { this.orderIds = orderIds; }
+    public void setStarterPoint(LocalizationDTO starterPoint) { this.starterPoint = starterPoint; }
 }
